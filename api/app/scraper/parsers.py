@@ -1,10 +1,13 @@
 import re
 import json
 import extruct
+import logging
 from bs4 import BeautifulSoup
 from w3lib.html import get_base_url
 from urllib.parse import urljoin
 from typing import Dict, Any, Optional
+
+logger = logging.getLogger("TEST DEV")
 
 def clean_text(text: Any) -> Optional[str]:
     """Nettoie les espaces blancs et normalise la chaîne de caractères."""
@@ -301,7 +304,7 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
             product_info['title'] = clean_text(soup.find('title').text)
 
     if not product_info['price']:
-        price_elements = soup.find_all(class_=re.compile(r'(current-price|price-item|product-price|price-value|price\$|amount|special-price|actual-price)', re.I))
+        price_elements = soup.find_all(class_=re.compile(r'(a-offscreen|current-price|price-item|product-price|price-value|price\$|amount|special-price|actual-price)', re.I))
         for elem in price_elements:
             text = clean_text(elem.text)
             parsed = parse_price(text)
@@ -312,7 +315,8 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
                         product_info['currency'] = product_info['currency'] or iso_code
                 break
 
-    old_price_elements = soup.find_all(['del', 's']) or soup.find_all(class_=re.compile(r'(old-price|compare-price|regular-price|list-price|strike|original-price)', re.I))
+    old_price_elements = soup.find_all(['del', 's']) or soup.find_all(class_=re.compile(r'(apex-basisprice-offscreen-label|old-price|compare-price|regular-price|list-price|strike|original-price)', re.I))
+    logger.info(f"dev : {old_price_elements}")
     for elem in old_price_elements:
         parsed_old = parse_price(elem.text)
         if parsed_old and parsed_old != product_info['price']:
