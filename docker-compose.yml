@@ -12,8 +12,9 @@ services:
     environment:
       - ENVIRONMENT=development
     volumes:
-      - ./api/app:/app/app
+      - ./api:/app
     ipc: host # Requis pour éviter les crashs de Playwright liés à la mémoire partagée
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   frontend:
     build:
