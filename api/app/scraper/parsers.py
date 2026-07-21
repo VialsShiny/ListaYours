@@ -67,16 +67,16 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
         "gallery": [],
         "brand": None,
         "sku": None,
-        "availability": None,
+        "availability": False,
         "stock": None,
         "category": None,
         "variants": {
-            "sizes": [],
-            "colors": [],
-            "list": []
+            "size": [],
+            "color": [],
+            "style": [],
+            "pattern": [],
         },
         "characteristics": {},
-        "videos": [],
         "reviews": {
             "rating_average": None,
             "review_count": None,
@@ -163,11 +163,12 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
                 
                 avail = offer.get('availability')
                 if avail and isinstance(avail, str):
-                    product_info['availability'] = product_info['availability'] or avail.split('/')[-1]
                     if 'InStock' in avail:
                         product_info['stock'] = "InStock"
+                        product_info['availability'] = True
                     elif 'OutOfStock' in avail:
                         product_info['stock'] = "OutOfStock"
+                        product_info['availability'] = False
 
         agg_rating = node.get('aggregateRating')
         if isinstance(agg_rating, dict):
@@ -186,7 +187,7 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
                     review_data = {
                         "author": clean_text(author),
                         "date": r.get('datePublished'),
-                        "rating": r.get('reviewRating', {}).get('ratingValue') if isinstance(r.get('reviewRating'), dict) else None,
+                        "rating": r.get('averageCustomerReviews', {}).get('a-size-small') if isinstance(r.get('reviewRating'), dict) else None,
                         "text": clean_text(r.get('reviewBody') or r.get('description'))
                     }
                     if review_data["text"] and review_data not in product_info['reviews']['list']:
@@ -316,7 +317,6 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
                 break
 
     old_price_elements = soup.find_all(['del', 's']) or soup.find_all(class_=re.compile(r'(apex-basisprice-offscreen-label|old-price|compare-price|regular-price|list-price|strike|original-price)', re.I))
-    logger.info(f"dev : {old_price_elements}")
     for elem in old_price_elements:
         parsed_old = parse_price(elem.text)
         if parsed_old and parsed_old != product_info['price']:
@@ -334,9 +334,7 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
             pass
 
     for img in soup.find_all('img'):
-        img_src = (img.get('data-zoom-image') or img.get('data-zoom') or 
-                   img.get('data-src') or img.get('src') or 
-                   img.get('data-lazy-src') or img.get('srcset'))
+        img_src = (img.get('data-old-hires'))
         
         if img_src:
             if ',' in img_src and not img_src.startswith('data:'):
@@ -357,24 +355,35 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
     if not product_info['images'] and product_info['gallery']:
         product_info['images'] = product_info['gallery'][:2]
 
-    for table in soup.find_all(['table', 'dl']):
-        table_content = table.text.lower()
-        if any(term in table_content for term in ['spécification', 'specification', 'caractéristique', 'detail', 'sku', 'poids', 'weight', 'dimension', 'matière', 'composants']):
-            if table.name == 'table':
-                for row in table.find_all('tr'):
-                    cells = row.find_all(['td', 'th'])
-                    if len(cells) == 2:
-                        k = clean_text(cells[0].text)
-                        v = clean_text(cells[1].text)
-                        if k and v and len(k) < 60:
-                            product_info['characteristics'][k.rstrip(':')] = v
-            elif table.name == 'dl':
-                dts, dds = table.find_all('dt'), table.find_all('dd')
-                for k_el, v_el in zip(dts, dds):
-                    k = clean_text(k_el.text)
-                    v = clean_text(v_el.text)
-                    if k and v and len(k) < 60:
-                        product_info['characteristics'][k.rstrip(':')] = v
+    for container in soup.select("table, dl"):
+        if container.name == "table":
+            pairs = (
+                (clean_text(cells[0].get_text()), clean_text(cells[1].get_text()))
+                for row in container.select("tr")
+                if len(cells := row.select("th, td")) >= 2
+            )
+        else:
+            pairs = (
+                (clean_text(dt.get_text()), clean_text(dd.get_text()))
+                for dt, dd in zip(container.select("dt"), container.select("dd"))
+            )
+
+        for k, v in pairs:
+            if not k or not v or len(k) > 80:
+                continue
+
+            product_info["characteristics"][k.rstrip(":")] = v
+
+            key = "".join(c.lower() for c in k if c.isalnum())
+
+            # ASIN est universel
+            if key == "asin":
+                product_info["sku"] = v
+
+            # La marque n'est renseignée qu'une seule fois
+            elif not product_info.get("brand") and len(v) < 100:
+                if "brand" in key or "mar" in key:
+                    product_info["brand"] = v
 
     for sel in soup.find_all('select'):
         sel_id = (sel.get('id') or '').lower()
@@ -392,6 +401,76 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
                 product_info['variants']['sizes'].extend([o for o in opts if o not in product_info['variants']['sizes']])
             elif is_color:
                 product_info['variants']['colors'].extend([o for o in opts if o not in product_info['variants']['colors']])
+
+    # Amazon
+    if soup.select_one(".add-to-cart-button, .buy-now-button"):
+        product_info["stock"] = "InStock"
+        product_info["availability"] = True
+    else:
+        product_info["stock"] = "OutOfStock"
+        product_info["availability"] = False
+
+    for ul in soup.select("ul[data-a-button-group]"):
+        try:
+            dimension = json.loads(ul["data-a-button-group"]).get("name", "")
+        except Exception:
+            continue
+
+        dimension = dimension.lower().removesuffix("_name")
+
+        if dimension not in product_info["variants"]:
+            continue
+
+        target = product_info["variants"][dimension]
+
+        for li in ul.select("li[data-asin]"):
+            value = None
+
+            if dimension == "color":
+                img = li.select_one("img.swatch-image[alt]")
+                if img:
+                    value = clean_text(img["alt"])
+
+            if not value:
+                text = li.select_one(".swatch-title-text-display")
+                if text:
+                    value = clean_text(text.get_text())
+
+            if value and value not in target:
+                target.append(value)
+
+    category_block = soup.select_one("div[data-category]")
+    if category_block:
+        first_li = category_block.select_one("ul > li")
+        if first_li:
+            category = first_li.select_one("a .nav-a-content")
+            if category:
+                product_info['category'] = category.get_text(strip=True)
+
+    review_block = soup.select_one("#averageCustomerReviews")
+    if review_block:
+        rating = None
+        rating_alt = review_block.select_one(".a-icon-alt")
+        if rating_alt:
+            rating = (
+                clean_text(rating_alt.get_text())
+                .split(" sur ")[0]
+                .replace(",", ".")
+            )
+
+        review_count = None
+        review_text = review_block.select_one("#acrCustomerReviewText")
+        if review_text:
+            review_count = "".join(filter(str.isdigit, review_text.get_text()))
+
+        product_info["reviews"]["rating_average"] = float(rating) if rating else None
+        product_info["reviews"]["review_count"] = int(review_count) if review_count else None
+
+    asin_block = soup.select_one("[data-asin]")
+    if asin_block:
+        asin = asin_block.get("data-asin")
+        if asin:
+            product_info['sku'] = asin
 
     nullable_fields = ['title', 'price', 'old_price', 'discount', 'currency', 'description', 'brand', 'sku', 'availability', 'stock', 'category']
     for field in nullable_fields:
