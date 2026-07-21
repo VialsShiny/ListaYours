@@ -1,0 +1,7 @@
+# Tree Mapper
+.tree/
+
+# Dependencies
+node_modules/
+vendor/
+.pnpm/

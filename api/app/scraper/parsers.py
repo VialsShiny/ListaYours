@@ -1,0 +1,397 @@
+import re
+import json
+import extruct
+from bs4 import BeautifulSoup
+from w3lib.html import get_base_url
+from urllib.parse import urljoin
+from typing import Dict, Any, Optional
+
+def clean_text(text: Any) -> Optional[str]:
+    """Nettoie les espaces blancs et normalise la chaîne de caractères."""
+    if text is None:
+        return None
+    if not isinstance(text, str):
+        text = str(text)
+    text = re.sub(r'\s+', ' ', text)
+    return text.strip()
+
+def parse_price(price_val: Any) -> Optional[str]:
+    """Extrait et normalise de façon robuste les valeurs numériques de prix en chaîne."""
+    if price_val is None:
+        return None
+    if isinstance(price_val, (int, float)):
+        return str(price_val)
+    
+    cleaned = re.sub(r'[^\d.,]', '', str(price_val))
+    if not cleaned:
+        return None
+    
+    if ',' in cleaned and '.' in cleaned:
+        cleaned = cleaned.replace(',', '')
+    elif ',' in cleaned and not '.' in cleaned:
+        if len(cleaned.split(',')[-1]) == 2:
+            cleaned = cleaned.replace(',', '.')
+            
+    return cleaned
+
+def extract_all_data(html: str, url: str) -> Dict[str, Any]:
+    """
+    Extrait de manière universelle et sécurisée toutes les données d'un produit.
+    Gère défensivement les valeurs 'None' renvoyées par Amazon ou extruct.
+    """
+    base_url = get_base_url(html, url)
+    soup = BeautifulSoup(html, 'html.parser')
+    
+    try:
+        extruct_data = extruct.extract(
+            html, 
+            base_url=base_url, 
+            syntaxes=['json-ld', 'microdata', 'rdfa', 'opengraph']
+        ) or {}
+    except Exception:
+        extruct_data = {}
+
+    product_info: Dict[str, Any] = {
+        "product_url": url,
+        "canonical_url": None,
+        "title": None,
+        "price": None,
+        "old_price": None,
+        "discount": None,
+        "currency": None,
+        "description": None,
+        "images": [],
+        "gallery": [],
+        "brand": None,
+        "sku": None,
+        "availability": None,
+        "stock": None,
+        "category": None,
+        "variants": {
+            "sizes": [],
+            "colors": [],
+            "list": []
+        },
+        "characteristics": {},
+        "videos": [],
+        "reviews": {
+            "rating_average": None,
+            "review_count": None,
+            "list": []
+        }
+    }
+
+    canonical_tag = soup.find('link', rel='canonical')
+    if canonical_tag and canonical_tag.get('href'):
+        product_info['canonical_url'] = urljoin(base_url, canonical_tag.get('href'))
+    else:
+        product_info['canonical_url'] = url
+
+    # =========================================================================
+    # STRATÉGIE 1 : JSON-LD (Protection contre NoneType)
+    # =========================================================================
+    json_ld_items = extruct_data.get('json-ld') or []
+    if not isinstance(json_ld_items, list):
+        json_ld_items = []
+
+    for script in soup.find_all('script', type='application/ld+json'):
+        try:
+            content = script.string
+            if content:
+                loaded = json.loads(content)
+                if isinstance(loaded, list):
+                    json_ld_items.extend(loaded)
+                elif isinstance(loaded, dict):
+                    json_ld_items.append(loaded)
+        except Exception:
+            continue
+
+    def process_product_node(node: Dict[str, Any]):
+        if not isinstance(node, dict):
+            return
+        
+        if node.get('name'):
+            product_info['title'] = product_info['title'] or clean_text(node.get('name'))
+        if node.get('description'):
+            product_info['description'] = product_info['description'] or clean_text(node.get('description'))
+        
+        for sku_key in ['sku', 'mpn', 'gtin13', 'gtin8', 'gtin14', 'productID']:
+            if node.get(sku_key):
+                product_info['sku'] = product_info['sku'] or clean_text(node.get(sku_key))
+                break
+            
+        brand = node.get('brand')
+        if isinstance(brand, dict):
+            product_info['brand'] = product_info['brand'] or clean_text(brand.get('name'))
+        elif isinstance(brand, str):
+            product_info['brand'] = product_info['brand'] or clean_text(brand)
+            
+        if node.get('category'):
+            product_info['category'] = product_info['category'] or clean_text(node.get('category'))
+
+        imgs = node.get('image')
+        if imgs:
+            img_nodes = imgs if isinstance(imgs, list) else [imgs]
+            for img_item in img_nodes:
+                if not img_item:
+                    continue
+                img_url = img_item if isinstance(img_item, str) else img_item.get('url') if isinstance(img_item, dict) else None
+                if img_url:
+                    full_img_url = urljoin(base_url, img_url)
+                    if full_img_url not in product_info['images']:
+                        product_info['images'].append(full_img_url)
+
+        offers = node.get('offers')
+        if offers:
+            offers_list = offers if isinstance(offers, list) else [offers]
+            for offer in offers_list:
+                if not isinstance(offer, dict):
+                    continue
+                
+                if offer.get('@type') == 'AggregateOffer':
+                    p_val = offer.get('lowPrice') or offer.get('highPrice') or offer.get('price')
+                else:
+                    p_val = offer.get('price')
+                    
+                if p_val:
+                    product_info['price'] = product_info['price'] or parse_price(p_val)
+                if offer.get('priceCurrency'):
+                    product_info['currency'] = product_info['currency'] or clean_text(offer.get('priceCurrency'))
+                
+                avail = offer.get('availability')
+                if avail and isinstance(avail, str):
+                    product_info['availability'] = product_info['availability'] or avail.split('/')[-1]
+                    if 'InStock' in avail:
+                        product_info['stock'] = "InStock"
+                    elif 'OutOfStock' in avail:
+                        product_info['stock'] = "OutOfStock"
+
+        agg_rating = node.get('aggregateRating')
+        if isinstance(agg_rating, dict):
+            if agg_rating.get('ratingValue'):
+                product_info['reviews']['rating_average'] = product_info['reviews']['rating_average'] or agg_rating.get('ratingValue')
+            if agg_rating.get('reviewCount') or agg_rating.get('ratingCount'):
+                product_info['reviews']['review_count'] = product_info['reviews']['review_count'] or (agg_rating.get('reviewCount') or agg_rating.get('ratingCount'))
+
+        reviews = node.get('review')
+        if reviews:
+            rev_list = reviews if isinstance(reviews, list) else [reviews]
+            for r in rev_list:
+                if isinstance(r, dict):
+                    author_node = r.get('author', {})
+                    author = author_node.get('name') if isinstance(author_node, dict) else r.get('author')
+                    review_data = {
+                        "author": clean_text(author),
+                        "date": r.get('datePublished'),
+                        "rating": r.get('reviewRating', {}).get('ratingValue') if isinstance(r.get('reviewRating'), dict) else None,
+                        "text": clean_text(r.get('reviewBody') or r.get('description'))
+                    }
+                    if review_data["text"] and review_data not in product_info['reviews']['list']:
+                        product_info['reviews']['list'].append(review_data)
+
+    for item in json_ld_items:
+        if not isinstance(item, dict):
+            continue
+        
+        # SÉCURISATION : Si item.get('@graph') vaut None, fallback sur [item]
+        nodes = item.get('@graph')
+        if nodes is None:
+            nodes = [item]
+        elif not isinstance(nodes, list):
+            nodes = [nodes]
+
+        for node in nodes:
+            if not isinstance(node, dict):
+                continue
+            node_type = node.get('@type', '')
+            if node_type is None:
+                continue
+            types = node_type if isinstance(node_type, list) else [node_type]
+            if any(t and isinstance(t, str) and t.lower() == 'product' for t in types):
+                process_product_node(node)
+
+    # =========================================================================
+    # STRATÉGIE 2 : MICRODATA & RDFA
+    # =========================================================================
+    for syntax in ['microdata', 'rdfa']:
+        items = extruct_data.get(syntax) or []
+        if not isinstance(items, list):
+            continue
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            i_type = item.get('type', item.get('@type', ''))
+            if i_type is None:
+                continue
+            types = i_type if isinstance(i_type, list) else [i_type]
+            if any(t and isinstance(t, str) and 'product' in t.lower() for t in types):
+                props = item.get('properties', item)
+                if isinstance(props, dict):
+                    if props.get('name'):
+                        product_info['title'] = product_info['title'] or clean_text(props.get('name'))
+                    if props.get('description'):
+                        product_info['description'] = product_info['description'] or clean_text(props.get('description'))
+                    if props.get('sku'):
+                        product_info['sku'] = product_info['sku'] or clean_text(props.get('sku'))
+                    if props.get('price'):
+                        product_info['price'] = product_info['price'] or parse_price(props.get('price'))
+                    if props.get('priceCurrency'):
+                        product_info['currency'] = product_info['currency'] or clean_text(props.get('priceCurrency'))
+
+    # =========================================================================
+    # STRATÉGIE 3 : OPENGRAPH ET META TAGS
+    # =========================================================================
+    meta_data = {}
+    og_items = extruct_data.get('opengraph') or []
+    if isinstance(og_items, list):
+        for og in og_items:
+            if not isinstance(og, dict):
+                continue
+            props = og.get('properties') or []
+            if isinstance(props, list):
+                for prop in props:
+                    if isinstance(prop, (list, tuple)) and len(prop) >= 2:
+                        meta_data[prop[0]] = prop[1]
+
+    for meta in soup.find_all('meta'):
+        prop_key = meta.get('property', '') or meta.get('name', '')
+        content_val = meta.get('content', '')
+        if prop_key and content_val:
+            meta_data[prop_key] = content_val
+
+    meta_mappings = {
+        'title': ['og:title', 'twitter:title', 'title'],
+        'description': ['og:description', 'twitter:description', 'description', 'keywords'],
+        'price': ['product:price:amount', 'og:price:amount', 'twitter:data1', 'price'],
+        'currency': ['product:price:currency', 'og:price:currency', 'currency'],
+        'brand': ['product:brand', 'og:brand', 'brand'],
+        'sku': ['product:retailer_item_id', 'product:sku', 'sku'],
+        'availability': ['product:availability', 'og:availability', 'availability']
+    }
+
+    for field, tags in meta_mappings.items():
+        if not product_info[field]:
+            for tag in tags:
+                if tag in meta_data and meta_data[tag]:
+                    if field == 'price':
+                        product_info[field] = parse_price(meta_data[tag])
+                    else:
+                        product_info[field] = clean_text(meta_data[tag])
+                    break
+
+    for tag_img in ['og:image', 'og:image:secure_url', 'twitter:image', 'twitter:image:src']:
+        if tag_img in meta_data and meta_data[tag_img]:
+            full_img = urljoin(base_url, meta_data[tag_img])
+            if full_img not in product_info['images']:
+                product_info['images'].append(full_img)
+
+    # =========================================================================
+    # STRATÉGIE 4 : HEURISTIQUES DOM PAR DÉFAUT
+    # =========================================================================
+    if not product_info['title']:
+        h1_tags = soup.find_all('h1')
+        for h1 in h1_tags:
+            h1_class = " ".join(h1.get('class', []) or []).lower()
+            if any(k in h1_class for k in ['product', 'title', 'name', 'heading', 'detail']):
+                product_info['title'] = clean_text(h1.text)
+                break
+        if not product_info['title'] and h1_tags:
+            product_info['title'] = clean_text(h1_tags[0].text)
+        if not product_info['title'] and soup.find('title'):
+            product_info['title'] = clean_text(soup.find('title').text)
+
+    if not product_info['price']:
+        price_elements = soup.find_all(class_=re.compile(r'(current-price|price-item|product-price|price-value|price\$|amount|special-price|actual-price)', re.I))
+        for elem in price_elements:
+            text = clean_text(elem.text)
+            parsed = parse_price(text)
+            if parsed:
+                product_info['price'] = parsed
+                for symbol, iso_code in [('€', 'EUR'), ('$', 'USD'), ('£', 'GBP'), ('¥', 'JPY')]:
+                    if symbol in text:
+                        product_info['currency'] = product_info['currency'] or iso_code
+                break
+
+    old_price_elements = soup.find_all(['del', 's']) or soup.find_all(class_=re.compile(r'(old-price|compare-price|regular-price|list-price|strike|original-price)', re.I))
+    for elem in old_price_elements:
+        parsed_old = parse_price(elem.text)
+        if parsed_old and parsed_old != product_info['price']:
+            product_info['old_price'] = parsed_old
+            break
+
+    if product_info['price'] and product_info['old_price']:
+        try:
+            p_float = float(product_info['price'])
+            op_float = float(product_info['old_price'])
+            if op_float > p_float:
+                pct = round(((op_float - p_float) / op_float) * 100)
+                product_info['discount'] = f"-{pct}%"
+        except ValueError:
+            pass
+
+    for img in soup.find_all('img'):
+        img_src = (img.get('data-zoom-image') or img.get('data-zoom') or 
+                   img.get('data-src') or img.get('src') or 
+                   img.get('data-lazy-src') or img.get('srcset'))
+        
+        if img_src:
+            if ',' in img_src and not img_src.startswith('data:'):
+                img_src = img_src.split(',')[-1].strip().split(' ')[0]
+                
+            full_url = urljoin(base_url, img_src)
+            img_alt = (img.get('alt') or '').lower()
+            img_class = " ".join(img.get('class', []) or []).lower()
+            img_id = (img.get('id') or '').lower()
+            
+            exclude_patterns = ['logo', 'banner', 'icon', 'avatar', 'pixel', 'cart', 'arrow', 'loader', 'badge', 'payment', 'sprite']
+            if any(pat in full_url.lower() or pat in img_alt or pat in img_class or pat in img_id for pat in exclude_patterns):
+                continue
+                
+            if full_url not in product_info['gallery'] and not full_url.startswith('data:'):
+                product_info['gallery'].append(full_url)
+
+    if not product_info['images'] and product_info['gallery']:
+        product_info['images'] = product_info['gallery'][:2]
+
+    for table in soup.find_all(['table', 'dl']):
+        table_content = table.text.lower()
+        if any(term in table_content for term in ['spécification', 'specification', 'caractéristique', 'detail', 'sku', 'poids', 'weight', 'dimension', 'matière', 'composants']):
+            if table.name == 'table':
+                for row in table.find_all('tr'):
+                    cells = row.find_all(['td', 'th'])
+                    if len(cells) == 2:
+                        k = clean_text(cells[0].text)
+                        v = clean_text(cells[1].text)
+                        if k and v and len(k) < 60:
+                            product_info['characteristics'][k.rstrip(':')] = v
+            elif table.name == 'dl':
+                dts, dds = table.find_all('dt'), table.find_all('dd')
+                for k_el, v_el in zip(dts, dds):
+                    k = clean_text(k_el.text)
+                    v = clean_text(v_el.text)
+                    if k and v and len(k) < 60:
+                        product_info['characteristics'][k.rstrip(':')] = v
+
+    for sel in soup.find_all('select'):
+        sel_id = (sel.get('id') or '').lower()
+        sel_name = (sel.get('name') or '').lower()
+        sel_class = " ".join(sel.get('class', []) or []).lower()
+        
+        is_size = any(k in sel_id or k in sel_name or k in sel_class for k in ['size', 'taille', 'format', 'dimension'])
+        is_color = any(k in sel_id or k in sel_name or k in sel_class for k in ['color', 'couleur', 'teinte', 'pattern'])
+        
+        opts = [clean_text(o.text) for o in sel.find_all('option') if o.get('value') and o.text.strip()]
+        opts = [o for o in opts if o and not any(p in o.lower() for p in ['choisir', 'sélectionner', 'select', 'choose'])]
+        
+        if opts:
+            if is_size:
+                product_info['variants']['sizes'].extend([o for o in opts if o not in product_info['variants']['sizes']])
+            elif is_color:
+                product_info['variants']['colors'].extend([o for o in opts if o not in product_info['variants']['colors']])
+
+    nullable_fields = ['title', 'price', 'old_price', 'discount', 'currency', 'description', 'brand', 'sku', 'availability', 'stock', 'category']
+    for field in nullable_fields:
+        if not product_info[field]:
+            product_info[field] = None
+
+    return product_info
