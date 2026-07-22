@@ -10,7 +10,7 @@ FILES_DIR.mkdir(parents=True, exist_ok=True)
 
 logger = logging.getLogger("scraper_engine")
 
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0"
 
 async def fetch_with_httpx(url: str) -> str:
     headers = {
