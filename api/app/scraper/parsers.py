@@ -305,8 +305,12 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
         if not product_info['title'] and soup.find('title'):
             product_info['title'] = clean_text(soup.find('title').text)
 
-    if not product_info['price']:
-        price_elements = soup.find_all(class_=re.compile(r'(a-offscreen|current-price|price-item|product-price|price-value|price\$|amount|special-price|actual-price)', re.I))
+    if not product_info['price']:   
+        price_elements = soup.find_all(class_=re.compile(r'(current-price|price-item|product-price|price-value|price\$|amount|special-price|actual-price|price-default--defaultPriceWrap)', re.I))
+
+        if not price_elements:
+            price_elements = soup.find_all(attrs={"data-lu-target": "price"})
+
         for elem in price_elements:
             text = clean_text(elem.text)
             parsed = parse_price(text)
@@ -317,7 +321,7 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
                         product_info['currency'] = product_info['currency'] or iso_code
                 break
 
-    old_price_elements = soup.find_all(['del', 's']) or soup.find_all(class_=re.compile(r'(apex-basisprice-offscreen-label|old-price|compare-price|regular-price|list-price|strike|original-price)', re.I))
+    old_price_elements = soup.find_all(['del', 's']) or soup.find_all(class_=re.compile(r'(old-price|compare-price|regular-price|list-price|strike|original-price|price-default--original--CWcHOit)', re.I))
     for elem in old_price_elements:
         parsed_old = parse_price(elem.text)
         if parsed_old and parsed_old != product_info['price']:
