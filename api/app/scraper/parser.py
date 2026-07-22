@@ -7,6 +7,7 @@ from w3lib.html import get_base_url
 from urllib.parse import urljoin
 from typing import Dict, Any, Optional
 from app.scraper.parsers.amazon import amazon_parsers
+from app.scraper.parsers.aliexpress import aliexpress_parsers
 
 logger = logging.getLogger("TEST DEV")
 
@@ -307,7 +308,6 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
 
     if not product_info['price']:
         price_elements = soup.find_all(class_=re.compile(r'(a-offscreen|current-price|price-item|product-price|price-value|price\$|amount|special-price|actual-price)', re.I))
-        logger.info(price_elements)
         for elem in price_elements:
             text = clean_text(elem.text)
             parsed = parse_price(text)
@@ -325,8 +325,6 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
             product_info['old_price'] = parsed_old
             break
 
-    logger.info(product_info['price'])
-
     if product_info['price'] and product_info['old_price']:
         try:
             p_float = float(product_info['price'])
@@ -336,8 +334,6 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
                 product_info['discount'] = f"-{pct}%"
         except ValueError:
             pass
-
-    logger.info(product_info['price'])
 
     for img in soup.find_all("img"):
         img_src = None
@@ -417,7 +413,7 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
                 product_info['variants']['color'].extend([o for o in opts if o not in product_info['variants']['color']])
 
     amazon_parsers(product_info, soup, base_url)
-
+    aliexpress_parsers(product_info, soup)
 
     nullable_fields = ['title', 'price', 'old_price', 'discount', 'currency', 'description', 'brand', 'sku', 'stock', 'category']
     for field in nullable_fields:
