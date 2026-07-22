@@ -405,10 +405,10 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
     # Amazon
     if soup.select_one(".add-to-cart-button, .buy-now-button"):
         product_info["stock"] = "InStock"
-        product_info["availability"] = True
+        product_info['availability'] = True
     else:
         product_info["stock"] = "OutOfStock"
-        product_info["availability"] = False
+        product_info['availability'] = False
 
     for ul in soup.select("ul[data-a-button-group]"):
         try:
@@ -472,7 +472,7 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
         if asin:
             product_info['sku'] = asin
 
-    nullable_fields = ['title', 'price', 'old_price', 'discount', 'currency', 'description', 'brand', 'sku', 'availability', 'stock', 'category']
+    nullable_fields = ['title', 'price', 'old_price', 'discount', 'currency', 'description', 'brand', 'sku', 'stock', 'category']
     for field in nullable_fields:
         if not product_info[field]:
             product_info[field] = None
