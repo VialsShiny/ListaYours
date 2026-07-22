@@ -7,6 +7,7 @@ from w3lib.html import get_base_url
 from urllib.parse import urljoin
 from typing import Dict, Any, Optional
 
+
 logger = logging.getLogger("TEST DEV")
 
 def clean_text(text: Any) -> Optional[str]:
@@ -333,27 +334,35 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
         except ValueError:
             pass
 
-    for img in soup.find_all('img'):
-        img_src = (img.get('data-old-hires'))
-        
-        if img_src:
-            if ',' in img_src and not img_src.startswith('data:'):
-                img_src = img_src.split(',')[-1].strip().split(' ')[0]
-                
-            full_url = urljoin(base_url, img_src)
-            img_alt = (img.get('alt') or '').lower()
-            img_class = " ".join(img.get('class', []) or []).lower()
-            img_id = (img.get('id') or '').lower()
-            
-            exclude_patterns = ['logo', 'banner', 'icon', 'avatar', 'pixel', 'cart', 'arrow', 'loader', 'badge', 'payment', 'sprite']
-            if any(pat in full_url.lower() or pat in img_alt or pat in img_class or pat in img_id for pat in exclude_patterns):
-                continue
-                
-            if full_url not in product_info['gallery'] and not full_url.startswith('data:'):
-                product_info['gallery'].append(full_url)
+    for img in soup.find_all("img"):
+        img_src = None
 
-    if not product_info['images'] and product_info['gallery']:
-        product_info['images'] = product_info['gallery'][:2]
+        for attr in ("product", "gallery", "carousel", "main", "featured", "zoom", "thumb"):
+            value = img.get(attr)
+            if value:
+                img_src = value
+                break
+
+        if not img_src or img_src.startswith("data:"):
+            continue
+
+        if "," in img_src:
+            candidates = []
+            for part in img_src.split(","):
+                part = part.strip().split(" ")[0]
+                if part:
+                    candidates.append(part)
+
+            if candidates:
+                img_src = candidates[-1]
+
+        full_url = urljoin(base_url, img_src)
+
+        if full_url not in product_info["gallery"]:
+            product_info["gallery"].append(full_url)
+
+    if not product_info["images"] and product_info["gallery"]:
+        product_info["images"] = product_info["gallery"][:2]
 
     for container in soup.select("table, dl"):
         if container.name == "table":
@@ -403,6 +412,21 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
                 product_info['variants']['colors'].extend([o for o in opts if o not in product_info['variants']['colors']])
 
     # Amazon
+    for img in soup.find_all('img'):
+        img_src = (img.get('data-old-hires'))
+        
+        if img_src:
+            if ',' in img_src and not img_src.startswith('data:'):
+                img_src = img_src.split(',')[-1].strip().split(' ')[0]
+                
+            full_url = urljoin(base_url, img_src)
+                
+            if full_url not in product_info['gallery'] and not full_url.startswith('data:'):
+                product_info['gallery'].append(full_url)
+
+    if not product_info['images'] and product_info['gallery']:
+        product_info['images'] = product_info['gallery'][:2]
+
     if soup.select_one(".add-to-cart-button, .buy-now-button"):
         product_info["stock"] = "InStock"
         product_info['availability'] = True
