@@ -1,7 +1,7 @@
 import logging
 import httpx
 from playwright.async_api import async_playwright
-from app.scraper.parsers import extract_all_data
+from app.scraper.parser import extract_all_data
 from pathlib import Path
 from datetime import datetime
 

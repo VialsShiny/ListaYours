@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from w3lib.html import get_base_url
 from urllib.parse import urljoin
 from typing import Dict, Any, Optional
-
+from app.scraper.parsers.amazon import amazon_parsers
 
 logger = logging.getLogger("TEST DEV")
 
@@ -307,6 +307,7 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
 
     if not product_info['price']:
         price_elements = soup.find_all(class_=re.compile(r'(a-offscreen|current-price|price-item|product-price|price-value|price\$|amount|special-price|actual-price)', re.I))
+        logger.info(price_elements)
         for elem in price_elements:
             text = clean_text(elem.text)
             parsed = parse_price(text)
@@ -317,12 +318,14 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
                         product_info['currency'] = product_info['currency'] or iso_code
                 break
 
-    old_price_elements = soup.find_all(['del', 's']) or soup.find_all(class_=re.compile(r'(apex-basisprice-offscreen-label|old-price|compare-price|regular-price|list-price|strike|original-price)', re.I))
+    old_price_elements = soup.find_all(['del', 's']) or soup.find_all(class_=re.compile(r'(old-price|compare-price|regular-price|list-price|strike|original-price)', re.I))
     for elem in old_price_elements:
         parsed_old = parse_price(elem.text)
         if parsed_old and parsed_old != product_info['price']:
             product_info['old_price'] = parsed_old
             break
+
+    logger.info(product_info['price'])
 
     if product_info['price'] and product_info['old_price']:
         try:
@@ -333,6 +336,8 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
                 product_info['discount'] = f"-{pct}%"
         except ValueError:
             pass
+
+    logger.info(product_info['price'])
 
     for img in soup.find_all("img"):
         img_src = None
@@ -407,94 +412,12 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
         
         if opts:
             if is_size:
-                product_info['variants']['sizes'].extend([o for o in opts if o not in product_info['variants']['sizes']])
+                product_info['variants']['size'].extend([o for o in opts if o not in product_info['variants']['size']])
             elif is_color:
-                product_info['variants']['colors'].extend([o for o in opts if o not in product_info['variants']['colors']])
+                product_info['variants']['color'].extend([o for o in opts if o not in product_info['variants']['color']])
 
-    # Amazon
-    for img in soup.find_all('img'):
-        img_src = (img.get('data-old-hires'))
-        
-        if img_src:
-            if ',' in img_src and not img_src.startswith('data:'):
-                img_src = img_src.split(',')[-1].strip().split(' ')[0]
-                
-            full_url = urljoin(base_url, img_src)
-                
-            if full_url not in product_info['gallery'] and not full_url.startswith('data:'):
-                product_info['gallery'].append(full_url)
+    amazon_parsers(product_info, soup, base_url)
 
-    if not product_info['images'] and product_info['gallery']:
-        product_info['images'] = product_info['gallery'][:2]
-
-    if soup.select_one(".add-to-cart-button, .buy-now-button"):
-        product_info["stock"] = "InStock"
-        product_info['availability'] = True
-    else:
-        product_info["stock"] = "OutOfStock"
-        product_info['availability'] = False
-
-    for ul in soup.select("ul[data-a-button-group]"):
-        try:
-            dimension = json.loads(ul["data-a-button-group"]).get("name", "")
-        except Exception:
-            continue
-
-        dimension = dimension.lower().removesuffix("_name")
-
-        if dimension not in product_info["variants"]:
-            continue
-
-        target = product_info["variants"][dimension]
-
-        for li in ul.select("li[data-asin]"):
-            value = None
-
-            if dimension == "color":
-                img = li.select_one("img.swatch-image[alt]")
-                if img:
-                    value = clean_text(img["alt"])
-
-            if not value:
-                text = li.select_one(".swatch-title-text-display")
-                if text:
-                    value = clean_text(text.get_text())
-
-            if value and value not in target:
-                target.append(value)
-
-    category_block = soup.select_one("div[data-category]")
-    if category_block:
-        first_li = category_block.select_one("ul > li")
-        if first_li:
-            category = first_li.select_one("a .nav-a-content")
-            if category:
-                product_info['category'] = category.get_text(strip=True)
-
-    review_block = soup.select_one("#averageCustomerReviews")
-    if review_block:
-        rating = None
-        rating_alt = review_block.select_one(".a-icon-alt")
-        if rating_alt:
-            rating = (
-                clean_text(rating_alt.get_text())
-                .split(" sur ")[0]
-                .replace(",", ".")
-            )
-
-        review_count = None
-        review_text = review_block.select_one("#acrCustomerReviewText")
-        if review_text:
-            review_count = "".join(filter(str.isdigit, review_text.get_text()))
-
-        product_info["reviews"]["rating_average"] = float(rating) if rating else None
-        product_info["reviews"]["review_count"] = int(review_count) if review_count else None
-
-    asin_block = soup.select_one("[data-asin]")
-    if asin_block:
-        asin = asin_block.get("data-asin")
-        if asin:
-            product_info['sku'] = asin
 
     nullable_fields = ['title', 'price', 'old_price', 'discount', 'currency', 'description', 'brand', 'sku', 'stock', 'category']
     for field in nullable_fields:
