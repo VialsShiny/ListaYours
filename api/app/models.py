@@ -17,12 +17,11 @@ class ProductData(BaseModel):
     gallery: List[str] = []
     brand: Optional[str] = None
     sku: Optional[str] = None
-    availability: Optional[str] = None
+    availability: Optional[bool] = False
     stock: Optional[str] = None
     category: Optional[str] = None
-    variants: Dict[str, Any] = {"sizes": [], "colors": [], "list": []}
+    variants: Dict[str, Any] = {"size": [], "color": [], "style": [], "pattern": []}
     characteristics: Dict[str, Any] = {}
-    videos: List[str] = []
     reviews: Dict[str, Any] = {"rating_average": None, "review_count": None, "list": []}
 
 class ScrapeResponse(BaseModel):
