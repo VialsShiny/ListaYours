@@ -77,13 +77,24 @@ def _extract_price(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
                     break
             return
 
-    for elem in soup.find_all(["span", "div", "p", "strong", "b", "td", "li"]):
-        text = clean_text(elem.get_text())
-        parsed = parse_price(text)
-        if parsed and len(parsed) < 20 and not any(token in text.lower() for token in ["sku", "stock", "review"]):
-            product_info["price"] = parsed
-            return
+    candidates = []
+    excluded_tokens = ["sku", "stock", "review", "avis", "livraison", "retour"]
 
+    for elem in soup.find_all(["span", "div", "p", "strong", "b", "td", "li"]):
+        if elem.find(["span", "div", "p", "strong", "b", "td", "li"]):
+            continue
+        text = clean_text(elem.get_text())
+        if not text or len(text) > 20:
+            continue
+        if any(token in text.lower() for token in excluded_tokens):
+            continue
+        parsed = parse_price(text)
+        if parsed:
+            candidates.append((text, parsed))
+
+    if candidates:
+        text, parsed = min(candidates, key=lambda c: len(c[0]))
+        product_info["price"] = parsed
 
 def _extract_old_price(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract a previous price when present."""
