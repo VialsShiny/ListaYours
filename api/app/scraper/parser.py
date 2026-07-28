@@ -1,43 +1,16 @@
-import re
 import json
 import extruct
 import logging
 from bs4 import BeautifulSoup
 from w3lib.html import get_base_url
 from urllib.parse import urljoin
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from app.scraper.parsers.default import default_parsers
 from app.scraper.parsers.amazon import amazon_parsers
+from app.scraper.utils.text import clean_text
+from app.scraper.utils.parsing import parse_price
 
 logger = logging.getLogger("TEST DEV")
-
-def clean_text(text: Any) -> Optional[str]:
-    """Nettoie les espaces blancs et normalise la chaîne de caractères."""
-    if text is None:
-        return None
-    if not isinstance(text, str):
-        text = str(text)
-    text = re.sub(r'\s+', ' ', text)
-    return text.strip()
-
-def parse_price(price_val: Any) -> Optional[str]:
-    """Extrait et normalise de façon robuste les valeurs numériques de prix en chaîne."""
-    if price_val is None:
-        return None
-    if isinstance(price_val, (int, float)):
-        return str(price_val)
-    
-    cleaned = re.sub(r'[^\d.,]', '', str(price_val))
-    if not cleaned:
-        return None
-    
-    if ',' in cleaned and '.' in cleaned:
-        cleaned = cleaned.replace(',', '')
-    elif ',' in cleaned and not '.' in cleaned:
-        if len(cleaned.split(',')[-1]) == 2:
-            cleaned = cleaned.replace(',', '.')
-            
-    return cleaned
 
 def extract_all_data(html: str, url: str) -> Dict[str, Any]:
     """

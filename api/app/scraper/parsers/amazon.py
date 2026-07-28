@@ -3,14 +3,9 @@ import logging
 from typing import Dict, Any
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
+from app.scraper.utils.text import clean_text
 
 logger = logging.getLogger("TEST AMAZON")
-
-def clean_text_local(text: Any) -> str:
-    """Petit helper pour éviter les soucis d'import croisé."""
-    if not text:
-        return ""
-    return " ".join(str(text).split())
 
 def _extract_images(soup: BeautifulSoup, product_info: Dict[str, Any], base_url: str) -> None:
     """Extract and process product images."""
@@ -42,12 +37,12 @@ def _extract_variant_value(li, dimension: str) -> str:
     if dimension == "color":
         img = li.select_one("img.swatch-image[alt]")
         if img:
-            value = clean_text_local(img.get("alt"))
+            value = clean_text(img.get("alt"))
     
     if not value:
         text = li.select_one(".swatch-title-text-display")
         if text:
-            value = clean_text_local(text.get_text())
+            value = clean_text(text.get_text())
     
     return value
 
@@ -83,13 +78,13 @@ def _extract_category(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None
         
     category = first_li.select_one("a .nav-a-content")
     if category:
-        product_info['category'] = clean_text_local(category.get_text())
+        product_info['category'] = clean_text(category.get_text())
 
 def _parse_rating(rating_alt) -> float:
     """Parse rating value from text."""
     if not rating_alt:
         return None
-    raw_rating = clean_text_local(rating_alt.get_text())
+    raw_rating = clean_text(rating_alt.get_text())
     rating_str = raw_rating.split(" sur ")[0].replace(",", ".")
     try:
         return float(rating_str)
