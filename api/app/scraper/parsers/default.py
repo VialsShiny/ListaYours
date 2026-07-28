@@ -38,31 +38,25 @@ def _extract_title(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
 
 def _extract_price(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract price from common selectors and text patterns."""
-    if product_info.get("price"):
-        logger.info("Price already set, skipping extraction: %s", product_info.get("price"))
+    if product_info["price"]:
         return
 
     attr_elements = soup.find_all(attrs={"data-testid": re.compile(r"(?i)(?:current)?price")})
     attr_elements += soup.find_all(attrs={"data-lu-target": re.compile(r"(?i)price")})
-    logger.info("Found %d candidate elements via data-testid/data-lu-target", len(attr_elements))
 
     for elem in attr_elements:
         testid = elem.get("data-testid", "")
         lutarget = elem.get("data-lu-target", "")
         marker = f"{testid} {lutarget}"
         if re.search(r"(?i)initial|original|old|was|strike|before|list|compare", marker):
-            logger.info("Skipping excluded element (marker=%r)", marker)
             continue
         text = clean_text(elem.get_text())
-        logger.info("Attempting parse on attr element (marker=%r, text=%r)", marker, text)
         parsed = parse_price(text)
         if parsed:
             product_info["price"] = parsed
-            logger.info("Price found via attr selector: %s", parsed)
             for symbol, iso_code in [("€", "EUR"), ("$", "USD"), ("£", "GBP"), ("¥", "JPY")]:
                 if symbol in text:
                     product_info["currency"] = product_info.get("currency") or iso_code
-                    logger.info("Currency detected: %s", iso_code)
                     break
             return
 
@@ -71,33 +65,25 @@ def _extract_price(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
             r"(?i)(?:\b(?:pricing|amount|money|cost|value|amt|currency|a-offscreen)\b|price(?:-(?:current|sale|special|regular|old|new|final|our|offer|discount|actual|item|value|box|wrapper|container|label|text)|__(?:\w+)|--(?:\w+))?)"
         )
     )
-    logger.info("Found %d candidate elements via class regex", len(price_elements))
 
     for elem in price_elements:
         text = clean_text(elem.get_text())
-        logger.info("Attempting parse on class element (text=%r)", text)
         parsed = parse_price(text)
         if parsed:
             product_info["price"] = parsed
-            logger.info("Price found via class selector: %s", parsed)
             for symbol, iso_code in [("€", "EUR"), ("$", "USD"), ("£", "GBP"), ("¥", "JPY")]:
                 if symbol in text:
                     product_info["currency"] = product_info.get("currency") or iso_code
-                    logger.info("Currency detected: %s", iso_code)
                     break
             return
-
-    logger.info("No price found via selectors, falling back to generic text scan")
 
     for elem in soup.find_all(["span", "div", "p", "strong", "b", "td", "li"]):
         text = clean_text(elem.get_text())
         parsed = parse_price(text)
         if parsed and len(parsed) < 20 and not any(token in text.lower() for token in ["sku", "stock", "review"]):
             product_info["price"] = parsed
-            logger.info("Price found via generic fallback scan: %s (text=%r)", parsed, text)
             return
 
-    logger.info("Price extraction failed: no matching element found")
 
 def _extract_old_price(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract a previous price when present."""
