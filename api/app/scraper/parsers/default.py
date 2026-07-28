@@ -3,35 +3,10 @@ import re
 from typing import Any, Dict
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
+from app.scraper.utils.text import clean_text
+from app.scraper.utils.parsing import parse_price
 
 logger = logging.getLogger("TEST DEFAULT")
-
-def clean_text_local(text: Any) -> str:
-    """Petit helper pour éviter les soucis d'import croisé."""
-    if not text:
-        return ""
-    return " ".join(str(text).split())
-
-
-def parse_price(price_val: Any) -> str | None:
-    """Extrait et normalise de façon robuste une valeur de prix."""
-    if price_val is None:
-        return None
-    if isinstance(price_val, (int, float)):
-        return str(price_val)
-
-    cleaned = re.sub(r"[^\d.,]", "", str(price_val))
-    if not cleaned:
-        return None
-
-    if "," in cleaned and "." in cleaned:
-        cleaned = cleaned.replace(",", "")
-    elif "," in cleaned and "." not in cleaned:
-        if len(cleaned.split(",")[-1]) == 2:
-            cleaned = cleaned.replace(",", ".")
-
-    return cleaned
-
 
 def _extract_title(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract product title from a generic HTML page."""
@@ -39,7 +14,7 @@ def _extract_title(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
         return
 
     for tag in soup.find_all(["h1", "h2"]):
-        text = clean_text_local(tag.get_text())
+        text = clean_text(tag.get_text())
         if not text:
             continue
         classes = " ".join(tag.get("class", []) or []).lower()
@@ -49,14 +24,14 @@ def _extract_title(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
 
     h1_tag = soup.find("h1")
     if h1_tag:
-        title = clean_text_local(h1_tag.get_text())
+        title = clean_text(h1_tag.get_text())
         if title:
             product_info["title"] = title
             return
 
     title_tag = soup.find("title")
     if title_tag:
-        title = clean_text_local(title_tag.get_text())
+        title = clean_text(title_tag.get_text())
         if title:
             product_info["title"] = title
 
@@ -64,33 +39,65 @@ def _extract_title(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
 def _extract_price(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract price from common selectors and text patterns."""
     if product_info.get("price"):
+        logger.info("Price already set, skipping extraction: %s", product_info.get("price"))
         return
 
-    price_elements = soup.find_all(
-        class_=re.compile(
-            r"(a-offscreen|current-price|price-item|product-price|price-value|price\$|amount|special-price|actual-price|price)",
-            re.I,
-        )
-    )
+    attr_elements = soup.find_all(attrs={"data-testid": re.compile(r"(?i)(?:current)?price")})
+    attr_elements += soup.find_all(attrs={"data-lu-target": re.compile(r"(?i)price")})
+    logger.info("Found %d candidate elements via data-testid/data-lu-target", len(attr_elements))
 
-    for elem in price_elements:
-        text = clean_text_local(elem.get_text())
+    for elem in attr_elements:
+        testid = elem.get("data-testid", "")
+        lutarget = elem.get("data-lu-target", "")
+        marker = f"{testid} {lutarget}"
+        if re.search(r"(?i)initial|original|old|was|strike|before|list|compare", marker):
+            logger.info("Skipping excluded element (marker=%r)", marker)
+            continue
+        text = clean_text(elem.get_text())
+        logger.info("Attempting parse on attr element (marker=%r, text=%r)", marker, text)
         parsed = parse_price(text)
         if parsed:
             product_info["price"] = parsed
+            logger.info("Price found via attr selector: %s", parsed)
             for symbol, iso_code in [("€", "EUR"), ("$", "USD"), ("£", "GBP"), ("¥", "JPY")]:
                 if symbol in text:
                     product_info["currency"] = product_info.get("currency") or iso_code
+                    logger.info("Currency detected: %s", iso_code)
                     break
             return
 
+    price_elements = soup.find_all(
+        class_=re.compile(
+            r"(?i)(?:\b(?:pricing|amount|money|cost|value|amt|currency|a-offscreen)\b|price(?:-(?:current|sale|special|regular|old|new|final|our|offer|discount|actual|item|value|box|wrapper|container|label|text)|__(?:\w+)|--(?:\w+))?)"
+        )
+    )
+    logger.info("Found %d candidate elements via class regex", len(price_elements))
+
+    for elem in price_elements:
+        text = clean_text(elem.get_text())
+        logger.info("Attempting parse on class element (text=%r)", text)
+        parsed = parse_price(text)
+        if parsed:
+            product_info["price"] = parsed
+            logger.info("Price found via class selector: %s", parsed)
+            for symbol, iso_code in [("€", "EUR"), ("$", "USD"), ("£", "GBP"), ("¥", "JPY")]:
+                if symbol in text:
+                    product_info["currency"] = product_info.get("currency") or iso_code
+                    logger.info("Currency detected: %s", iso_code)
+                    break
+            return
+
+    logger.info("No price found via selectors, falling back to generic text scan")
+
     for elem in soup.find_all(["span", "div", "p", "strong", "b", "td", "li"]):
-        text = clean_text_local(elem.get_text())
+        text = clean_text(elem.get_text())
         parsed = parse_price(text)
         if parsed and len(parsed) < 20 and not any(token in text.lower() for token in ["sku", "stock", "review"]):
             product_info["price"] = parsed
+            logger.info("Price found via generic fallback scan: %s (text=%r)", parsed, text)
             return
 
+    logger.info("Price extraction failed: no matching element found")
 
 def _extract_old_price(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract a previous price when present."""
@@ -100,7 +107,7 @@ def _extract_old_price(soup: BeautifulSoup, product_info: Dict[str, Any]) -> Non
     old_price_elements = soup.find_all(["del", "s"])
     if not old_price_elements:
         old_price_elements = soup.find_all(
-            class_=re.compile(r"(old-price|compare-price|regular-price|list-price|strike|original-price)", re.I)
+            class_=re.compile(r"(apex-basisprice-value|old-price|compare-price|regular-price|list-price|strike|original-price)", re.I)
         )
 
     for elem in old_price_elements:
@@ -163,13 +170,13 @@ def _extract_characteristics(soup: BeautifulSoup, product_info: Dict[str, Any]) 
     for container in soup.select("table, dl"):
         if container.name == "table":
             pairs = (
-                (clean_text_local(cells[0].get_text()), clean_text_local(cells[1].get_text()))
+                (clean_text(cells[0].get_text()), clean_text(cells[1].get_text()))
                 for row in container.select("tr")
                 if len(cells := row.select("th, td")) >= 2
             )
         else:
             pairs = (
-                (clean_text_local(dt.get_text()), clean_text_local(dd.get_text()))
+                (clean_text(dt.get_text()), clean_text(dd.get_text()))
                 for dt, dd in zip(container.select("dt"), container.select("dd"))
             )
 
@@ -201,7 +208,7 @@ def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None
         target = product_info["variants"].get(dimension, [])
         for li in ul.select("li[data-asin]"):
             value = li.select_one(".swatch-title-text-display")
-            text_value = clean_text_local(value.get_text()) if value else ""
+            text_value = clean_text(value.get_text()) if value else ""
             if text_value and text_value not in target:
                 target.append(text_value)
 
@@ -213,7 +220,7 @@ def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None
         is_size = any(keyword in sel_id or keyword in sel_name or keyword in sel_class for keyword in ["size", "taille", "format", "dimension"])
         is_color = any(keyword in sel_id or keyword in sel_name or keyword in sel_class for keyword in ["color", "couleur", "teinte", "pattern"])
 
-        options = [clean_text_local(o.text) for o in sel.find_all("option") if o.get("value") and o.text and o.text.strip()]
+        options = [clean_text(o.text) for o in sel.find_all("option") if o.get("value") and o.text and o.text.strip()]
         options = [option for option in options if option and not any(p in option.lower() for p in ["choisir", "sélectionner", "select", "choose"])]
 
         if options:
@@ -255,14 +262,14 @@ def _extract_sku(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
         if node:
             value = node.get("data-sku") or node.get("data-asin") or node.get("content")
             if value:
-                product_info["sku"] = clean_text_local(value)
+                product_info["sku"] = clean_text(value)
                 return
 
     for meta in soup.find_all("meta"):
         if meta.get("itemprop") == "sku" or meta.get("name") == "sku":
             value = meta.get("content")
             if value:
-                product_info["sku"] = clean_text_local(value)
+                product_info["sku"] = clean_text(value)
                 return
 
 
@@ -274,7 +281,7 @@ def _extract_brand(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     for selector in ["[itemprop='brand']", "[itemprop=brand]", "[data-brand]", ".brand", ".product-brand"]:
         node = soup.select_one(selector)
         if node:
-            value = clean_text_local(node.get_text())
+            value = clean_text(node.get_text())
             if value:
                 product_info["brand"] = value
                 return
@@ -287,7 +294,7 @@ def _extract_category(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None
 
     breadcrumb = soup.select_one(".breadcrumb, .breadcrumbs, nav[aria-label='breadcrumb']")
     if breadcrumb:
-        items = [clean_text_local(item.get_text()) for item in breadcrumb.select("a, li") if clean_text_local(item.get_text())]
+        items = [clean_text(item.get_text()) for item in breadcrumb.select("a, li") if clean_text(item.get_text())]
         if items:
             product_info["category"] = items[-1]
             return
@@ -298,7 +305,7 @@ def _extract_category(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None
         if first_li:
             category = first_li.select_one("a .nav-a-content")
             if category:
-                product_info["category"] = clean_text_local(category.get_text())
+                product_info["category"] = clean_text(category.get_text())
 
 
 def default_parsers(product_info: Dict[str, Any], soup: BeautifulSoup, base_url: str) -> None:
