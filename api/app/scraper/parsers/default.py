@@ -128,6 +128,29 @@ def _extract_discount(product_info: Dict[str, Any]) -> None:
     except (TypeError, ValueError):
         pass
 
+def _extract_stock_info(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
+    out_of_stock_keywords = ["rupture de stock", "épuisé", "out of stock"]
+    buy_keywords = ["acheter", "ajouter au panier", "panier", "add to cart", "buy now", "sélectionner"]
+
+    page_text = clean_text(soup.get_text()).lower()
+    is_out_of_stock = any(k in page_text for k in out_of_stock_keywords)
+
+    elements = soup.find_all("button") + soup.find_all("input", attrs={"type": "submit"})
+    has_buy_button = False
+    for el in elements:
+        if el.has_attr("disabled") or el.get("aria-disabled") == "true" or el.get("tabindex") == "-1":
+            continue
+        text_el = clean_text(el.get_text() or el.get("value", ""))
+        if any(k in text_el.lower() for k in buy_keywords):
+            has_buy_button = True
+            logger.warning(text_el)
+            break
+
+    has_stock = has_buy_button and not is_out_of_stock
+    logger.warning(has_stock)
+
+    product_info["stock"] = "InStock" if has_stock else "OutOfStock"
+    product_info["availability"] = has_stock
 
 def _extract_images(soup: BeautifulSoup, product_info: Dict[str, Any], base_url: str) -> None:
     """Extract and normalize images from a generic page."""
@@ -311,6 +334,7 @@ def default_parsers(product_info: Dict[str, Any], soup: BeautifulSoup, base_url:
     _extract_price(soup, product_info)
     _extract_old_price(soup, product_info)
     _extract_discount(product_info)
+    _extract_stock_info(soup, product_info)
     _extract_images(soup, product_info, base_url)
     _extract_characteristics(soup, product_info)
     _extract_variants(soup, product_info)

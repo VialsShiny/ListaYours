@@ -24,12 +24,6 @@ def _extract_images(soup: BeautifulSoup, product_info: Dict[str, Any], base_url:
     if not product_info['images'] and product_info['gallery']:
         product_info['images'] = product_info['gallery'][:2]
 
-def _extract_stock_info(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
-    """Extract stock and availability information."""
-    has_stock = soup.select_one(".add-to-cart-button, .buy-now-button, #add-to-cart-button")
-    product_info["stock"] = "InStock" if has_stock else "OutOfStock"
-    product_info['availability'] = bool(has_stock)
-
 def _extract_variant_value(li, dimension: str) -> str:
     """Extract variant value from list item."""
     value = None
@@ -128,7 +122,6 @@ def amazon_parsers(
 ) -> None:	
     """Parse Amazon product information."""
     _extract_images(soup, product_info, base_url)
-    _extract_stock_info(soup, product_info)
     _extract_variants(soup, product_info)
     _extract_category(soup, product_info)
     _extract_reviews(soup, product_info)
