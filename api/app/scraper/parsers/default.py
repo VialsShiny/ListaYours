@@ -143,11 +143,9 @@ def _extract_stock_info(soup: BeautifulSoup, product_info: Dict[str, Any]) -> No
         text_el = clean_text(el.get_text() or el.get("value", ""))
         if any(k in text_el.lower() for k in buy_keywords):
             has_buy_button = True
-            logger.warning(text_el)
             break
 
     has_stock = has_buy_button and not is_out_of_stock
-    logger.warning(has_stock)
 
     product_info["stock"] = "InStock" if has_stock else "OutOfStock"
     product_info["availability"] = has_stock
@@ -216,6 +214,17 @@ def _extract_characteristics(soup: BeautifulSoup, product_info: Dict[str, Any]) 
 
 def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract size/color/style variants from generic selectors and button groups."""
+    sizes = ["XL", "XXL", "XXS", "2XS", "XS", "S", "M", "L", "XXXL", "2XL", "3XL", "4XL", "5XL", "ONE SIZE", "OSFA"]
+    colors = [
+        "NOIR", "BLANC", "GRIS", "ROUGE", "BLEU", "VERT", "JAUNE", "ROSE",
+        "VIOLET", "MARRON", "BEIGE", "ORANGE", "OR", "ARGENT", "BLEU MARINE",
+        "OLIVE", "BORDEAUX", "TURQUOISE", "SARCELLE", "IVOIRE", "CRÈME",
+        "MULTICOLORE", "MOTIF", "BLACK", "WHITE", "GREY", "GRAY", "RED", "BLUE",
+        "GREEN", "YELLOW", "PINK", "PURPLE", "BROWN", "BEIGE", "ORANGE", "GOLD",
+        "SILVER", "NAVY", "OLIVE", "MAROON", "TURQUOISE", "TEAL", "IVORY", "CREAM",
+        "MULTICOLOR", "PATTERN"
+    ]
+
     for ul in soup.select("ul[data-a-button-group]"):
         try:
             dimension = re.sub(r"_name$", "", (ul.get("data-a-button-group") or "").lower())
@@ -249,6 +258,22 @@ def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None
             elif is_color:
                 product_info["variants"]["color"].extend([option for option in options if option not in product_info["variants"]["color"]])
 
+    for btn in soup.find_all("button"):
+        sizes_pattern = re.compile(r"\b(?:" + "|".join(re.escape(s) for s in sorted(sizes, key=len, reverse=True)) + r")\b")   
+        colors_pattern = re.compile(r"\b(?:" + "|".join(re.escape(s) for s in sorted(colors, key=len, reverse=True, )) + r")\b")   
+
+        text = btn.get_text() or btn.get("title")
+        if not text:
+            continue
+
+        norm = text.upper()
+        matches = sizes_pattern.findall(norm)
+        if matches:
+            product_info["variants"]["size"].extend([size for size in matches if size not in product_info["variants"]["size"]])
+
+        matches = colors_pattern.findall(norm)
+        if matches:
+            product_info["variants"]["color"].extend([size for size in matches if size not in product_info["variants"]["color"]])
 
 def _extract_reviews(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract review information using common schema patterns."""
