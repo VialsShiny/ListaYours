@@ -215,6 +215,8 @@ def _extract_characteristics(soup: BeautifulSoup, product_info: Dict[str, Any]) 
 def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract size/color/style variants from generic selectors and button groups."""
     sizes = ["XL", "XXL", "XXS", "2XS", "XS", "S", "M", "L", "XXXL", "2XL", "3XL", "4XL", "5XL", "ONE SIZE", "OSFA"]
+    sizes += [str(size) for size in range(15, 53)]
+    sizes += [f"{i}.5" for i in range(15, 52 + 1)]
     colors = [
         "NOIR", "BLANC", "GRIS", "ROUGE", "BLEU", "VERT", "JAUNE", "ROSE",
         "VIOLET", "MARRON", "BEIGE", "ORANGE", "OR", "ARGENT", "BLEU MARINE",
@@ -258,11 +260,11 @@ def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None
             elif is_color:
                 product_info["variants"]["color"].extend([option for option in options if option not in product_info["variants"]["color"]])
 
-    for btn in soup.find_all("button"):
+    for el in soup.find_all(["button", "label"]):
         sizes_pattern = re.compile(r"\b(?:" + "|".join(re.escape(s) for s in sorted(sizes, key=len, reverse=True)) + r")\b")   
         colors_pattern = re.compile(r"\b(?:" + "|".join(re.escape(s) for s in sorted(colors, key=len, reverse=True, )) + r")\b")   
 
-        text = btn.get_text() or btn.get("title")
+        text = el.get_text() or el.get("title")
         if not text:
             continue
 
