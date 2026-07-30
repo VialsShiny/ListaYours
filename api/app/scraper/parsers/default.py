@@ -260,23 +260,39 @@ def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None
             elif is_color:
                 product_info["variants"]["color"].extend([option for option in options if option not in product_info["variants"]["color"]])
 
-    for el in soup.find_all(["button", "label"]):
-        sizes_pattern = re.compile(r"\b(?:" + "|".join(re.escape(s) for s in sorted(sizes, key=len, reverse=True)) + r")\b")   
-        colors_pattern = re.compile(r"\b(?:" + "|".join(re.escape(s) for s in sorted(colors, key=len, reverse=True, )) + r")\b")   
+    sizes_pattern = re.compile(r"\b(?:" + "|".join(re.escape(s) for s in sorted(sizes, key=len, reverse=True)) + r")\b") if sizes else None
+    colors_pattern = re.compile(r"\b(?:" + "|".join(re.escape(c) for c in sorted(colors, key=len, reverse=True)) + r")\b") if colors else None
 
-        text = el.get_text() or el.get("title")
+    seen_sizes = set(product_info["variants"].get("size", []))
+    seen_colors = set(product_info["variants"].get("color", []))
+
+    for el in soup.find_all(["button", "label", "input"]):
+        text = el.get_text(strip=True) or el.get("title") or el.get("aria-label") or ""
+
+        if not text and el.name == "label":
+            for_id = el.get("for")
+            if for_id:
+                related = soup.find(id=for_id)
+                if related:
+                    text = related.get("value") or related.get("aria-label") or related.get_text(strip=True) or ""
+
         if not text:
             continue
 
         norm = text.upper()
-        matches = sizes_pattern.findall(norm)
-        if matches:
-            product_info["variants"]["size"].extend([size for size in matches if size not in product_info["variants"]["size"]])
 
-        matches = colors_pattern.findall(norm)
-        if matches:
-            product_info["variants"]["color"].extend([size for size in matches if size not in product_info["variants"]["color"]])
+        if sizes_pattern:
+            for size in sizes_pattern.findall(norm):
+                if size not in seen_sizes:
+                    seen_sizes.add(size)
+                    product_info["variants"]["size"].append(size)
 
+        if colors_pattern:
+            for color in colors_pattern.findall(norm):
+                if color not in seen_colors:
+                    seen_colors.add(color)
+                    product_info["variants"]["color"].append(color)
+                    
 def _extract_reviews(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract review information using common schema patterns."""
     if product_info["reviews"].get("rating_average") and product_info["reviews"].get("review_count"):

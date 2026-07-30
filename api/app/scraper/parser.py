@@ -268,8 +268,8 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
     # STRATÉGIE 4 : HEURISTIQUES DOM PAR DÉFAUT
     # =========================================================================
 
-    default_parsers(product_info, soup, base_url)
     amazon_parsers(product_info, soup, base_url)
+    default_parsers(product_info, soup, base_url)
 
     nullable_fields = ['title', 'price', 'old_price', 'discount', 'currency', 'description', 'brand', 'sku', 'stock', 'category']
     for field in nullable_fields:
