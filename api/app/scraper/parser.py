@@ -1,42 +1,16 @@
-import re
 import json
 import extruct
 import logging
 from bs4 import BeautifulSoup
 from w3lib.html import get_base_url
 from urllib.parse import urljoin
-from typing import Dict, Any, Optional
+from typing import Dict, Any
+from app.scraper.parsers.default import default_parsers
 from app.scraper.parsers.amazon import amazon_parsers
+from app.scraper.utils.text import clean_text
+from app.scraper.utils.parsing import parse_price
 
 logger = logging.getLogger("TEST DEV")
-
-def clean_text(text: Any) -> Optional[str]:
-    """Nettoie les espaces blancs et normalise la chaîne de caractères."""
-    if text is None:
-        return None
-    if not isinstance(text, str):
-        text = str(text)
-    text = re.sub(r'\s+', ' ', text)
-    return text.strip()
-
-def parse_price(price_val: Any) -> Optional[str]:
-    """Extrait et normalise de façon robuste les valeurs numériques de prix en chaîne."""
-    if price_val is None:
-        return None
-    if isinstance(price_val, (int, float)):
-        return str(price_val)
-    
-    cleaned = re.sub(r'[^\d.,]', '', str(price_val))
-    if not cleaned:
-        return None
-    
-    if ',' in cleaned and '.' in cleaned:
-        cleaned = cleaned.replace(',', '')
-    elif ',' in cleaned and not '.' in cleaned:
-        if len(cleaned.split(',')[-1]) == 2:
-            cleaned = cleaned.replace(',', '.')
-            
-    return cleaned
 
 def extract_all_data(html: str, url: str) -> Dict[str, Any]:
     """
@@ -293,131 +267,9 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
     # =========================================================================
     # STRATÉGIE 4 : HEURISTIQUES DOM PAR DÉFAUT
     # =========================================================================
-    if not product_info['title']:
-        h1_tags = soup.find_all('h1')
-        for h1 in h1_tags:
-            h1_class = " ".join(h1.get('class', []) or []).lower()
-            if any(k in h1_class for k in ['product', 'title', 'name', 'heading', 'detail']):
-                product_info['title'] = clean_text(h1.text)
-                break
-        if not product_info['title'] and h1_tags:
-            product_info['title'] = clean_text(h1_tags[0].text)
-        if not product_info['title'] and soup.find('title'):
-            product_info['title'] = clean_text(soup.find('title').text)
-
-    if not product_info['price']:
-        price_elements = soup.find_all(class_=re.compile(r'(a-offscreen|current-price|price-item|product-price|price-value|price\$|amount|special-price|actual-price)', re.I))
-        logger.info(price_elements)
-        for elem in price_elements:
-            text = clean_text(elem.text)
-            parsed = parse_price(text)
-            if parsed:
-                product_info['price'] = parsed
-                for symbol, iso_code in [('€', 'EUR'), ('$', 'USD'), ('£', 'GBP'), ('¥', 'JPY')]:
-                    if symbol in text:
-                        product_info['currency'] = product_info['currency'] or iso_code
-                break
-
-    old_price_elements = soup.find_all(['del', 's']) or soup.find_all(class_=re.compile(r'(old-price|compare-price|regular-price|list-price|strike|original-price)', re.I))
-    for elem in old_price_elements:
-        parsed_old = parse_price(elem.text)
-        if parsed_old and parsed_old != product_info['price']:
-            product_info['old_price'] = parsed_old
-            break
-
-    logger.info(product_info['price'])
-
-    if product_info['price'] and product_info['old_price']:
-        try:
-            p_float = float(product_info['price'])
-            op_float = float(product_info['old_price'])
-            if op_float > p_float:
-                pct = round(((op_float - p_float) / op_float) * 100)
-                product_info['discount'] = f"-{pct}%"
-        except ValueError:
-            pass
-
-    logger.info(product_info['price'])
-
-    for img in soup.find_all("img"):
-        img_src = None
-
-        for attr in ("product", "gallery", "carousel", "main", "featured", "zoom", "thumb"):
-            value = img.get(attr)
-            if value:
-                img_src = value
-                break
-
-        if not img_src or img_src.startswith("data:"):
-            continue
-
-        if "," in img_src:
-            candidates = []
-            for part in img_src.split(","):
-                part = part.strip().split(" ")[0]
-                if part:
-                    candidates.append(part)
-
-            if candidates:
-                img_src = candidates[-1]
-
-        full_url = urljoin(base_url, img_src)
-
-        if full_url not in product_info["gallery"]:
-            product_info["gallery"].append(full_url)
-
-    if not product_info["images"] and product_info["gallery"]:
-        product_info["images"] = product_info["gallery"][:2]
-
-    for container in soup.select("table, dl"):
-        if container.name == "table":
-            pairs = (
-                (clean_text(cells[0].get_text()), clean_text(cells[1].get_text()))
-                for row in container.select("tr")
-                if len(cells := row.select("th, td")) >= 2
-            )
-        else:
-            pairs = (
-                (clean_text(dt.get_text()), clean_text(dd.get_text()))
-                for dt, dd in zip(container.select("dt"), container.select("dd"))
-            )
-
-        for k, v in pairs:
-            if not k or not v or len(k) > 80:
-                continue
-
-            product_info["characteristics"][k.rstrip(":")] = v
-
-            key = "".join(c.lower() for c in k if c.isalnum())
-
-            # ASIN est universel
-            if key == "asin":
-                product_info["sku"] = v
-
-            # La marque n'est renseignée qu'une seule fois
-            elif not product_info.get("brand") and len(v) < 100:
-                if "brand" in key or "mar" in key:
-                    product_info["brand"] = v
-
-    for sel in soup.find_all('select'):
-        sel_id = (sel.get('id') or '').lower()
-        sel_name = (sel.get('name') or '').lower()
-        sel_class = " ".join(sel.get('class', []) or []).lower()
-        
-        is_size = any(k in sel_id or k in sel_name or k in sel_class for k in ['size', 'taille', 'format', 'dimension'])
-        is_color = any(k in sel_id or k in sel_name or k in sel_class for k in ['color', 'couleur', 'teinte', 'pattern'])
-        
-        opts = [clean_text(o.text) for o in sel.find_all('option') if o.get('value') and o.text.strip()]
-        opts = [o for o in opts if o and not any(p in o.lower() for p in ['choisir', 'sélectionner', 'select', 'choose'])]
-        
-        if opts:
-            if is_size:
-                product_info['variants']['size'].extend([o for o in opts if o not in product_info['variants']['size']])
-            elif is_color:
-                product_info['variants']['color'].extend([o for o in opts if o not in product_info['variants']['color']])
 
     amazon_parsers(product_info, soup, base_url)
-
+    default_parsers(product_info, soup, base_url)
 
     nullable_fields = ['title', 'price', 'old_price', 'discount', 'currency', 'description', 'brand', 'sku', 'stock', 'category']
     for field in nullable_fields:

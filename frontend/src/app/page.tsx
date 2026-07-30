@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export default function Home() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const strategy = useRef<HTMLSelectElement | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,12 +17,13 @@ export default function Home() {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const chosenStrategy = strategy.current?.value || "HTTPX";
       const res = await fetch(`${apiUrl}/api/scrape`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url, strategy: chosenStrategy }),
       });
 
       const data = await res.json();
@@ -39,6 +41,25 @@ export default function Home() {
 
   return (
     <main style={{ maxWidth: "900px", margin: "40px auto", padding: "0 20px" }}>
+      <select
+        name="strategy"
+        id="select_strategy"
+        ref={strategy}
+        defaultValue="httpx"
+        style={{
+          position: "fixed",
+          left: 12,
+          bottom: 12,
+          zIndex: 50,
+          padding: "8px 10px",
+          borderRadius: 6,
+          border: "1px solid #d1d5db",
+          background: "#ffffff",
+        }}
+      >
+        <option value="HTTPX">HTTPX</option>
+        <option value="PLAYWRIGHT">PLAYWRIGHT</option>
+      </select>
       <h1 style={{ fontSize: "2rem", color: "#111827", marginBottom: "8px" }}>
         ListaYours Scraper
       </h1>

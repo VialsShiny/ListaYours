@@ -34,7 +34,8 @@ def health_check():
 async def scrape(request: ScrapeRequest):
     try:
         url_str = str(request.url)
-        data, strategy = await scrape_product(url_str)
+        strategy_str = str(request.strategy)
+        data, strategy = await scrape_product(url_str, strategy_str)
         return ScrapeResponse(
             success=True,
             data=data,

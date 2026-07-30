@@ -1,8 +1,9 @@
 from pydantic import BaseModel, HttpUrl, Field
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Literal
 
 class ScrapeRequest(BaseModel):
     url: HttpUrl = Field(..., description="URL de la page produit à scraper")
+    strategy: Literal['HTTPX', 'PLAYWRIGHT'] = Field('HTTPX', description="Stratégie de scraping à utiliser. Valeurs: 'HTTPX', 'PLAYWRIGHT'")
 
 class ProductData(BaseModel):
     product_url: str

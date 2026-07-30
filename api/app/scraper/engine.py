@@ -10,7 +10,7 @@ FILES_DIR.mkdir(parents=True, exist_ok=True)
 
 logger = logging.getLogger("scraper_engine")
 
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
 
 async def fetch_with_httpx(url: str) -> str:
     headers = {
@@ -51,16 +51,20 @@ async def take_screenshot(url: str, path: Path):
         await page.screenshot(path=str(path), full_page=True)
         await browser.close()
 
-async def scrape_product(url: str) -> tuple[dict, str]:
-    strategy = "HTTPX"
-    try:
-        logger.info(f"Tentative de récupération HTTPX : {url}")
-        html = await fetch_with_httpx(url)
-        data = extract_all_data(html, url)
-        if data and data.get('title'):
-            return data, strategy
-    except Exception as e:
-        logger.warning(f"Échec HTTPX pour {url} ({str(e)}). Basculement vers Playwright...")
+async def scrape_product(url: str, strategy: str) -> tuple[dict, str]:
+    if strategy == "HTTPX":
+        try:
+            logger.info(f"Tentative de récupération HTTPX : {url}")
+            html = await fetch_with_httpx(url)
+            if html:
+                data = extract_all_data(html, url)
+                if data and data.get('title'):
+                    return data, strategy
+                logger.warning(f"HTTPX a renvoyé des données incomplètes pour {url} (pas de titre). Basculement vers Playwright...")
+            else:
+                logger.warning(f"HTTPX a renvoyé un HTML vide pour {url}. Basculement vers Playwright...")
+        except Exception as e:
+            logger.warning(f"Échec HTTPX pour {url} ({str(e)}). Basculement vers Playwright...")
 
     strategy = "PLAYWRIGHT"
     try:
@@ -69,5 +73,5 @@ async def scrape_product(url: str) -> tuple[dict, str]:
         data = extract_all_data(html, url)
         return data, strategy
     except Exception as e:
-        logger.error(f"Erreur lors du scraping de {url}: {str(e)}")
-        raise e
+        logger.exception(f"Erreur lors du scraping de {url}: {str(e)}")
+        raise
