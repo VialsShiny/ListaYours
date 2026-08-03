@@ -6,5 +6,8 @@ node_modules/
 vendor/
 .pnpm/
 
+# .Env
+.env
+
 # Screenshots
 */screenshots
