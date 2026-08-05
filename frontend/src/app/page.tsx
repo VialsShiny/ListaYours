@@ -8,7 +8,8 @@ export default function Home() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const strategy = useRef<HTMLSelectElement | null>(null)
-
+  const [debug, setDebug] = useState<boolean>(false)
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -23,7 +24,7 @@ export default function Home() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ url, strategy: chosenStrategy }),
+        body: JSON.stringify({ url, strategy: chosenStrategy, debug: debug }),
       });
 
       const data = await res.json();
@@ -41,25 +42,56 @@ export default function Home() {
 
   return (
     <main style={{ maxWidth: "900px", margin: "40px auto", padding: "0 20px" }}>
-      <select
-        name="strategy"
-        id="select_strategy"
-        ref={strategy}
-        defaultValue="httpx"
-        style={{
-          position: "fixed",
-          left: 12,
-          bottom: 12,
-          zIndex: 50,
-          padding: "8px 10px",
-          borderRadius: 6,
-          border: "1px solid #d1d5db",
-          background: "#ffffff",
-        }}
-      >
-        <option value="HTTPX">HTTPX</option>
-        <option value="PLAYWRIGHT">PLAYWRIGHT</option>
-      </select>
+      <div style={{ position: 'fixed', left: 12, bottom: 12, zIndex: 50, display: 'flex', gap: 8, alignItems: 'center' }}>
+        <select
+          name="strategy"
+          id="select_strategy"
+          ref={strategy}
+          defaultValue="httpx"
+          style={{
+            padding: "8px 10px",
+            borderRadius: 6,
+            border: "1px solid #d1d5db",
+            background: "#ffffff",
+          }}
+        >
+          <option value="HTTPX">HTTPX</option>
+          <option value="PLAYWRIGHT">PLAYWRIGHT</option>
+        </select>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <p>Debug :</p>
+          <button
+            type="button"
+            onClick={() => setDebug((v) => !v)}
+            style={{
+              position: 'relative',
+              width: 56,
+              height: 32,
+              padding: 0,
+              borderRadius: 999,
+              border: '1px solid #d1d5db',
+              background: debug ? '#2563eb' : '#e5e7eb',
+              cursor: 'pointer',
+              transition: 'background 0.2s ease',
+            }}
+          >
+            <span
+              style={{
+                position: 'absolute',
+                top: 3,
+                left: debug ? 'calc(100% - 27px)' : 3,
+                width: 24,
+                height: 24,
+                borderRadius: '50%',
+                background: '#ffffff',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                transition: 'left 0.2s ease',
+              }}
+            />
+          </button>
+        </div>
+      </div>
       <h1 style={{ fontSize: "2rem", color: "#111827", marginBottom: "8px" }}>
         ListaYours Scraper
       </h1>
