@@ -6,9 +6,8 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
-
-RUN npm run build
+COPY next.config.mjs ./next.config.mjs
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["npm", "run", "dev"]
