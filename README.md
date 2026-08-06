@@ -73,6 +73,7 @@ frontend/               # Next.js frontend
 {
   "url": "https://example.com/product",
   "strategy": "HTTPX" // or "PLAYWRIGHT"
+  "debug": false
 }
 ```
 

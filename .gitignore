@@ -9,5 +9,9 @@ vendor/
 # .Env
 .env
 
+# Next
+.next/
+next-env.d.ts
+
 # Screenshots
 */screenshots
