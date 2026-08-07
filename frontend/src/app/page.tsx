@@ -7,9 +7,9 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const strategy = useRef<HTMLSelectElement | null>(null)
-  const [debug, setDebug] = useState<boolean>(false)
-  
+  const [debug, setDebug] = useState<boolean>(false);
+  const strategy = useRef<HTMLSelectElement | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -135,6 +135,12 @@ export default function Home() {
       {error && (
         <div style={{ padding: "16px", backgroundColor: "#fee2e2", color: "#991b1b", borderRadius: "6px", marginBottom: "24px" }}>
           <strong>Erreur :</strong> {error}
+        </div>
+      )}
+
+      {loading && (
+        <div className="loading-container">
+          <div className="spinner" />
         </div>
       )}
 
