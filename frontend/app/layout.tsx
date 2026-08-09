@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+
+import { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
 // @ts-ignore: CSS module declarations not available in this environment
 import "./globals.css";
 
@@ -13,8 +14,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr">
-      <body style={{ margin: 0, fontFamily: "system-ui, sans-serif", backgroundColor: "#f9fafb" }}>
+    <html lang="fr" className="scroll-smooth">
+      <body className="min-h-screen bg-slate-50 font-sans text-slate-900">
         {children}
       </body>
     </html>
