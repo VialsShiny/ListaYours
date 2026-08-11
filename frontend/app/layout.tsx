@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className={cn("scroll-smooth", "font-sans", inter.variable)}>
-      <body className="min-h-screen bg-slate-50 font-sans text-slate-900">
+      <body className="min-h-screen py-6 md:py-12 bg-slate-50 font-sans text-slate-900">
         {children}
       </body>
     </html>
