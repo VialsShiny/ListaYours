@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import ResultRawViewer from "@/components/ResultRawViewer";
+import ProductCard from "@/components/ProductCard";
 
 export default function Home() {
   const [url, setUrl] = useState("");
@@ -123,6 +124,7 @@ export default function Home() {
       {result && (
         <div className="flex flex-col gap-y-6">
           <ResultRawViewer json={result.data} />
+          <ProductCard json={result.data} />
         </div>
       )}
     </main>
