@@ -20,7 +20,9 @@ export default function ProductCard({ json, className, ...props }: ProductCardPr
         {json.old_price && <span className="line-through text-sm text-muted-foreground">{json.old_price}</span>}
       </CardContent>
       <CardFooter>
-        <p>Card Footer</p>
+        {json.variants.size && json.variants.size.map((size: string) => (
+          <span key={size} className="mr-2 w-16 rounded-full border border-slate-300 px-2 py-1 text-sm text-slate-700">{size}</span>
+        ))}
       </CardFooter>
     </Card>
   )
