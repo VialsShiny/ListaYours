@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
+import ResultRawViewer from "@/components/ResultRawViewer";
+import ProductCard from "@/components/ProductCard";
 
 export default function Home() {
   const [url, setUrl] = useState("");
@@ -9,8 +11,6 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [debug, setDebug] = useState<boolean>(false);
   const strategy = useRef<HTMLSelectElement | null>(null);
-
-  console.log(process.env.NEXT_PUBLIC_API_URL);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +43,7 @@ export default function Home() {
   };
 
   return (
-    <main className="mx-auto my-12 max-w-4xl px-4 sm:px-6 lg:px-8">
+    <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 mb-36 md:mb-0">
       <div className="fixed left-4 bottom-4 z-50 rounded-3xl border border-slate-200 bg-white/95 p-4 shadow-2xl shadow-slate-900/5 backdrop-blur-xl sm:left-6 sm:bottom-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <label className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 shadow-sm shadow-slate-900/5">
@@ -76,7 +76,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white/90 p-8 shadow-xl shadow-slate-900/5">
+      <div className="rounded-xl border border-slate-200 bg-white/90 p-8 shadow-xl shadow-slate-900/5 mb-6">
         <div className="mb-8 space-y-4">
           <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
             ListaYours Scraper
@@ -108,29 +108,23 @@ export default function Home() {
           </button>
         </form>
       </div>
+
       {error && (
-        <div className="mt-6 rounded-3xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-800 shadow-sm shadow-rose-100">
+        <div className="rounded-3xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-800 shadow-sm shadow-rose-100">
           <strong>Erreur :</strong> {error}
         </div>
       )}
 
       {loading && (
-        <div className="mt-10 flex justify-center py-16">
+        <div className="mt-4 flex justify-center py-16">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-white/30 border-t-sky-500" />
         </div>
       )}
 
       {result && (
-        <div className="mt-8 overflow-hidden rounded-4xl border border-slate-200 bg-slate-950/95 shadow-xl shadow-slate-900/10">
-          <div className="flex flex-col gap-4 border-b border-slate-800/60 bg-slate-900/95 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-xl font-semibold text-white">Résultat</h2>
-            <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
-              Stratégie : {result.strategy_used}
-            </span>
-          </div>
-          <pre className="max-h-168 overflow-auto whitespace-pre-wrap wrap-break-words bg-slate-950 px-6 py-6 text-sm leading-6 text-slate-100">
-            {JSON.stringify(result.data, null, 2)}
-          </pre>
+        <div className="flex flex-col gap-y-6">
+          <ResultRawViewer json={result.data} />
+          <ProductCard json={result.data} />
         </div>
       )}
     </main>
