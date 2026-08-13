@@ -43,7 +43,7 @@ export default function Home() {
   };
 
   return (
-    <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+    <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 mb-36 md:mb-0">
       <div className="fixed left-4 bottom-4 z-50 rounded-3xl border border-slate-200 bg-white/95 p-4 shadow-2xl shadow-slate-900/5 backdrop-blur-xl sm:left-6 sm:bottom-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <label className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 shadow-sm shadow-slate-900/5">
