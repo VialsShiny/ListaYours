@@ -212,8 +212,9 @@ def _extract_characteristics(soup: BeautifulSoup, product_info: Dict[str, Any]) 
                     product_info["brand"] = v
 
 
-def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
+def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any], locked_fields: set[str] | None = None) -> None:
     """Extract size/color/style variants from generic selectors and button groups."""
+    locked_fields = locked_fields or set()
     sizes = ["XL", "XXL", "XXS", "2XS", "XS", "S", "M", "L", "XXXL", "2XL", "3XL", "4XL", "5XL", "ONE SIZE", "OSFA"]
     sizes += [str(size) for size in range(15, 53)]
     sizes += [f"{i}.5" for i in range(15, 52 + 1)]
@@ -236,6 +237,15 @@ def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None
         if dimension and dimension not in product_info["variants"]:
             continue
 
+        if dimension == "size" and "variants.size" in locked_fields:
+            continue
+        if dimension == "color" and "variants.color" in locked_fields:
+            continue
+        if dimension == "style" and "variants.style" in locked_fields:
+            continue
+        if dimension == "pattern" and "variants.pattern" in locked_fields:
+            continue
+
         target = product_info["variants"].get(dimension, [])
         for li in ul.select("li[data-asin]"):
             value = li.select_one(".swatch-title-text-display")
@@ -255,9 +265,9 @@ def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None
         options = [option for option in options if option and not any(p in option.lower() for p in ["choisir", "sélectionner", "select", "choose"])]
 
         if options:
-            if is_size:
+            if is_size and "variants.size" not in locked_fields:
                 product_info["variants"]["size"].extend([option for option in options if option not in product_info["variants"]["size"]])
-            elif is_color:
+            elif is_color and "variants.color" not in locked_fields:
                 product_info["variants"]["color"].extend([option for option in options if option not in product_info["variants"]["color"]])
 
     sizes_pattern = re.compile(r"\b(?:" + "|".join(re.escape(s) for s in sorted(sizes, key=len, reverse=True)) + r")\b") if sizes else None
@@ -281,17 +291,22 @@ def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None
 
         norm = text.upper()
 
-        if sizes_pattern:
+        if "variants.size" not in locked_fields and sizes_pattern:
             for size in sizes_pattern.findall(norm):
                 if size not in seen_sizes:
                     seen_sizes.add(size)
                     product_info["variants"]["size"].append(size)
 
-        if colors_pattern:
+        if "variants.color" not in locked_fields and colors_pattern:
             for color in colors_pattern.findall(norm):
                 if color not in seen_colors:
                     seen_colors.add(color)
                     product_info["variants"]["color"].append(color)
+
+    if "variants.style" in locked_fields:
+        return
+    if "variants.pattern" in locked_fields:
+        return
                     
 def _extract_reviews(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract review information using common schema patterns."""
@@ -371,17 +386,32 @@ def _extract_category(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None
                 product_info["category"] = clean_text(category.get_text())
 
 
-def default_parsers(product_info: Dict[str, Any], soup: BeautifulSoup, base_url: str) -> None:
+def default_parsers(
+    product_info: Dict[str, Any],
+    soup: BeautifulSoup,
+    base_url: str,
+    locked_fields: set[str] | None = None,
+) -> None:
     """Parse product information with a generic and resilient fallback parser."""
-    _extract_title(soup, product_info)
-    _extract_price(soup, product_info)
-    _extract_old_price(soup, product_info)
-    _extract_discount(product_info)
-    _extract_stock_info(soup, product_info)
-    _extract_images(soup, product_info, base_url)
-    _extract_characteristics(soup, product_info)
-    _extract_variants(soup, product_info)
-    _extract_reviews(soup, product_info)
-    _extract_sku(soup, product_info)
-    _extract_brand(soup, product_info)
-    _extract_category(soup, product_info)
+    locked_fields = locked_fields or set()
+
+    parsers = (
+        ("title", lambda: _extract_title(soup, product_info)),
+        ("price", lambda: _extract_price(soup, product_info)),
+        ("old_price", lambda: _extract_old_price(soup, product_info)),
+        ("discount", lambda: _extract_discount(product_info)),
+        ("stock", lambda: _extract_stock_info(soup, product_info)),
+        ("images", lambda: _extract_images(soup, product_info, base_url)),
+        ("characteristics", lambda: _extract_characteristics(soup, product_info)),
+        ("reviews", lambda: _extract_reviews(soup, product_info)),
+        ("sku", lambda: _extract_sku(soup, product_info)),
+        ("brand", lambda: _extract_brand(soup, product_info)),
+        ("category", lambda: _extract_category(soup, product_info)),
+    )
+
+    for field, parser in parsers:
+        if field not in locked_fields:
+            parser()
+
+    if "variants" not in locked_fields:
+        _extract_variants(soup, product_info, locked_fields)
