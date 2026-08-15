@@ -9,7 +9,6 @@ logger = logging.getLogger("TEST AMAZON")
 
 def _extract_images(soup: BeautifulSoup, product_info: Dict[str, Any], base_url: str, locked_fields: set[str] | None = None) -> None:
     """Extract and process product images."""
-    locked_fields = locked_fields or set()
     if soup.find_all('img'):
         handled_images = False
         for img in soup.find_all('img'):
@@ -48,7 +47,6 @@ def _extract_variant_value(li, dimension: str) -> str:
 
 def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any], locked_fields: set[str] | None = None) -> None:
     """Extract product variants (size, color, etc.)."""
-    locked_fields = locked_fields or set()
 
     for ul in soup.select("ul[data-a-button-group]"):
         try:
@@ -71,7 +69,6 @@ def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any], locked_
 
 def _extract_category(soup: BeautifulSoup, product_info: Dict[str, Any], locked_fields: set[str] | None = None) -> None:
     """Extract product category."""
-    locked_fields = locked_fields or set()
     category_block = soup.select_one("div[data-category]")
     if not category_block:
         return
@@ -108,7 +105,6 @@ def _parse_review_count(review_text) -> int:
 
 def _extract_reviews(soup: BeautifulSoup, product_info: Dict[str, Any], locked_fields: set[str] | None = None) -> None:
     """Extract review rating and count."""
-    locked_fields = locked_fields or set()
     review_block = soup.select_one("#averageCustomerReviews")
     if not review_block:
         return
@@ -122,7 +118,6 @@ def _extract_reviews(soup: BeautifulSoup, product_info: Dict[str, Any], locked_f
 
 def _extract_sku(soup: BeautifulSoup, product_info: Dict[str, Any], locked_fields: set[str] | None = None) -> None:
     """Extract ASIN/SKU identifier."""
-    locked_fields = locked_fields or set()
     asin_block = soup.select_one("[data-asin]")
     if asin_block:
         asin = asin_block.get("data-asin")

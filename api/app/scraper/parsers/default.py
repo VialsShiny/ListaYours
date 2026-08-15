@@ -214,7 +214,6 @@ def _extract_characteristics(soup: BeautifulSoup, product_info: Dict[str, Any]) 
 
 def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any], locked_fields: set[str] | None = None) -> None:
     """Extract size/color/style variants from generic selectors and button groups."""
-    locked_fields = locked_fields or set()
     sizes = ["XL", "XXL", "XXS", "2XS", "XS", "S", "M", "L", "XXXL", "2XL", "3XL", "4XL", "5XL", "ONE SIZE", "OSFA"]
     sizes += [str(size) for size in range(15, 53)]
     sizes += [f"{i}.5" for i in range(15, 52 + 1)]
@@ -393,7 +392,6 @@ def default_parsers(
     locked_fields: set[str] | None = None,
 ) -> None:
     """Parse product information with a generic and resilient fallback parser."""
-    locked_fields = locked_fields or set()
 
     parsers = (
         ("title", lambda: _extract_title(soup, product_info)),
