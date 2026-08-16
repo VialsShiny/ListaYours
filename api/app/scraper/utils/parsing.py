@@ -29,6 +29,6 @@ def parse_price(price_val: Any) -> Optional[str]:
 
     groups = re.findall(r'\d+(?:[.,]\d{2})', cleaned)
     if groups:
-        cleaned = groups[-1]
+        cleaned = groups[0]
             
     return cleaned
