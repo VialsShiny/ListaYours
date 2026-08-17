@@ -133,7 +133,6 @@ def _extract_stock_info(soup: BeautifulSoup, product_info: Dict[str, Any]) -> No
 
     for keyword in OUT_OF_STOCK_KEYWORDS:
         if re.search(rf"\b{re.escape(keyword.lower())}\b", page_text):
-            print(keyword)
             is_out_of_stock = True
             break
 
@@ -147,7 +146,6 @@ def _extract_stock_info(soup: BeautifulSoup, product_info: Dict[str, Any]) -> No
         text_el = clean_text(el.get_text() or el.get("value", "")).lower()
         for keyword in BUY_KEYWORDS:
             if re.search(rf"\b{re.escape(keyword.lower())}\b", text_el):
-                print(keyword)
                 has_buy_button = True
                 break
         if has_buy_button:
