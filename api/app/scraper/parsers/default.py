@@ -4,7 +4,7 @@ from typing import Any, Dict
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from app.scraper.utils.text import clean_text, get_visible_text, is_visible
-from app.scraper.utils.parsing import parse_price
+from app.scraper.utils.parsing import parse_price, _extract_size_candidates
 from app.scraper.constants.keywords import OUT_OF_STOCK_KEYWORDS, BUY_KEYWORDS
 
 logger = logging.getLogger("TEST DEFAULT")
@@ -226,10 +226,15 @@ def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any], locked_
         "VIOLET", "MARRON", "BEIGE", "ORANGE", "OR", "ARGENT", "BLEU MARINE",
         "OLIVE", "BORDEAUX", "TURQUOISE", "SARCELLE", "IVOIRE", "CRÈME",
         "MULTICOLORE", "MOTIF", "BLACK", "WHITE", "GREY", "GRAY", "RED", "BLUE",
-        "GREEN", "YELLOW", "PINK", "PURPLE", "BROWN", "BEIGE", "ORANGE", "GOLD",
-        "SILVER", "NAVY", "OLIVE", "MAROON", "TURQUOISE", "TEAL", "IVORY", "CREAM",
+        "GREEN", "YELLOW", "PINK", "PURPLE", "BROWN", "GOLD",
+        "SILVER", "NAVY", "MAROON", "TEAL", "IVORY", "CREAM",
         "MULTICOLOR", "PATTERN"
     ]
+    sizes_set = set(sizes)
+    colors_set = set(colors)
+
+    size_context_hints = ["size", "taille", "format", "dimension"]
+    color_context_hints = ["color", "couleur", "teinte", "pattern"]
 
     for ul in soup.select("ul[data-a-button-group]"):
         try:
@@ -261,8 +266,8 @@ def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any], locked_
         sel_name = (sel.get("name") or "").lower()
         sel_class = " ".join(sel.get("class", []) or []).lower()
 
-        is_size = any(keyword in sel_id or keyword in sel_name or keyword in sel_class for keyword in ["size", "taille", "format", "dimension"])
-        is_color = any(keyword in sel_id or keyword in sel_name or keyword in sel_class for keyword in ["color", "couleur", "teinte", "pattern"])
+        is_size = any(keyword in sel_id or keyword in sel_name or keyword in sel_class for keyword in size_context_hints)
+        is_color = any(keyword in sel_id or keyword in sel_name or keyword in sel_class for keyword in color_context_hints)
 
         options = [clean_text(o.text) for o in sel.find_all("option") if o.get("value") and o.text and o.text.strip()]
         options = [option for option in options if option and not any(p in option.lower() for p in ["choisir", "sélectionner", "select", "choose"])]
@@ -272,9 +277,6 @@ def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any], locked_
                 product_info["variants"]["size"].extend([option for option in options if option not in product_info["variants"]["size"]])
             elif is_color and "variants.color" not in locked_fields:
                 product_info["variants"]["color"].extend([option for option in options if option not in product_info["variants"]["color"]])
-
-    sizes_pattern = re.compile(r"\b(?:" + "|".join(re.escape(s) for s in sorted(sizes, key=len, reverse=True)) + r")\b") if sizes else None
-    colors_pattern = re.compile(r"\b(?:" + "|".join(re.escape(c) for c in sorted(colors, key=len, reverse=True)) + r")\b") if colors else None
 
     seen_sizes = set(product_info["variants"].get("size", []))
     seen_colors = set(product_info["variants"].get("color", []))
@@ -292,25 +294,24 @@ def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any], locked_
         if not text:
             continue
 
-        norm = text.upper()
+        if len(text) > 20 or len(text.split()) > 4:
+            continue
 
-        if "variants.size" not in locked_fields and sizes_pattern:
-            for size in sizes_pattern.findall(norm):
-                if size not in seen_sizes:
-                    seen_sizes.add(size)
-                    product_info["variants"]["size"].append(size)
+        if "variants.size" not in locked_fields:
+            for size_candidate in _extract_size_candidates(text, sizes_set):
+                seen_sizes.add(size_candidate)
+                product_info["variants"]["size"].append(size_candidate)
 
-        if "variants.color" not in locked_fields and colors_pattern:
-            for color in colors_pattern.findall(norm):
-                if color not in seen_colors:
-                    seen_colors.add(color)
-                    product_info["variants"]["color"].append(color)
+        norm = text.strip().upper()
+        if "variants.color" not in locked_fields and norm in colors_set:
+            seen_colors.add(norm)
+            product_info["variants"]["color"].append(norm)
 
     if "variants.style" in locked_fields:
         return
     if "variants.pattern" in locked_fields:
-        return
-                    
+        return               
+    
 def _extract_reviews(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract review information using common schema patterns."""
     if product_info["reviews"].get("rating_average") and product_info["reviews"].get("review_count"):
