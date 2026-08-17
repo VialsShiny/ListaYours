@@ -35,7 +35,6 @@ def _extract_title(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
         if title:
             product_info["title"] = title
 
-
 def _extract_price(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract price from common selectors and text patterns."""
     if product_info["price"]:
@@ -113,7 +112,6 @@ def _extract_old_price(soup: BeautifulSoup, product_info: Dict[str, Any]) -> Non
             product_info["old_price"] = parsed_old
             return
 
-
 def _extract_discount(product_info: Dict[str, Any]) -> None:
     """Calculate a discount percentage when possible."""
     if product_info.get("discount") or not product_info.get("price") or not product_info.get("old_price"):
@@ -182,7 +180,6 @@ def _extract_images(soup: BeautifulSoup, product_info: Dict[str, Any], base_url:
     if not product_info["images"] and product_info["gallery"]:
         product_info["images"] = product_info["gallery"][:2]
 
-
 def _extract_characteristics(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract key/value characteristics from tables or definition lists."""
     for container in soup.select("table, dl"):
@@ -210,7 +207,6 @@ def _extract_characteristics(soup: BeautifulSoup, product_info: Dict[str, Any]) 
             elif not product_info.get("brand") and len(v) < 100:
                 if "brand" in key or "mar" in key:
                     product_info["brand"] = v
-
 
 def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any], locked_fields: set[str] | None = None) -> None:
     """Extract size/color/style variants from generic selectors and button groups."""
@@ -328,7 +324,6 @@ def _extract_reviews(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
             if review_count:
                 product_info["reviews"]["review_count"] = int(review_count)
 
-
 def _extract_sku(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract SKU/ASIN from common attributes or text patterns."""
     if product_info.get("sku"):
@@ -349,7 +344,6 @@ def _extract_sku(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
                 product_info["sku"] = clean_text(value)
                 return
 
-
 def _extract_brand(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract brand from common markup."""
     if product_info.get("brand"):
@@ -362,7 +356,6 @@ def _extract_brand(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
             if value:
                 product_info["brand"] = value
                 return
-
 
 def _extract_category(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract category from breadcrumb or data attributes."""
@@ -383,7 +376,6 @@ def _extract_category(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None
             category = first_li.select_one("a .nav-a-content")
             if category:
                 product_info["category"] = clean_text(category.get_text())
-
 
 def default_parsers(
     product_info: Dict[str, Any],
