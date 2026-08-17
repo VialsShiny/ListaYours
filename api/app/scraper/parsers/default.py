@@ -3,8 +3,9 @@ import re
 from typing import Any, Dict
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
-from app.scraper.utils.text import clean_text
+from app.scraper.utils.text import clean_text, get_visible_text, is_visible
 from app.scraper.utils.parsing import parse_price
+from app.scraper.constants.keywords import OUT_OF_STOCK_KEYWORDS, BUY_KEYWORDS
 
 logger = logging.getLogger("TEST DEFAULT")
 
@@ -127,20 +128,29 @@ def _extract_discount(product_info: Dict[str, Any]) -> None:
         pass
 
 def _extract_stock_info(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
-    out_of_stock_keywords = ["rupture de stock", "épuisé", "out of stock"]
-    buy_keywords = ["acheter", "ajouter au panier", "panier", "add to cart", "buy now", "sélectionner"]
+    page_text = get_visible_text(soup)
+    is_out_of_stock = False
 
-    page_text = clean_text(soup.get_text()).lower()
-    is_out_of_stock = any(k in page_text for k in out_of_stock_keywords)
+    for keyword in OUT_OF_STOCK_KEYWORDS:
+        if re.search(rf"\b{re.escape(keyword.lower())}\b", page_text):
+            print(keyword)
+            is_out_of_stock = True
+            break
 
-    elements = soup.find_all("button") + soup.find_all("input", attrs={"type": "submit"})
+    elements = soup.find_all("button") + soup.find_all("a") + soup.find_all("input", attrs={"type": "submit"})
     has_buy_button = False
     for el in elements:
         if el.has_attr("disabled") or el.get("aria-disabled") == "true" or el.get("tabindex") == "-1":
             continue
-        text_el = clean_text(el.get_text() or el.get("value", ""))
-        if any(k in text_el.lower() for k in buy_keywords):
-            has_buy_button = True
+        if not is_visible(el) or any(not is_visible(p) for p in el.parents if p.name):
+            continue
+        text_el = clean_text(el.get_text() or el.get("value", "")).lower()
+        for keyword in BUY_KEYWORDS:
+            if re.search(rf"\b{re.escape(keyword.lower())}\b", text_el):
+                print(keyword)
+                has_buy_button = True
+                break
+        if has_buy_button:
             break
 
     has_stock = has_buy_button and not is_out_of_stock
