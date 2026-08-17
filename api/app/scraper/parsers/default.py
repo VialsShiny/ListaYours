@@ -3,8 +3,9 @@ import re
 from typing import Any, Dict
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
-from app.scraper.utils.text import clean_text
-from app.scraper.utils.parsing import parse_price
+from app.scraper.utils.text import clean_text, get_visible_text, is_visible
+from app.scraper.utils.parsing import parse_price, _extract_size_candidates
+from app.scraper.constants.keywords import OUT_OF_STOCK_KEYWORDS, BUY_KEYWORDS
 
 logger = logging.getLogger("TEST DEFAULT")
 
@@ -34,7 +35,6 @@ def _extract_title(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
         title = clean_text(title_tag.get_text())
         if title:
             product_info["title"] = title
-
 
 def _extract_price(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract price from common selectors and text patterns."""
@@ -113,7 +113,6 @@ def _extract_old_price(soup: BeautifulSoup, product_info: Dict[str, Any]) -> Non
             product_info["old_price"] = parsed_old
             return
 
-
 def _extract_discount(product_info: Dict[str, Any]) -> None:
     """Calculate a discount percentage when possible."""
     if product_info.get("discount") or not product_info.get("price") or not product_info.get("old_price"):
@@ -129,20 +128,27 @@ def _extract_discount(product_info: Dict[str, Any]) -> None:
         pass
 
 def _extract_stock_info(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
-    out_of_stock_keywords = ["rupture de stock", "épuisé", "out of stock"]
-    buy_keywords = ["acheter", "ajouter au panier", "panier", "add to cart", "buy now", "sélectionner"]
+    page_text = get_visible_text(soup)
+    is_out_of_stock = False
 
-    page_text = clean_text(soup.get_text()).lower()
-    is_out_of_stock = any(k in page_text for k in out_of_stock_keywords)
+    for keyword in OUT_OF_STOCK_KEYWORDS:
+        if re.search(rf"\b{re.escape(keyword.lower())}\b", page_text):
+            is_out_of_stock = True
+            break
 
-    elements = soup.find_all("button") + soup.find_all("input", attrs={"type": "submit"})
+    elements = soup.find_all("button") + soup.find_all("a") + soup.find_all("input", attrs={"type": "submit"})
     has_buy_button = False
     for el in elements:
         if el.has_attr("disabled") or el.get("aria-disabled") == "true" or el.get("tabindex") == "-1":
             continue
-        text_el = clean_text(el.get_text() or el.get("value", ""))
-        if any(k in text_el.lower() for k in buy_keywords):
-            has_buy_button = True
+        if not is_visible(el) or any(not is_visible(p) for p in el.parents if p.name):
+            continue
+        text_el = clean_text(el.get_text() or el.get("value", "")).lower()
+        for keyword in BUY_KEYWORDS:
+            if re.search(rf"\b{re.escape(keyword.lower())}\b", text_el):
+                has_buy_button = True
+                break
+        if has_buy_button:
             break
 
     has_stock = has_buy_button and not is_out_of_stock
@@ -182,7 +188,6 @@ def _extract_images(soup: BeautifulSoup, product_info: Dict[str, Any], base_url:
     if not product_info["images"] and product_info["gallery"]:
         product_info["images"] = product_info["gallery"][:2]
 
-
 def _extract_characteristics(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract key/value characteristics from tables or definition lists."""
     for container in soup.select("table, dl"):
@@ -211,7 +216,6 @@ def _extract_characteristics(soup: BeautifulSoup, product_info: Dict[str, Any]) 
                 if "brand" in key or "mar" in key:
                     product_info["brand"] = v
 
-
 def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any], locked_fields: set[str] | None = None) -> None:
     """Extract size/color/style variants from generic selectors and button groups."""
     sizes = ["XL", "XXL", "XXS", "2XS", "XS", "S", "M", "L", "XXXL", "2XL", "3XL", "4XL", "5XL", "ONE SIZE", "OSFA"]
@@ -222,10 +226,15 @@ def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any], locked_
         "VIOLET", "MARRON", "BEIGE", "ORANGE", "OR", "ARGENT", "BLEU MARINE",
         "OLIVE", "BORDEAUX", "TURQUOISE", "SARCELLE", "IVOIRE", "CRÈME",
         "MULTICOLORE", "MOTIF", "BLACK", "WHITE", "GREY", "GRAY", "RED", "BLUE",
-        "GREEN", "YELLOW", "PINK", "PURPLE", "BROWN", "BEIGE", "ORANGE", "GOLD",
-        "SILVER", "NAVY", "OLIVE", "MAROON", "TURQUOISE", "TEAL", "IVORY", "CREAM",
+        "GREEN", "YELLOW", "PINK", "PURPLE", "BROWN", "GOLD",
+        "SILVER", "NAVY", "MAROON", "TEAL", "IVORY", "CREAM",
         "MULTICOLOR", "PATTERN"
     ]
+    sizes_set = set(sizes)
+    colors_set = set(colors)
+
+    size_context_hints = ["size", "taille", "format", "dimension"]
+    color_context_hints = ["color", "couleur", "teinte", "pattern"]
 
     for ul in soup.select("ul[data-a-button-group]"):
         try:
@@ -257,8 +266,8 @@ def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any], locked_
         sel_name = (sel.get("name") or "").lower()
         sel_class = " ".join(sel.get("class", []) or []).lower()
 
-        is_size = any(keyword in sel_id or keyword in sel_name or keyword in sel_class for keyword in ["size", "taille", "format", "dimension"])
-        is_color = any(keyword in sel_id or keyword in sel_name or keyword in sel_class for keyword in ["color", "couleur", "teinte", "pattern"])
+        is_size = any(keyword in sel_id or keyword in sel_name or keyword in sel_class for keyword in size_context_hints)
+        is_color = any(keyword in sel_id or keyword in sel_name or keyword in sel_class for keyword in color_context_hints)
 
         options = [clean_text(o.text) for o in sel.find_all("option") if o.get("value") and o.text and o.text.strip()]
         options = [option for option in options if option and not any(p in option.lower() for p in ["choisir", "sélectionner", "select", "choose"])]
@@ -268,9 +277,6 @@ def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any], locked_
                 product_info["variants"]["size"].extend([option for option in options if option not in product_info["variants"]["size"]])
             elif is_color and "variants.color" not in locked_fields:
                 product_info["variants"]["color"].extend([option for option in options if option not in product_info["variants"]["color"]])
-
-    sizes_pattern = re.compile(r"\b(?:" + "|".join(re.escape(s) for s in sorted(sizes, key=len, reverse=True)) + r")\b") if sizes else None
-    colors_pattern = re.compile(r"\b(?:" + "|".join(re.escape(c) for c in sorted(colors, key=len, reverse=True)) + r")\b") if colors else None
 
     seen_sizes = set(product_info["variants"].get("size", []))
     seen_colors = set(product_info["variants"].get("color", []))
@@ -288,25 +294,24 @@ def _extract_variants(soup: BeautifulSoup, product_info: Dict[str, Any], locked_
         if not text:
             continue
 
-        norm = text.upper()
+        if len(text) > 20 or len(text.split()) > 4:
+            continue
 
-        if "variants.size" not in locked_fields and sizes_pattern:
-            for size in sizes_pattern.findall(norm):
-                if size not in seen_sizes:
-                    seen_sizes.add(size)
-                    product_info["variants"]["size"].append(size)
+        if "variants.size" not in locked_fields:
+            for size_candidate in _extract_size_candidates(text, sizes_set):
+                seen_sizes.add(size_candidate)
+                product_info["variants"]["size"].append(size_candidate)
 
-        if "variants.color" not in locked_fields and colors_pattern:
-            for color in colors_pattern.findall(norm):
-                if color not in seen_colors:
-                    seen_colors.add(color)
-                    product_info["variants"]["color"].append(color)
+        norm = text.strip().upper()
+        if "variants.color" not in locked_fields and norm in colors_set:
+            seen_colors.add(norm)
+            product_info["variants"]["color"].append(norm)
 
     if "variants.style" in locked_fields:
         return
     if "variants.pattern" in locked_fields:
-        return
-                    
+        return               
+    
 def _extract_reviews(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract review information using common schema patterns."""
     if product_info["reviews"].get("rating_average") and product_info["reviews"].get("review_count"):
@@ -328,7 +333,6 @@ def _extract_reviews(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
             if review_count:
                 product_info["reviews"]["review_count"] = int(review_count)
 
-
 def _extract_sku(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract SKU/ASIN from common attributes or text patterns."""
     if product_info.get("sku"):
@@ -349,7 +353,6 @@ def _extract_sku(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
                 product_info["sku"] = clean_text(value)
                 return
 
-
 def _extract_brand(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract brand from common markup."""
     if product_info.get("brand"):
@@ -362,7 +365,6 @@ def _extract_brand(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
             if value:
                 product_info["brand"] = value
                 return
-
 
 def _extract_category(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract category from breadcrumb or data attributes."""
@@ -383,7 +385,6 @@ def _extract_category(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None
             category = first_li.select_one("a .nav-a-content")
             if category:
                 product_info["category"] = clean_text(category.get_text())
-
 
 def default_parsers(
     product_info: Dict[str, Any],
