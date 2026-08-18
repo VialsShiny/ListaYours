@@ -13,12 +13,14 @@ def clean_text(text: Any) -> Optional[str]:
 def is_visible(el) -> bool:
     if el.has_attr("hidden"):
         return False
-    if el.get("aria-hidden") == "true":
+    if (el.get("aria-hidden") or "").lower() == "true":
         return False
     style = el.get("style", "")
-    if "display:none" in style.replace(" ", "") or "visibility:hidden" in style.replace(" ", ""):
-        return False
-    return True
+    normalized_style = re.sub(r"\s+", "", style).lower()
+    return (
+        "display:none" not in normalized_style
+        and "visibility:hidden" not in normalized_style
+    )
 
 
 def get_visible_text(soup) -> str:

@@ -141,7 +141,7 @@ def _extract_stock_info(soup: BeautifulSoup, product_info: Dict[str, Any]) -> No
     for el in elements:
         if el.has_attr("disabled") or el.get("aria-disabled") == "true" or el.get("tabindex") == "-1":
             continue
-        if not is_visible(el) or any(not is_visible(p) for p in el.parents if p.name):
+        if not is_visible(el) or not is_visible(el.parent):
             continue
         text_el = clean_text(el.get_text() or el.get("value", "")).lower()
         for keyword in BUY_KEYWORDS:
