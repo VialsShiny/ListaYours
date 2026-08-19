@@ -27,7 +27,7 @@ export default function ProductCard({ json, className, ...props }: ProductCardPr
   const variants = [
     ...(product.variants?.size ?? []),
     ...(product.variants?.style ?? []),
-  ].slice(0, 6)
+  ]
 
   return (
     <Card
