@@ -34,12 +34,15 @@ def health_check():
 async def scrape(request: ScrapeRequest):
     try:
         url_str = str(request.url)
-        data, strategy = await scrape_product(url_str)
+        strategy_str = str(request.strategy)
+        debug_bool = bool(request.debug)
+        data, strategy = await scrape_product(url_str, strategy_str, debug_bool)
         return ScrapeResponse(
             success=True,
             data=data,
             error=None,
             strategy_used=strategy,
+            debug=debug_bool,
         )
     except Exception as e:
         logger.error(f"Erreur d'exécution : {e}")
@@ -48,4 +51,5 @@ async def scrape(request: ScrapeRequest):
             data=None,
             error=str(e),
             strategy_used=None,
+            debug=debug_bool,
         )

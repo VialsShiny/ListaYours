@@ -6,5 +6,12 @@ node_modules/
 vendor/
 .pnpm/
 
+# .Env
+.env
+
+# Next
+.next/
+next-env.d.ts
+
 # Screenshots
 */screenshots

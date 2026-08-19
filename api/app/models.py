@@ -1,8 +1,10 @@
 from pydantic import BaseModel, HttpUrl, Field
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Literal
 
 class ScrapeRequest(BaseModel):
     url: HttpUrl = Field(..., description="URL de la page produit à scraper")
+    strategy: Literal['HTTPX', 'PLAYWRIGHT'] = Field('HTTPX', description="Stratégie de scraping à utiliser. Valeurs: 'HTTPX', 'PLAYWRIGHT'")
+    debug: bool = Field(False, description="Activer le mode debug (True/False)")
 
 class ProductData(BaseModel):
     product_url: str
@@ -29,3 +31,4 @@ class ScrapeResponse(BaseModel):
     data: Optional[ProductData] = None
     error: Optional[str] = None
     strategy_used: Optional[str] = None
+    debug: bool = False
