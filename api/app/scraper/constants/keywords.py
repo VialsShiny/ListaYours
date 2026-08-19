@@ -9,6 +9,7 @@ BUY_KEYWORDS = [
     "passer commande",
     "finaliser l'achat",
     "valider l'achat",
+    "faire une offre",
     "ajouter au panier",
     "ajouter au sac",
     "options d'achat",
