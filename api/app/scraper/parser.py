@@ -7,6 +7,7 @@ from urllib.parse import urljoin
 from typing import Dict, Any
 from app.scraper.parsers.default import default_parsers
 from app.scraper.parsers.amazon import amazon_parsers
+from app.scraper.parsers.aliexpress import aliexpress_parsers
 from app.scraper.utils.text import clean_text
 from app.scraper.utils.parsing import parse_price
 
@@ -269,6 +270,7 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
     # =========================================================================
 
     locked_fields = amazon_parsers(product_info, soup, base_url)
+    locked_fields.update(aliexpress_parsers(product_info, soup, base_url))
     default_parsers(product_info, soup, base_url, locked_fields)
 
     nullable_fields = ['title', 'price', 'old_price', 'discount', 'currency', 'description', 'brand', 'sku', 'stock', 'category']

@@ -1,5 +1,6 @@
 import re
 from typing import Any, Optional
+from app.scraper.utils.text import clean_text
 import logging
 
 logger = logging.getLogger("PARSING DEBUG")
@@ -34,6 +35,36 @@ def parse_price(price_val: Any) -> Optional[str]:
             
     return cleaned
 
+def parse_rating(value: str) -> float | None:
+    """Parse product rating."""
+    if not value:
+        return None
+
+    value = clean_text(value).replace(",", ".")
+
+    match = re.search(r"(\d+(?:\.\d+)?)", value)
+    if not match:
+        return None
+
+    try:
+        return float(match.group(1))
+    except ValueError:
+        return None
+    
+def parse_count(value: str) -> int | None:
+    """Parse an integer count from localized text."""
+    if not value:
+        return None
+
+    digits = re.sub(r"[^\d]", "", value)
+    if not digits:
+        return None
+
+    try:
+        return int(digits)
+    except ValueError:
+        return None
+    
 def _normalize_size_token(tok: str, sizes_set) -> str | None:
     """Return a canonical size string, or None if not a valid size token."""
     tok = tok.strip().upper().replace(",", ".")
@@ -44,7 +75,6 @@ def _normalize_size_token(tok: str, sizes_set) -> str | None:
     if SIZE_TOKEN_RE.match(tok):
         return tok
     return None
-
 
 def _extract_size_candidates(raw_text: str, sizes_set) -> list[str]:
     """Split combined sizes like 'XS/S' or 'EU 38 / EU 39' into individual tokens."""

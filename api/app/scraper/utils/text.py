@@ -1,5 +1,8 @@
 import re
 from typing import Any, Optional
+import logging
+
+logger = logging.getLogger("TEXT DEBUG")
 
 def clean_text(text: Any) -> Optional[str]:
     """Nettoie les espaces blancs et normalise la chaîne de caractères."""

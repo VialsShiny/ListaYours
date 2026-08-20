@@ -2,6 +2,7 @@ import logging
 import httpx
 from playwright.async_api import async_playwright
 from app.scraper.parser import extract_all_data
+from app.scraper.utils.url import is_require_pw_domain
 from pathlib import Path
 from datetime import datetime
 
@@ -55,18 +56,21 @@ async def take_screenshot(url: str, path: Path):
 
 async def scrape_product(url: str, strategy: str, debug: bool) -> tuple[dict, str]:
     if strategy == "HTTPX":
-        try:
-            logger.info(f"Tentative de récupération HTTPX : {url}")
-            html = await fetch_with_httpx(url, debug)
-            if html:
-                data = extract_all_data(html, url)
-                if data and data.get('title'):
-                    return data, strategy
-                logger.warning(f"HTTPX a renvoyé des données incomplètes pour {url} (pas de titre). Basculement vers Playwright...")
-            else:
-                logger.warning(f"HTTPX a renvoyé un HTML vide pour {url}. Basculement vers Playwright...")
-        except Exception as e:
-            logger.warning(f"Échec HTTPX pour {url} ({str(e)}). Basculement vers Playwright...")
+        if (is_require_pw_domain(url)):
+            logger.warning(f"Le domaine de l'URL {url} nécessite Playwright. Basculement vers Playwright...")
+        else:
+            try:
+                logger.info(f"Tentative de récupération HTTPX : {url}")
+                html = await fetch_with_httpx(url, debug)
+                if html:
+                    data = extract_all_data(html, url)
+                    if data and data.get('title'):
+                        return data, strategy
+                    logger.warning(f"HTTPX a renvoyé des données incomplètes pour {url} (pas de titre). Basculement vers Playwright...")
+                else:
+                    logger.warning(f"HTTPX a renvoyé un HTML vide pour {url}. Basculement vers Playwright...")
+            except Exception as e:
+                logger.warning(f"Échec HTTPX pour {url} ({str(e)}). Basculement vers Playwright...")
 
     strategy = "PLAYWRIGHT"
     try:
