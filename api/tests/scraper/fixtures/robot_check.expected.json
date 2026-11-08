@@ -1,0 +1,29 @@
+{
+  "availability": false,
+  "brand": null,
+  "canonical_url": "https://www.amazon.com/dp/B0CPBNV3H4",
+  "category": null,
+  "characteristics": {},
+  "currency": null,
+  "description": null,
+  "discount": null,
+  "gallery": [],
+  "images": [],
+  "old_price": null,
+  "price": null,
+  "product_url": "https://www.amazon.com/dp/B0CPBNV3H4",
+  "reviews": {
+    "list": [],
+    "rating_average": null,
+    "review_count": null
+  },
+  "sku": null,
+  "stock": "OutOfStock",
+  "title": "Amazon.fr",
+  "variants": {
+    "color": [],
+    "pattern": [],
+    "size": [],
+    "style": []
+  }
+}
