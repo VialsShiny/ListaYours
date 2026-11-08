@@ -47,9 +47,9 @@ export function ReservationControl({
 
   if (gift.is_reserved) {
     return (
-      <Button variant="primary" block disabled aria-disabled="true">
+      <p className="micro border border-ink/40 px-5 py-3 text-center text-ink" role="status">
         Réservé
-      </Button>
+      </p>
     );
   }
 

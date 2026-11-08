@@ -56,13 +56,13 @@ export function GiftFormDrawer({ open, gift, categories, store, onClose }: GiftF
     setError(null);
     setSaving(true);
     const payload = giftFormToPayload(values);
-    const ok = await store.run(
+    const result = await store.run(
       (token) => (gift ? updateGift(token, gift.id, payload) : createGift(token, payload)),
       "L'enregistrement du cadeau a échoué.",
     );
     setSaving(false);
-    if (ok) onClose();
-    else setError(store.actionError ?? "L'enregistrement du cadeau a échoué.");
+    if (result.ok) onClose();
+    else setError(result.error);
   }
 
   return (

@@ -45,6 +45,7 @@ export function useScrape() {
         });
         return null;
       } catch (error) {
+        if (controllerRef.current !== controller) return null;
         if (controller.signal.aborted) {
           setState({ phase: "error", message: "L'analyse a dépassé le délai imparti." });
         } else {
@@ -60,6 +61,7 @@ export function useScrape() {
 
   const reset = useCallback(() => {
     controllerRef.current?.abort();
+    controllerRef.current = null;
     setState({ phase: "idle" });
   }, []);
 

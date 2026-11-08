@@ -23,14 +23,16 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
   const [published, setPublished] = useState(wishlist.is_published);
   const [origin, setOrigin] = useState("");
   const [saved, setSaved] = useState<string | null>(null);
+  const [syncedAt, setSyncedAt] = useState(wishlist.updated_at);
   const clipboard = useClipboard();
 
-  useEffect(() => {
+  if (wishlist.updated_at !== syncedAt) {
+    setSyncedAt(wishlist.updated_at);
     setTitle(wishlist.title);
     setDescription(wishlist.description ?? "");
     setSlug(wishlist.slug);
     setPublished(wishlist.is_published);
-  }, [wishlist]);
+  }
 
   useEffect(() => {
     setOrigin(window.location.origin);
@@ -42,7 +44,7 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaved(null);
-    const ok = await store.run(
+    const { ok } = await store.run(
       (token) =>
         patchWishlist(token, {
           title: title.trim(),

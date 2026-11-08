@@ -25,7 +25,7 @@ export function CategoryManager({ store, categories }: CategoryManagerProps) {
 
   async function confirmDelete() {
     if (!toDelete) return;
-    const ok = await store.run(
+    const { ok } = await store.run(
       (token) => deleteCategory(token, toDelete.id),
       "La suppression de la catégorie a échoué.",
     );
@@ -48,12 +48,13 @@ export function CategoryManager({ store, categories }: CategoryManagerProps) {
               index={index}
               total={ordered.length}
               busy={store.busy}
-              onRename={(name) =>
-                store.run(
+              onRename={async (name) => {
+                const result = await store.run(
                   (token) => renameCategory(token, category.id, name),
                   "Le renommage a échoué.",
-                )
-              }
+                );
+                return result.ok;
+              }}
               onMoveUp={() => move(index, -1)}
               onMoveDown={() => move(index, 1)}
               onDelete={() => setToDelete(category)}

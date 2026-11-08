@@ -14,7 +14,7 @@ export function CategoryAddForm({ store }: { store: OwnerStore }) {
     event.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) return;
-    const ok = await store.run(
+    const { ok } = await store.run(
       (token) => createCategory(token, trimmed),
       "La création de la catégorie a échoué.",
     );

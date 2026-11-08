@@ -118,7 +118,12 @@
   }
 
   .skeleton {
-    background: linear-gradient(90deg, var(--surface-alt) 0%, #e6e6e6 50%, var(--surface-alt) 100%);
+    background: linear-gradient(
+      90deg,
+      var(--surface-alt) 0%,
+      var(--bg) 50%,
+      var(--surface-alt) 100%
+    );
     background-size: 200% 100%;
     animation: shimmer 1.6s ease-in-out infinite;
   }

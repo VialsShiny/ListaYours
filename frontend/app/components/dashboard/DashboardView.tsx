@@ -1,21 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Notice } from "@/components/feedback/Notice";
 import { DisplayTitle } from "@/components/layout/DisplayTitle";
 import { MicroLabel } from "@/components/layout/MicroLabel";
 import { Section } from "@/components/layout/Section";
 import { OwnerDashboard } from "@/components/dashboard/OwnerDashboard";
-import { useAuth } from "@/hooks/use-auth";
+import { useRequireAuth } from "@/hooks/use-require-auth";
 
 export function DashboardView() {
-  const { status, isOwner, user } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (status === "anonymous") router.replace("/connexion?next=%2Ftableau-de-bord");
-  }, [status, router]);
+  const { status, isOwner, user } = useRequireAuth();
 
   return (
     <>

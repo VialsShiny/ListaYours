@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { ApiError } from "@/lib/api";
+import { ApiError, UNAUTHORIZED_EVENT } from "@/lib/api";
 import { fetchMe } from "@/lib/api-auth";
 import { clearSession, readToken, readUser, writeSession } from "@/lib/auth-storage";
 import type { User } from "@/lib/types";
@@ -22,7 +22,8 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 /**
  * Holds the session read from localStorage and re-validates it once against `/api/auth/me`.
- * A 401 clears the session; a network failure keeps the stored user so the UI stays usable.
+ * Any 401 answered to an authenticated call (event from `apiFetch`) clears the session;
+ * a network failure keeps the stored user so the UI stays usable.
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>("loading");
@@ -75,6 +76,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setStatus("anonymous");
   }, []);
+
+  useEffect(() => {
+    window.addEventListener(UNAUTHORIZED_EVENT, signOut);
+    return () => window.removeEventListener(UNAUTHORIZED_EVENT, signOut);
+  }, [signOut]);
 
   const value = useMemo<AuthContextValue>(
     () => ({

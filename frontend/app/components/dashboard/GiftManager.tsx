@@ -39,7 +39,7 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
 
   async function confirmDelete() {
     if (!toDelete) return;
-    const ok = await store.run(
+    const { ok } = await store.run(
       (token) => deleteGift(token, toDelete.id),
       "La suppression a échoué.",
     );

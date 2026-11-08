@@ -16,8 +16,8 @@ type GiftCardProps = {
 };
 
 /**
- * Tall portrait card (~280px) used in the public carousels. Focusable so keyboard users
- * reveal the colour photo and can scroll the carousel with the arrow keys.
+ * Tall portrait card (~280px) used in the public carousels. The inner link and button are the
+ * tab stops; `:focus-within` reveals the colour photo for keyboard users.
  */
 export function GiftCard({
   gift,
@@ -33,7 +33,6 @@ export function GiftCard({
 
   return (
     <article
-      tabIndex={0}
       aria-labelledby={titleId}
       className="gift-card flex w-[280px] flex-col gap-3 bg-white p-4 shadow-soft outline-offset-4"
     >
@@ -45,7 +44,9 @@ export function GiftCard({
       <GiftPrice price={gift.price} oldPrice={gift.old_price} currency={gift.currency} />
       <div className="hairline" />
       {gift.description ? (
-        <p className="line-clamp-3 text-sm leading-relaxed text-ink-soft">{gift.description}</p>
+        <p className="line-clamp-3 text-sm leading-relaxed whitespace-pre-line text-ink-soft">
+          {gift.description}
+        </p>
       ) : (
         <p className="text-sm text-ink-soft">Aucune précision.</p>
       )}

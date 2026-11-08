@@ -8,6 +8,7 @@ import { errorMessage } from "@/lib/api";
 import type { OwnerData } from "@/lib/types";
 
 export type OwnerStore = ReturnType<typeof useOwnerData>;
+export type RunResult = { ok: true; error: null } | { ok: false; error: string };
 
 /**
  * Loads the owner dashboard data and exposes `run`, which executes a mutation,
@@ -25,17 +26,18 @@ export function useOwnerData() {
   const [actionError, setActionError] = useState<string | null>(null);
 
   const run = useCallback(
-    async (mutation: (token: string) => Promise<unknown>, fallback: string) => {
-      if (!token) return false;
+    async (mutation: (token: string) => Promise<unknown>, fallback: string): Promise<RunResult> => {
+      if (!token) return { ok: false, error: "Connectez-vous en tant que propriétaire." };
       setBusy(true);
       setActionError(null);
       try {
         await mutation(token);
         state.refetch();
-        return true;
+        return { ok: true, error: null };
       } catch (error) {
-        setActionError(errorMessage(error, fallback));
-        return false;
+        const message = errorMessage(error, fallback);
+        setActionError(message);
+        return { ok: false, error: message };
       } finally {
         setBusy(false);
       }

@@ -1,6 +1,7 @@
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export const NETWORK_ERROR_MESSAGE = "Impossible de joindre le serveur. Vérifiez votre connexion.";
+export const UNAUTHORIZED_EVENT = "listayours:unauthorized";
 
 type ValidationIssue = { loc?: unknown; msg: string; type?: string };
 
@@ -97,6 +98,9 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
 
   if (!response.ok) {
     const errorBody = (body ?? null) as ApiErrorBody;
+    if (response.status === 401 && options.token && typeof window !== "undefined") {
+      window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+    }
     throw new ApiError(
       response.status,
       errorBody,
