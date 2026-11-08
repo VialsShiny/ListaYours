@@ -1,9 +1,10 @@
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.db.models import User, Wishlist
 from app.schemas.wishlist import WishlistUpdate
-from app.services.errors import NotFound
+from app.services.errors import Conflict, NotFound
 from app.utils.slug import slugify
 
 DEFAULT_TITLE = "Liste de Souhait"
@@ -49,7 +50,11 @@ def update_settings(db: Session, wishlist: Wishlist, payload: WishlistUpdate) ->
         changes["slug"] = unique_slug(db, changes["slug"], exclude_id=wishlist.id)
     for field, value in changes.items():
         if value is not None:
-            setattr(wishlist, field, value.strip() if isinstance(value, str) else value)
-    db.commit()
+            setattr(wishlist, field, value)
+    try:
+        db.commit()
+    except IntegrityError as error:
+        db.rollback()
+        raise Conflict("Cette adresse de liste est déjà utilisée.") from error
     db.refresh(wishlist)
     return wishlist

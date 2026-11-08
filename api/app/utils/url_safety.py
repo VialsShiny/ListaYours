@@ -12,7 +12,8 @@ class UnsafeUrl(ValueError):
 def _is_public_address(address: str) -> bool:
     ip = ipaddress.ip_address(address)
     return not (
-        ip.is_private
+        not ip.is_global
+        or ip.is_private
         or ip.is_loopback
         or ip.is_link_local
         or ip.is_multicast

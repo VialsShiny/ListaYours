@@ -4,12 +4,19 @@ import threading
 import time
 from typing import Any
 
+import httpx
+from playwright.async_api import Error as PlaywrightError
+
 from app.config import get_settings
 from app.scraper.engine import scrape_product
 from app.services.errors import ServiceError
 from app.utils.url_safety import UnsafeUrl, assert_public_http_url
 
 logger = logging.getLogger("scrape_service")
+
+
+MAX_CACHE_ENTRIES = 256
+TRANSIENT_ERRORS = (httpx.TransportError, PlaywrightError)
 
 
 class ScrapeCache:
@@ -31,8 +38,14 @@ class ScrapeCache:
             return data, strategy
 
     def put(self, key: tuple[str, str], data: dict[str, Any], strategy: str, ttl: float) -> None:
+        now = time.monotonic()
         with self._lock:
-            self._entries[key] = (time.monotonic() + ttl, data, strategy)
+            expired = [k for k, (expires_at, _, _) in self._entries.items() if expires_at < now]
+            for k in expired:
+                del self._entries[k]
+            if len(self._entries) >= MAX_CACHE_ENTRIES:
+                self._entries.pop(next(iter(self._entries)))
+            self._entries[key] = (now + ttl, data, strategy)
 
     def clear(self) -> None:
         with self._lock:
@@ -53,26 +66,32 @@ def validate_url(url: str) -> None:
         raise ServiceError(str(error), 400) from error
 
 
+async def _scrape_with_one_retry(url: str, strategy: str, debug: bool) -> tuple[dict[str, Any], str]:
+    try:
+        return await scrape_product(url, strategy, debug)
+    except TRANSIENT_ERRORS:
+        logger.warning("Transient scrape failure for %s, retrying once", url)
+        return await scrape_product(url, strategy, debug)
+
+
 async def scrape_with_guards(url: str, strategy: str, debug: bool) -> tuple[dict[str, Any], str]:
-    """Run the unchanged scraper behind a cache, a single retry on transient failure and a hard timeout."""
+    """Run the unchanged scraper behind SSRF validation, a cache, one retry on transport errors and one hard timeout."""
     settings = get_settings()
+    await asyncio.to_thread(validate_url, url)
     key = (url, strategy)
     if not debug:
         cached = cache.get(key)
         if cached is not None:
             return cached
-    attempts = 0
-    while True:
-        attempts += 1
-        try:
-            data, used = await asyncio.wait_for(scrape_product(url, strategy, debug), settings.scrape_timeout_seconds)
-        except TimeoutError as error:
-            raise ScrapeTimeout(f"Délai dépassé ({settings.scrape_timeout_seconds:.0f}s) pour {url}") from error
-        except Exception:
-            if attempts >= 2:
-                raise
-            logger.warning("Scrape failed for %s, retrying once", url)
-            continue
-        if not debug:
-            cache.put(key, data, used, settings.scrape_cache_ttl_seconds)
-        return data, used
+    try:
+        data, used = await asyncio.wait_for(
+            _scrape_with_one_retry(url, strategy, debug), settings.scrape_timeout_seconds
+        )
+    except TimeoutError as error:
+        raise ScrapeTimeout(f"Délai dépassé ({settings.scrape_timeout_seconds:.0f}s) pour {url}") from error
+    canonical = data.get("canonical_url")
+    if canonical and canonical != url:
+        await asyncio.to_thread(validate_url, canonical)
+    if not debug:
+        cache.put(key, data, used, settings.scrape_cache_ttl_seconds)
+    return data, used

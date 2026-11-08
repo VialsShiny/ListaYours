@@ -1,14 +1,17 @@
 import uuid
+from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+
+CategoryName = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80)]
 
 
 class CategoryCreate(BaseModel):
-    name: str = Field(min_length=1, max_length=80)
+    name: CategoryName
 
 
 class CategoryUpdate(BaseModel):
-    name: str = Field(min_length=1, max_length=80)
+    name: CategoryName
 
 
 class CategoryOut(BaseModel):

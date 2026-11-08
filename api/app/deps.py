@@ -49,8 +49,11 @@ def auth_rate_limit(request: Request) -> None:
     enforce(auth_limiter, request, "auth", get_settings().trust_proxy_headers)
 
 
-def scrape_rate_limit(request: Request) -> None:
-    enforce(scrape_limiter, request, "scrape", get_settings().trust_proxy_headers)
+def scrape_rate_limit(request: Request, owner: Annotated[User, Depends(require_owner)]) -> None:
+    """Budget the scraper per authenticated owner, so unauthenticated callers cannot burn it."""
+    if not scrape_limiter.allow(f"scrape:{owner.id}"):
+        enforce(scrape_limiter, request, "scrape-blocked", get_settings().trust_proxy_headers)
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Trop de requêtes, réessayez dans une minute.")
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]

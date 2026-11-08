@@ -1,6 +1,7 @@
 import uuid
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.db.models import Category, Wishlist
@@ -8,7 +9,21 @@ from app.services.errors import Conflict, NotFound
 
 
 def list_categories(db: Session, wishlist: Wishlist) -> list[Category]:
-    return list(db.scalars(select(Category).where(Category.wishlist_id == wishlist.id).order_by(Category.position)))
+    query = select(Category).where(Category.wishlist_id == wishlist.id).order_by(Category.position, Category.name)
+    return list(db.scalars(query))
+
+
+def next_position(db: Session, wishlist: Wishlist) -> int:
+    current_max = db.scalar(select(func.max(Category.position)).where(Category.wishlist_id == wishlist.id))
+    return 0 if current_max is None else current_max + 1
+
+
+def commit_or_conflict(db: Session, message: str) -> None:
+    try:
+        db.commit()
+    except IntegrityError as error:
+        db.rollback()
+        raise Conflict(message) from error
 
 
 def get_category(db: Session, wishlist: Wishlist, category_id: uuid.UUID) -> Category:
@@ -23,10 +38,9 @@ def create_category(db: Session, wishlist: Wishlist, name: str) -> Category:
     duplicate = db.scalar(select(Category).where(Category.wishlist_id == wishlist.id, Category.name == name))
     if duplicate is not None:
         raise Conflict("Cette catégorie existe déjà.")
-    next_position = db.scalar(select(func.count()).select_from(Category).where(Category.wishlist_id == wishlist.id))
-    category = Category(wishlist_id=wishlist.id, name=name, position=next_position or 0)
+    category = Category(wishlist_id=wishlist.id, name=name, position=next_position(db, wishlist))
     db.add(category)
-    db.commit()
+    commit_or_conflict(db, "Cette catégorie existe déjà.")
     db.refresh(category)
     return category
 
@@ -40,7 +54,7 @@ def rename_category(db: Session, wishlist: Wishlist, category_id: uuid.UUID, nam
     if duplicate is not None:
         raise Conflict("Cette catégorie existe déjà.")
     category.name = name
-    db.commit()
+    commit_or_conflict(db, "Cette catégorie existe déjà.")
     db.refresh(category)
     return category
 
