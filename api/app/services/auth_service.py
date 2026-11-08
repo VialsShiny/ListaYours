@@ -10,14 +10,12 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.db.models import ROLE_OWNER, ROLE_VISITOR, User
 from app.schemas.auth import RegisterRequest
+from app.services.errors import ServiceError
 from app.services.wishlist_service import create_default_wishlist
 
 
-class AuthError(Exception):
-    def __init__(self, message: str, status_code: int = 400) -> None:
-        super().__init__(message)
-        self.message = message
-        self.status_code = status_code
+class AuthError(ServiceError):
+    pass
 
 
 DUMMY_HASH = bcrypt.hashpw(b"timing-equalizer", bcrypt.gensalt()).decode("utf-8")
