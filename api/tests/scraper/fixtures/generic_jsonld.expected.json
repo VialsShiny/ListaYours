@@ -1,0 +1,54 @@
+{
+  "availability": true,
+  "brand": "Shirtz",
+  "canonical_url": "https://shirtz.cool/products/the-monsters-nearby-knit",
+  "category": "Pulls",
+  "characteristics": {
+    "Entretien ": "Lavage à 30°",
+    "Matière": "100% coton"
+  },
+  "currency": "EUR",
+  "description": "Pull jacquard, 100% coton, coupe oversize.",
+  "discount": "-20%",
+  "gallery": [
+    "https://shirtz.cool/img/monsters-1@2x.jpg",
+    "https://shirtz.cool/img/monsters-3.jpg"
+  ],
+  "images": [
+    "https://cdn.example.com/img/monsters-1.jpg",
+    "https://shirtz.cool/img/monsters-2.jpg",
+    "https://cdn.example.com/img/monsters-og.jpg"
+  ],
+  "old_price": "79.00",
+  "price": "62.95",
+  "product_url": "https://shirtz.cool/products/the-monsters-nearby-knit",
+  "reviews": {
+    "list": [
+      {
+        "author": "Léa",
+        "date": "2026-02-01",
+        "rating": null,
+        "text": "Très chaud et confortable."
+      }
+    ],
+    "rating_average": "4.8",
+    "review_count": "27"
+  },
+  "sku": "TMN-KNIT-001",
+  "stock": "InStock",
+  "title": "The Monsters Nearby Knit",
+  "variants": {
+    "color": [
+      "NOIR",
+      "BLANC"
+    ],
+    "pattern": [],
+    "size": [
+      "S",
+      "M",
+      "L",
+      "XL"
+    ],
+    "style": []
+  }
+}

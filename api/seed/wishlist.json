@@ -1,0 +1,40 @@
+{
+  "title": "Liste de Souhait",
+  "slug": "liste-de-souhait",
+  "description": "Regardez bien les images : elles indiquent le produit exact (surtout pour AliExpress). Pointure 43, pull et t-shirt en M, manchettes en M/L.",
+  "categories": [
+    "Les essentiels",
+    "Les Vêtements",
+    "Les Daily",
+    "Le Setup",
+    "Les Utiles",
+    "Les Chaussures",
+    "Les Bijoux",
+    "Les Composants"
+  ],
+  "gifts": [
+    {"category": "Les essentiels", "name": "Moniteur AOC Gaming 27\" 280 Hz", "pdf_price": "199.00", "note": null, "alt": "Au choix avec : Moniteur AOC Gaming 24,5\" 310 Hz", "url": "https://www.amazon.fr/dp/B0CZ762XQ3", "pdf_image": null},
+    {"category": "Les essentiels", "name": "Moniteur AOC Gaming 24,5\" 310 Hz", "pdf_price": "154.99", "note": null, "alt": "Au choix avec : Moniteur AOC Gaming 27\" 280 Hz", "url": "https://www.amazon.fr/dp/B0DT4Q8SMV", "pdf_image": null},
+    {"category": "Les essentiels", "name": "Logitech StreamCam", "pdf_price": "258.06", "note": null, "alt": null, "url": "https://www.amazon.fr/dp/B07W4DHNBF", "pdf_image": null},
+    {"category": "Les essentiels", "name": "Tapis de souris Lethal Gaming Gear Saturn XL noir", "pdf_price": "34.90", "note": null, "alt": null, "url": "https://maxesport.gg/fr/p/lethal-gaming-gear-saturn-xl-noir/", "pdf_image": null},
+    {"category": "Les Vêtements", "name": "Pull \"The Monsters Nearby\"", "pdf_price": "62.95", "note": "Taille M", "alt": null, "url": "https://shirtz.cool/products/the-monsters-nearby-knit", "pdf_image": null},
+    {"category": "Les Vêtements", "name": "T-shirt Scuderia Ferrari 2026 Team", "pdf_price": "80.00", "note": "Taille M", "alt": null, "url": "https://www.fanatics.fr/fr/formula-1/scuderia-ferrari/t-shirt-scuderia-ferrari-2026-team/o-43765536+t-98640836+p-8040866651+z-8-2493727825?_ref=p-TLP:m-GRID:i-r0c1:po-1&sku=210739796", "pdf_image": null},
+    {"category": "Les Daily", "name": "Porte-clés spinner", "pdf_price": "8.29", "note": null, "alt": null, "url": "https://www.amazon.com/dp/B0CPBNV3H4", "pdf_image": null},
+    {"category": "Les Daily", "name": "Couverts de voyage inox noirs", "pdf_price": "7.99", "note": null, "alt": "Avec ou sans : Lunch box bento avec sac isotherme", "url": "https://www.amazon.com/dp/B0DK35ZQB1", "pdf_image": null},
+    {"category": "Les Daily", "name": "Lunch box bento avec sac isotherme", "pdf_price": "26.99", "note": null, "alt": "Avec ou sans : Couverts de voyage inox noirs", "url": "https://www.amazon.com/dp/B0BTDDWD57", "pdf_image": null},
+    {"category": "Les Daily", "name": "Pochette ordinateur 16 pouces MOSISO", "pdf_price": "16.99", "note": null, "alt": "Au choix avec : Sacoche ordinateur 16 pouces MOSISO", "url": "https://www.amazon.com/dp/B01N0W1YIK", "pdf_image": null},
+    {"category": "Les Daily", "name": "Sacoche ordinateur 16 pouces MOSISO", "pdf_price": "25.99", "note": null, "alt": "Au choix avec : Pochette ordinateur 16 pouces MOSISO", "url": "https://www.amazon.com/dp/B0C96NNJ86", "pdf_image": null},
+    {"category": "Le Setup", "name": "Clavier à touches blanches (AliExpress)", "pdf_price": "24.39", "note": "Variante : touches blanches (White), voir l'image.", "alt": null, "url": "https://fr.aliexpress.com/item/1005003030077320.html", "pdf_image": "clavier-touches-blanches.jpg"},
+    {"category": "Le Setup", "name": "Paire de manchettes Gentlemates Summer grise", "pdf_price": "25.00", "note": "Taille M/L", "alt": null, "url": "https://www.gentlemates.com/shop/product/paire-de-manchettes-summer-grise", "pdf_image": null},
+    {"category": "Les Utiles", "name": "Organiseur de câbles auto-agrippant", "pdf_price": "12.64", "note": null, "alt": null, "url": "https://www.amazon.fr/dp/B0F8W3N9MF", "pdf_image": null},
+    {"category": "Les Utiles", "name": "Goulottes cache-câbles D-Line", "pdf_price": "19.79", "note": null, "alt": null, "url": "https://www.amazon.fr/dp/B09GK4W136", "pdf_image": null},
+    {"category": "Les Utiles", "name": "Plafonnier LED RGB avec télécommande", "pdf_price": "28.99", "note": null, "alt": null, "url": "https://www.amazon.fr/dp/B0D3DKM35F", "pdf_image": null},
+    {"category": "Les Chaussures", "name": "New Balance 740 noire", "pdf_price": "120.00", "note": "Pointure 43", "alt": null, "url": "https://www.newbalance.fr/fr/pd/740/U740V2-50105-PMG-EMEA.html?dwvar_U740V2-50105-PMG-EMEA_style=U740BM2#dwvar_U740V2-50105-PMG-EMEA_style=U740BM2&dwvar_U740V2-50105-PMG-EMEA_width=D&pid=U740V2-50105-PMG-EMEA&quantity=1", "pdf_image": "new-balance-740-noire.jpg"},
+    {"category": "Les Chaussures", "name": "Nike V5 RNR", "pdf_price": "89.99", "note": "Pointure 43", "alt": null, "url": "https://www.nike.com/fr/t/chaussure-v5-rnr-pour-rAnbXJ7w/HJ5228-009", "pdf_image": null},
+    {"category": "Les Bijoux", "name": "Bracelet tressé Ghost, argent (Koenigsegg)", "pdf_price": "262.00", "note": null, "alt": null, "url": "https://gear.koenigsegg.com/product/ghost-braided-bracelet-silver/", "pdf_image": null},
+    {"category": "Les Bijoux", "name": "Pendentif Ghost, argent (Koenigsegg)", "pdf_price": "243.00", "note": null, "alt": null, "url": "https://gear.koenigsegg.com/product/ghost-pendant-silver/", "pdf_image": null},
+    {"category": "Les Composants", "name": "Boîtier Corsair 3500X ARGB", "pdf_price": "129.12", "note": null, "alt": null, "url": "https://www.amazon.fr/dp/B0CZV13F49", "pdf_image": null},
+    {"category": "Les Composants", "name": "Pack 3 ventilateurs Corsair SP120 RGB", "pdf_price": "106.68", "note": null, "alt": null, "url": "https://www.amazon.fr/dp/B08XJZ82Y8", "pdf_image": null},
+    {"category": "Les Composants", "name": "Carte mère ASUS ROG Strix B550-A Gaming", "pdf_price": "146.00", "note": null, "alt": null, "url": "https://www.amazon.fr/dp/B08KBSRYGF", "pdf_image": null}
+  ]
+}

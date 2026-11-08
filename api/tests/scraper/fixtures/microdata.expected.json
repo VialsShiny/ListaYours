@@ -1,0 +1,29 @@
+{
+  "availability": true,
+  "brand": "Koenigsegg",
+  "canonical_url": "https://gear.koenigsegg.com/product/ghost-braided-bracelet-silver/",
+  "category": null,
+  "characteristics": {},
+  "currency": null,
+  "description": "Bracelet tressé en cuir avec fermoir Ghost en argent.",
+  "discount": null,
+  "gallery": [],
+  "images": [],
+  "old_price": null,
+  "price": "12",
+  "product_url": "https://gear.koenigsegg.com/product/ghost-braided-bracelet-silver/",
+  "reviews": {
+    "list": [],
+    "rating_average": "4.7",
+    "review_count": 12
+  },
+  "sku": "KG-GHOST-BR-S",
+  "stock": "InStock",
+  "title": "Ghost Braided Bracelet Silver",
+  "variants": {
+    "color": [],
+    "pattern": [],
+    "size": [],
+    "style": []
+  }
+}

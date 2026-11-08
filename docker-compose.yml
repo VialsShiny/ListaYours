@@ -1,36 +1,60 @@
-version: '3.8'
-
 services:
+  db:
+    image: postgres:16-alpine
+    container_name: listayours_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-listayours}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-listayours}
+      POSTGRES_DB: ${POSTGRES_DB:-listayours}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-listayours} -d ${POSTGRES_DB:-listayours}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   api:
     build:
       context: ./api
       dockerfile: Dockerfile
-    container_name: scraper_api
+    container_name: listayours_api
     restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
-      - "8000:8000"
+      - "${API_PORT:-8000}:8000"
     environment:
-      - ENVIRONMENT=development
-    volumes:
-      - ./api:/app
-    ipc: host # Requis pour éviter les crashs de Playwright liés à la mémoire partagée
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      API_PORT: 8000
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-listayours}:${POSTGRES_PASSWORD:-listayours}@db:5432/${POSTGRES_DB:-listayours}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set (copy .env.example to .env and generate one)}
+      JWT_EXPIRES_MINUTES: ${JWT_EXPIRES_MINUTES:-10080}
+      OWNER_EMAIL: ${OWNER_EMAIL:-owner@example.com}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      SCRAPE_TIMEOUT_SECONDS: ${SCRAPE_TIMEOUT_SECONDS:-90}
+      SCRAPE_CACHE_TTL_SECONDS: ${SCRAPE_CACHE_TTL_SECONDS:-300}
+      RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-20}
+    shm_size: "1gb"
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: scraper_frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    container_name: listayours_frontend
     restart: unless-stopped
-    working_dir: /app
-    volumes:
-      - ./frontend:/app:cached
-      - /app/node_modules
-    ports:
-      - "3000:3000"
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-      - NODE_ENV=development
-    command: sh -c "npm install && npm run dev -- -H 0.0.0.0"
     depends_on:
       - api
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      API_INTERNAL_URL: http://api:8000
+
+volumes:
+  db_data:

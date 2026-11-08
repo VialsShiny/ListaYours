@@ -1,0 +1,130 @@
+name: CI
+
+on:
+  push:
+    branches: [main, feat/wishlist-platform]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "20"
+
+jobs:
+  commitlint:
+    name: Commit messages
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+
+  api:
+    name: API — lint, typecheck, tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: listayours
+          POSTGRES_PASSWORD: listayours
+          POSTGRES_DB: listayours_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U listayours"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://listayours:listayours@localhost:5432/listayours_test
+      JWT_SECRET: ci-only-secret-not-used-in-production
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            api/requirements.txt
+            api/requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - name: Lint
+        run: ruff check . && ruff format --check .
+      - name: Typecheck
+        run: mypy
+      - name: Tests
+        run: python -m pytest -q
+
+  frontend:
+    name: Frontend — lint, typecheck, tests, build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Lint
+        run: npm run lint && npm run format:check
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Tests
+        run: npm test
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000
+          NEXT_TELEMETRY_DISABLED: "1"
+
+  docker:
+    name: Docker images build
+    runs-on: ubuntu-latest
+    needs: [api, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build API image
+        uses: docker/build-push-action@v6
+        with:
+          context: api
+          push: false
+          load: true
+          tags: listayours-api:ci
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max
+      - name: Build frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          push: false
+          load: true
+          tags: listayours-frontend:ci
+          build-args: NEXT_PUBLIC_API_URL=http://localhost:8000
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,scope=frontend,mode=max
+      # The image runs its database migrations at startup; a SQLite URL keeps the smoke test self-contained.
+      - name: Smoke-test API image health endpoint
+        run: |
+          docker run -d --name api -p 8000:8000 -e JWT_SECRET=ci -e DATABASE_URL=sqlite:////tmp/ci.db listayours-api:ci
+          for i in $(seq 1 30); do curl -fsS http://localhost:8000/health && break || sleep 2; done
+          docker logs api | tail -20
+          curl -fsS http://localhost:8000/health

@@ -1,0 +1,25 @@
+# Caddy reverse proxy for the ListaYours API.
+# API_DOMAIN comes from deploy/oracle/.env through docker-compose.prod.yml.
+# Caddy obtains and renews the Let's Encrypt certificate automatically and
+# redirects HTTP to HTTPS, as long as the DNS record points to this VM and
+# ports 80/443 are reachable (https://caddyserver.com/docs/automatic-https, read 2026-11-08).
+
+{$API_DOMAIN} {
+	encode zstd gzip
+
+	# Caddy sets X-Forwarded-For / X-Forwarded-Proto itself; the API honours them
+	# only when TRUST_PROXY_HEADERS=true (set in .env).
+	reverse_proxy api:8000
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

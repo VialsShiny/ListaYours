@@ -1,0 +1,88 @@
+# Production stack for the Oracle Cloud Always Free VM (Ampere A1, linux/arm64).
+#
+# Usage (from this directory, see docs/DEPLOY.md):
+#   cp listayours.env.example .env && chmod 600 .env   # then fill in the values
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Optional self-hosted Postgres (instead of Neon/Supabase):
+#   docker compose -f docker-compose.prod.yml --profile local-db up -d --build
+#
+# Compose reads `.env` from this directory both for ${VAR} interpolation below and
+# as the API container's env_file. Never commit `.env` (it is in .gitignore).
+
+services:
+  api:
+    build:
+      context: ../../api
+      dockerfile: Dockerfile
+      # The VM is ARM64; building on the VM itself produces a linux/arm64 image.
+      # To build elsewhere: docker buildx build --platform linux/arm64 -t listayours-api:prod ../../api
+      platforms:
+        - linux/arm64
+    image: listayours-api:prod
+    container_name: listayours_api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      API_PORT: "8000"
+    ports:
+      # Loopback only: used by the local health check and the keep-alive timer. Caddy reaches
+      # the container through the compose network; nothing else is exposed on the public IP.
+      - "127.0.0.1:8000:8000"
+    shm_size: "1gb"
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  caddy:
+    image: caddy:2
+    container_name: listayours_caddy
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      # Public hostname of the API (DNS A/AAAA record -> VM public IP). Caddy obtains the TLS certificate itself.
+      API_DOMAIN: ${API_DOMAIN:?API_DOMAIN must be set in .env (e.g. api.example.com)}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  db:
+    # Only started with `--profile local-db`. Backups are then YOUR responsibility (see docs/DEPLOY.md).
+    profiles:
+      - local-db
+    image: postgres:16-alpine
+    container_name: listayours_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-listayours}
+      # Postgres itself refuses to start with an empty password, so a missing value fails loudly at `up`.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+      POSTGRES_DB: ${POSTGRES_DB:-listayours}
+    ports:
+      # Loopback only: lets `make seed` reach the database through an SSH tunnel (see docs/DEPLOY.md).
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-listayours} -d ${POSTGRES_DB:-listayours}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  caddy_data:
+  caddy_config:
+  db_data:

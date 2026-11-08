@@ -1,26 +1,49 @@
-
-import { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
-// @ts-ignore: CSS module declarations not available in this environment
+import type { Metadata, Viewport } from "next";
+import localFont from "next/font/local";
 import "./globals.css";
-import { Inter } from "next/font/google";
+import { AuthProvider } from "@/hooks/use-auth";
+import { SiteShell } from "@/components/layout/SiteShell";
 import { cn } from "@/lib/utils";
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
+const manrope = localFont({
+  src: [
+    { path: "./fonts/manrope-variable-latin.woff2", weight: "400 700", style: "normal" },
+    { path: "./fonts/manrope-variable-latin-ext.woff2", weight: "400 700", style: "normal" },
+  ],
+  variable: "--font-manrope",
+  display: "swap",
+});
+
+const playfair = localFont({
+  src: [
+    { path: "./fonts/playfair-display-900-latin.woff2", weight: "900", style: "normal" },
+    { path: "./fonts/playfair-display-900-latin-ext.woff2", weight: "900", style: "normal" },
+  ],
+  variable: "--font-playfair",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "ListaYours - Scraper E-commerce",
-  description: "Plateforme d'extraction de données de produits e-commerce",
+  title: {
+    default: "ListaYours.",
+    template: "%s — ListaYours.",
+  },
+  description: "La liste de souhaits à partager : parcourez, réservez, gardez la surprise.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#D9D9DB",
+};
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="fr" className={cn("scroll-smooth", "font-sans", inter.variable)}>
-      <body className="min-h-screen py-6 md:py-12 bg-slate-50 font-sans text-slate-900">
-        {children}
+    <html lang="fr" className={cn(manrope.variable, playfair.variable)}>
+      <body>
+        <AuthProvider>
+          <SiteShell>{children}</SiteShell>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,0 +1,45 @@
+{
+  "availability": true,
+  "brand": "AOC",
+  "canonical_url": "https://www.amazon.fr/AOC-Gaming-C27G4ZXED/dp/B0CZ762XQ3",
+  "category": "Informatique",
+  "characteristics": {
+    "ASIN": "B0CZ762XQ3",
+    "Marque": "AOC",
+    "Taille de l'écran": "27 Pouces"
+  },
+  "currency": "EUR",
+  "description": "Moniteur AOC Gaming 27 pouces 280 Hz : Amazon.fr: Informatique",
+  "discount": "-13%",
+  "gallery": [
+    "https://m.media-amazon.com/images/I/71D1U4geFIL._AC_SL1500_.jpg",
+    "https://m.media-amazon.com/images/I/81abc._AC_SL1500_.jpg"
+  ],
+  "images": [
+    "https://m.media-amazon.com/images/I/71D1U4geFIL._AC_SL1500_.jpg",
+    "https://m.media-amazon.com/images/I/81abc._AC_SL1500_.jpg"
+  ],
+  "old_price": "229.00",
+  "price": "199.00",
+  "product_url": "https://www.amazon.fr/dp/B0CZ762XQ3",
+  "reviews": {
+    "list": [],
+    "rating_average": 4.6,
+    "review_count": 1234
+  },
+  "sku": "B0CZ762XQ3",
+  "stock": "InStock",
+  "title": "AOC Gaming Moniteur Incurvé C27G4ZXED 27 Pouces 280Hz",
+  "variants": {
+    "color": [
+      "Noir",
+      "Rouge"
+    ],
+    "pattern": [],
+    "size": [
+      "27 Pouces",
+      "24.5 Pouces"
+    ],
+    "style": []
+  }
+}
