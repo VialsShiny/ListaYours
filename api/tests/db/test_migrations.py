@@ -32,11 +32,12 @@ def test_upgrade_head_creates_every_model_table(tmp_path) -> None:
         for table in Base.metadata.tables.values():
             columns = {column["name"] for column in inspector.get_columns(table.name)}
             assert columns == {column.name for column in table.columns}, table.name
-        for table, column in (("reservations", "gift_id"), ("users", "email"), ("wishlists", "slug")):
-            uniques = inspector.get_unique_constraints(table) + [
-                index for index in inspector.get_indexes(table) if index["unique"]
+        for table_name, column_name in (("reservations", "gift_id"), ("users", "email"), ("wishlists", "slug")):
+            unique_columns = [list(c["column_names"]) for c in inspector.get_unique_constraints(table_name)]
+            unique_columns += [
+                [str(c) for c in i["column_names"]] for i in inspector.get_indexes(table_name) if i["unique"]
             ]
-            assert any(constraint["column_names"] == [column] for constraint in uniques), (table, column)
+            assert [column_name] in unique_columns, (table_name, column_name)
         for table in Base.metadata.tables.values():
             expected_indexes = {tuple(column.name for column in index.columns) for index in table.indexes}
             actual_indexes = {tuple(index["column_names"]) for index in inspector.get_indexes(table.name)}

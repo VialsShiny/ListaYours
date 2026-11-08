@@ -3,8 +3,8 @@ import uuid
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from app.db.base import get_db
 from app.db.models import User
+from app.db.session import get_db
 from app.deps import OwnerUser, VisitorUser
 from app.main import app as main_app
 from app.services.auth_service import create_access_token, decode_access_token
