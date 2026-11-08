@@ -1,7 +1,10 @@
 import json
+import uuid
 
 from httpx import Response
+from sqlalchemy import func, select
 
+from app.db.models import Reservation
 from tests.conftest import auth_headers
 from tests.core.helpers import reserve
 from tests.privacy.conftest import assert_no_leak
@@ -41,7 +44,44 @@ def owner_surface(client, world: dict) -> list[tuple[str, Response]]:
                 client.patch(f"/api/owner/gifts/{gift_id}", json={"description": "maj"}, headers=headers),
             )
         )
+    calls += owner_mutations(client, world)
     return calls
+
+
+def owner_mutations(client, world: dict) -> list[tuple[str, Response]]:
+    """Writes and error paths: creation, category life-cycle around a reserved gift, settings, scrape, 4xx bodies."""
+    headers = world["owner_headers"]
+    reserved_category = world["categories"][0]["id"]
+    created_gift = client.post(
+        "/api/owner/gifts", json={"name": "Nouveau", "category_id": reserved_category}, headers=headers
+    )
+    new_category = client.post("/api/owner/categories", json={"name": "Temporaire"}, headers=headers)
+    renamed = client.patch(f"/api/owner/categories/{reserved_category}", json={"name": "Renommée"}, headers=headers)
+    moved = client.patch(
+        f"/api/owner/gifts/{world['reserved']['id']}", json={"category_id": new_category.json()["id"]}, headers=headers
+    )
+    deleted_category = client.delete(f"/api/owner/categories/{new_category.json()['id']}", headers=headers)
+    settings = client.patch(
+        "/api/owner/wishlist", json={"slug": "nouvelle-adresse", "is_published": False}, headers=headers
+    )
+    republished = client.patch("/api/owner/wishlist", json={"is_published": True}, headers=headers)
+    duplicate = client.post("/api/owner/categories", json={"name": "Renommée"}, headers=headers)
+    invalid = client.post("/api/owner/gifts", json={"name": "", "price": "-1"}, headers=headers)
+    unknown = client.get(f"/api/owner/gifts/{uuid.uuid4()}", headers=headers)
+    scrape = client.post("/api/scrape", json={"url": "http://127.0.0.1/"}, headers=headers)
+    return [
+        ("POST /api/owner/gifts", created_gift),
+        ("POST /api/owner/categories", new_category),
+        ("PATCH /api/owner/categories/{id}", renamed),
+        ("PATCH /api/owner/gifts/{reserved} category", moved),
+        ("DELETE /api/owner/categories/{id} holding the reserved gift", deleted_category),
+        ("PATCH /api/owner/wishlist slug+unpublish", settings),
+        ("PATCH /api/owner/wishlist republish", republished),
+        ("409 duplicate category", duplicate),
+        ("422 invalid gift", invalid),
+        ("404 unknown gift", unknown),
+        ("400 scrape forbidden url", scrape),
+    ]
 
 
 def strip_false_public_flags(body: dict) -> dict:
@@ -56,7 +96,7 @@ def strip_false_public_flags(body: dict) -> dict:
 
 def test_every_owner_facing_response_is_free_of_reservation_data(client, world) -> None:
     for name, response in owner_surface(client, world):
-        assert response.status_code < 400, (name, response.text)
+        assert response.status_code < 400 or name[:3] in {"409", "422", "404", "400"}, (name, response.text)
         text = response.text
         if name == "GET /api/public/wishlists/{slug}":
             text = json.dumps(strip_false_public_flags(response.json()))
@@ -85,15 +125,17 @@ def test_owner_view_is_identical_before_during_and_after_a_reservation(client, o
     assert reserve(client, visitor, gift["id"]).status_code == 201
     during = client.get("/api/owner/wishlist", headers=headers).json()
     during_gift = client.get(f"/api/owner/gifts/{gift['id']}", headers=headers).json()
-    client.delete(f"/api/gifts/{gift['id']}/reservation", headers=auth_headers(visitor["access_token"]))
+    cancelled = client.delete(f"/api/gifts/{gift['id']}/reservation", headers=auth_headers(visitor["access_token"]))
+    assert cancelled.status_code == 204
     after = client.get("/api/owner/wishlist", headers=headers).json()
     assert before == during == after
     assert before_gift == during_gift
     assert during_gift["updated_at"] == before_gift["updated_at"]
 
 
-def test_deleting_reserved_and_unreserved_gifts_looks_the_same_to_the_owner(client, world) -> None:
+def test_deleting_reserved_and_unreserved_gifts_looks_the_same_to_the_owner(client, world, db) -> None:
     headers = world["owner_headers"]
+    assert db.scalar(select(func.count()).select_from(Reservation)) == 1
     reserved = client.delete(f"/api/owner/gifts/{world['reserved']['id']}", headers=headers)
     free = client.delete(f"/api/owner/gifts/{world['free']['id']}", headers=headers)
     assert (reserved.status_code, reserved.text) == (free.status_code, free.text) == (204, "")
@@ -103,6 +145,7 @@ def test_deleting_reserved_and_unreserved_gifts_looks_the_same_to_the_owner(clie
     assert again_reserved.json() == again_free.json()
     mine = client.get("/api/me/reservations", headers=auth_headers(world["visitor"]["access_token"])).json()
     assert mine == []
+    assert db.scalar(select(func.count()).select_from(Reservation)) == 0
 
 
 def test_editing_a_reserved_gift_behaves_like_editing_a_free_one(client, world) -> None:

@@ -9,7 +9,9 @@ from sqlalchemy.orm import Mapper
 from app.db.models import Gift, Reservation, User, Wishlist
 from app.deps import require_owner
 from app.main import app
+from app.schemas.category import CategoryOut
 from app.schemas.gift import OwnerGiftOut, OwnerWishlistOut
+from app.schemas.wishlist import WishlistOut
 
 OWNER_PREFIXES = ("/api/owner", "/api/scrape")
 
@@ -29,11 +31,15 @@ def dependency_callables(dependant) -> set:
     return found
 
 
+def own_fields(model: type[BaseModel]) -> set[str]:
+    computed = model.__pydantic_decorators__.computed_fields
+    return set(model.model_fields) | set(computed)
+
+
 def field_names(model: type[BaseModel], seen: set | None = None) -> set[str]:
     seen = seen or set()
-    names: set[str] = set()
-    for name, field in model.model_fields.items():
-        names.add(name)
+    names: set[str] = own_fields(model)
+    for field in model.model_fields.values():
         for candidate in _nested_models(field.annotation):
             if candidate not in seen:
                 seen.add(candidate)
@@ -65,8 +71,11 @@ def test_owner_response_models_have_no_reservation_fields() -> None:
                 assert "reserv" not in name.lower(), (route.path, name)
 
 
-def test_owner_gift_schema_is_an_explicit_whitelist() -> None:
-    assert set(OwnerGiftOut.model_fields) == {
+def test_owner_schemas_are_explicit_whitelists() -> None:
+    assert own_fields(WishlistOut) == {"id", "title", "slug", "description", "is_published", "created_at", "updated_at"}
+    assert own_fields(CategoryOut) == {"id", "name", "position"}
+    assert own_fields(OwnerWishlistOut) == {"wishlist", "categories", "gifts"}
+    assert own_fields(OwnerGiftOut) == {
         "id",
         "category_id",
         "name",

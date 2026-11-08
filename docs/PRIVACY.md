@@ -26,9 +26,9 @@ The rule is enforced in the API and in the data layer, never in CSS or by filter
 
 ## Tests that must stay green
 
-`api/tests/privacy/test_owner_blindness.py` calls every owner-facing endpoint with a reserved gift in place and
-asserts that no response (body or headers) contains reservation markers or visitor identities, that the owner's
-view is byte-identical before, during and after a reservation, and that deleting/editing a reserved gift looks
+`api/tests/privacy/test_owner_blindness.py` calls every owner-facing route (reads, writes, settings, scrape and the 400/404/409/422 error bodies) with a reserved gift in place and
+asserts that no response (body or headers, accents folded) contains reservation markers or visitor identities,
+that the owner's view is JSON-identical before, during and after a reservation, and that deleting/editing a reserved gift looks
 exactly like deleting/editing a free one. `api/tests/privacy/test_structure.py` guards the route dependencies,
 the response schemas and the ORM mapping.
 

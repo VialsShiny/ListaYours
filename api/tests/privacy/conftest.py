@@ -1,9 +1,17 @@
+import unicodedata
+
 import pytest
 
 from tests.conftest import auth_headers
 from tests.core.helpers import create_category, create_gift, owner_slug, reserve
 
-FORBIDDEN_MARKERS = ("reserv", "visitor", "booked", "taken")
+FORBIDDEN_MARKERS = ("reserv", "visitor", "visiteur", "booked", "taken")
+
+
+def fold(text: str) -> str:
+    """Lowercase and strip accents so 'réservé' is caught by the marker 'reserv'."""
+    decomposed = unicodedata.normalize("NFKD", text)
+    return "".join(ch for ch in decomposed if not unicodedata.combining(ch)).lower()
 
 
 @pytest.fixture
@@ -37,8 +45,8 @@ def secrets_of(world: dict) -> list[str]:
 
 
 def assert_no_leak(text: str, world: dict) -> None:
-    lowered = text.lower()
+    folded = fold(text)
     for marker in FORBIDDEN_MARKERS:
-        assert marker not in lowered, f"marker {marker!r} found in owner-facing response: {text[:200]}"
+        assert marker not in folded, f"marker {marker!r} found in owner-facing response: {text[:200]}"
     for secret in secrets_of(world):
-        assert secret.lower() not in lowered, f"visitor data {secret!r} found in owner-facing response"
+        assert fold(secret) not in folded, f"visitor data {secret!r} found in owner-facing response"
