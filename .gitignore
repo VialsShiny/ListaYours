@@ -23,3 +23,6 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 screenshots/
+
+# Seed run reports
+api/seed/last-run.json
