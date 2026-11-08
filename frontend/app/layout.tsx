@@ -1,20 +1,24 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope, Playfair_Display } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "@/hooks/use-auth";
 import { SiteShell } from "@/components/layout/SiteShell";
 import { cn } from "@/lib/utils";
 
-const manrope = Manrope({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+const manrope = localFont({
+  src: [
+    { path: "./fonts/manrope-variable-latin.woff2", weight: "400 700", style: "normal" },
+    { path: "./fonts/manrope-variable-latin-ext.woff2", weight: "400 700", style: "normal" },
+  ],
   variable: "--font-manrope",
   display: "swap",
 });
 
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["900"],
+const playfair = localFont({
+  src: [
+    { path: "./fonts/playfair-display-900-latin.woff2", weight: "900", style: "normal" },
+    { path: "./fonts/playfair-display-900-latin-ext.woff2", weight: "900", style: "normal" },
+  ],
   variable: "--font-playfair",
   display: "swap",
 });
