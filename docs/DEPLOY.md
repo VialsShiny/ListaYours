@@ -693,7 +693,7 @@ cd ~/listayours
 sudo install -m 0755 deploy/keepalive/keepalive.sh /usr/local/bin/listayours-keepalive.sh
 sudo install -m 0644 deploy/keepalive/listayours-keepalive.service /etc/systemd/system/
 sudo install -m 0644 deploy/keepalive/listayours-keepalive.timer /etc/systemd/system/
-API_DOMAIN=$(grep '^API_DOMAIN=' deploy/oracle/.env | cut -d= -f2- | tr -d '"'"'"'"')
+API_DOMAIN=$(grep '^API_DOMAIN=' deploy/oracle/.env | cut -d= -f2- | tr -d '"')
 printf 'KEEPALIVE_URL=http://127.0.0.1:8000/health\nKEEPALIVE_PUBLIC_URL=https://%s/api/public/wishlists\nKEEPALIVE_BURST_SECONDS=60\n' "$API_DOMAIN" \
   | sudo tee /etc/default/listayours-keepalive >/dev/null
 sudo systemctl daemon-reload
