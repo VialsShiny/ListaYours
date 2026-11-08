@@ -64,7 +64,7 @@ ToS risk: the 7-day idle rule needs **all three** conditions to hold; a daily Ch
 | Item | Value | Source |
 |---|---|---|
 | Free Instance | "512MB of RAM, 0.1 vCPU, and 2GB of SSD"; one per org; Frankfurt or Washington DC; no Workers/Volumes; "should not be used for production applications" | https://www.koyeb.com/docs/reference/instances |
-| Sleep | "scales down to zero after 1 hour without traffic"; "cannot be disabled"; cold start 1-5 s | https://www.koyeb.com/docs/run-and-scale/scale-to-zero |
+| Sleep | "scales down to zero after 1 hour without traffic"; "cannot be disabled"; cold start 1-5 s (generic Deep Sleep figure, not specific to the Free Instance) | https://www.koyeb.com/docs/run-and-scale/scale-to-zero |
 | Charges | "You will never be charged when using the free web Service." Free Postgres: 5 h active/month, 1 GB | https://www.koyeb.com/docs/faqs/pricing |
 | Card | FAQ: "We require a credit card to prevent fraud and abuse" ($29 pre-auth, cancelled). 2023 blog: card only if automated human check fails **[uncertain which applies]** | FAQ; https://www.koyeb.com/blog/sustaining-free-compute-in-a-hostile-environment |
 | Pinger | Not mentioned; blog documents anti-abuse crackdowns | same |
@@ -91,7 +91,7 @@ ToS risk: the 7-day idle rule needs **all three** conditions to hold; a daily Ch
 |---|---|---|
 | Railway | Trial: one-time $5, up to 30 days, "No credit card required", caps 2 vCPU / 1 GB. Then Free plan: "$1 of free credit per month", caps 1 vCPU / 0.5 GB, 4 GB image, no rollover. Hobby $5/mo | https://railway.com/pricing ; https://docs.railway.com/reference/pricing/plans ; https://docs.railway.com/reference/pricing/free-trial |
 | Zeabur | Free $0, "No credit card required", but services auto-sleep after inactivity; Dev $5/mo | https://zeabur.com/docs/en-US/pricing/free-plan |
-| Northflank | Sandbox: "No card needed", "Up to $20/mo of resources on Northflank Cloud", "2 services, 2 jobs, and 1 database", "Always on, no sleeping". Per-service size for free budget not stated; nf-compute-50 = 0.5 vCPU / 1 GB would roughly consume it **[uncertain]** | https://northflank.com/pricing |
+| Northflank | Sandbox: "No card needed", "Up to $20/mo of resources on Northflank Cloud", "2 services, 2 jobs, and 1 database", "Always on, no sleeping". nf-compute-50 = 0.5 vCPU / 1 GB is listed at $12.00/month on the pricing page (checked 2026-11-08), so it fits the $20 budget; build minutes and a database draw from the same budget | https://northflank.com/pricing |
 
 ---
 

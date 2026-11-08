@@ -212,6 +212,9 @@ Vous collerez le contenu de `.pub` dans la console Oracle. La clé privée ne qu
    | Source Port Range | All | All |
    | Destination Port Range | `80` | `443` |
 
+   Caddy ne publie que TCP (HTTP/1.1 et HTTP/2) ; HTTP/3 (UDP 443) n'est pas exposé, aucune règle UDP n'est
+   donc nécessaire.
+
 4. Facultatif mais recommandé : modifiez la règle `22` existante pour remplacer `0.0.0.0/0` par votre
    IP publique en `/32` (Oracle recommande de restreindre les sources). Si votre IP change souvent,
    laissez `0.0.0.0/0` : l'authentification par clé reste solide.
@@ -272,7 +275,7 @@ Le trafic doit être autorisé **aux deux niveaux** : security list (§ 4.3) **e
 ```bash
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
-sudo apt-get install -y iptables-persistent     # répondre "Yes" pour sauvegarder les règles courantes
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iptables-persistent
 sudo netfilter-persistent save
 sudo iptables -L INPUT -n --line-numbers | head -20
 ```
@@ -329,7 +332,7 @@ Renseignez (noms seulement ici, jamais de valeurs dans le dépôt) :
 |---|---|
 | `API_DOMAIN` | `api.example.com` (le nom du § 4.5 ; lu par Caddy) |
 | `ENVIRONMENT` | `production` |
-| `DATABASE_URL` | la chaîne du § 3.2 / 3.3, ou `postgresql+psycopg://listayours:<POSTGRES_PASSWORD>@db:5432/listayours` avec `--profile local-db` |
+| `DATABASE_URL` | la chaîne du § 3.2 / 3.3, ou `postgresql+psycopg://listayours:<POSTGRES_PASSWORD>@db:5432/listayours` avec `--profile local-db`. Compose interprète `$` dans les fichiers `.env` : encodez le mot de passe en URL (`%24` pour `$`) ou entourez la valeur de guillemets simples |
 | `JWT_SECRET` | la valeur générée au § 2.4 (≥ 32 caractères) |
 | `JWT_EXPIRES_MINUTES` | `10080` (7 jours) |
 | `OWNER_EMAIL` | votre adresse ; le compte inscrit avec cette adresse devient propriétaire |
@@ -367,12 +370,19 @@ docker compose -f docker-compose.prod.yml --profile local-db up -d --build
 Construction sur un autre poste (amd64) si la VM est trop lente :
 
 ```bash
+cd ~/Code/ListaYours
 docker buildx create --use --name arm 2>/dev/null || true
 docker buildx build --platform linux/arm64 -t ghcr.io/VOTRE_COMPTE/listayours-api:prod --push ./api
 ```
 
 puis dans `docker-compose.prod.yml` remplacez la section `build:` du service `api` par
-`image: ghcr.io/VOTRE_COMPTE/listayours-api:prod` et lancez `docker compose ... pull && up -d`
+`image: ghcr.io/VOTRE_COMPTE/listayours-api:prod`, puis sur la VM :
+
+```bash
+cd ~/listayours/deploy/oracle
+docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d
+```
+
 (l'authentification au registre est à votre charge, **[MANUAL]**).
 
 ### 4.12 Reverse proxy et TLS automatique
@@ -470,9 +480,12 @@ devient obligatoire.
 À utiliser si la carte Oracle est inacceptable (Northflank devient alors le principal) ou si la VM
 Oracle est indisponible. Faits relevés le 2026‑11‑08 sur https://northflank.com/pricing : Sandbox
 « No card needed », « Up to $20/mo of resources on Northflank Cloud », « 2 services, 2 jobs, and
-1 database », « Always on, no sleeping ». **Non vérifié [uncertain]** : la taille de conteneur que
-couvre réellement ce budget ; un plan 0,5 vCPU / 1 Go consommerait à peu près tout, et 1 Go est le
-plancher de Chromium. Vérifiez le coût mensuel affiché dans l'interface avant de valider.
+1 database », « Always on, no sleeping ». La même page liste le plan `nf-compute-50` (0,5 vCPU · 1 Go) à
+« $12.00 per month » (relevé du 2026‑11‑08) : il tient dans les 20 $, mais les minutes de build et une
+éventuelle base Northflank puisent dans le même budget, et 1 Go est le plancher de Chromium. Vérifiez le
+coût mensuel affiché dans l'interface avant de valider. La page de tarification affichait aussi, le
+2026‑11‑08, un avis d'incident de sécurité recommandant la rotation des identifiants : lisez‑le avant de
+créer le compte.
 Les libellés ci‑dessous viennent de la documentation Northflank (URL dans `deploy/northflank/README.md`,
 lues le 2026‑11‑08) ; l'interface peut avoir évolué.
 
@@ -483,7 +496,7 @@ lues le 2026‑11‑08) ; l'interface peut avoir évolué.
 3. Créez un **Project** (`listayours`, région européenne).
 4. **Create new › Service › Combined service** :
    - **Repository** : `VialsShiny/ListaYours`, branche `main`.
-   - **Build type** : `Dockerfile` ; **Dockerfile path** `/api/Dockerfile` ; **Build context** `/api`
+   - **Build type** : `Dockerfile` ; **Dockerfile path** `api/Dockerfile` ; **Build context** `api`
      (« If your Dockerfile and/or build context are not root, specify the relative paths »).
    - **Resources** : le plus petit plan offrant **au moins 1 Go de RAM** (Chromium) ; contrôlez que le coût
      mensuel estimé reste sous les 20 $ du Sandbox **[uncertain]**. 1 instance.
@@ -503,9 +516,10 @@ lues le 2026‑11‑08) ; l'interface peut avoir évolué.
 
    Pour `TRUST_PROXY_HEADERS` : le trafic passe par l'ingress Northflank ; que celui‑ci écrase
    `X-Forwarded-For` avec l'IP réelle du client n'a pas été vérifié dans la documentation **[uncertain]**.
-   Mettez `true` (sinon tous les visiteurs partagent la même clé de limitation de débit, l'IP de
-   l'ingress) et vérifiez dans les journaux du service que les clés de rate‑limit varient d'un client à
-   l'autre ; revenez à `false` si l'en‑tête s'avère non fiable.
+   Laissez `false` par défaut (tous les visiteurs partagent alors la même clé de limitation de débit,
+   l'IP de l'ingress, ce qui est strict mais sûr). **[MANUAL]** Ne passez à `true` qu'après avoir vérifié
+   dans les journaux du service que l'en‑tête contient bien l'IP du client et ne peut pas être fourni par
+   lui ; sinon la clé de limitation devient falsifiable.
    Ne mettez **jamais** `JWT_SECRET` ou `DATABASE_URL` dans un *build argument* (ils sont lisibles dans
    l'image).
 6. **Create service**. Le premier build dure plusieurs minutes (Chromium). Northflank reconstruit à
@@ -679,7 +693,7 @@ cd ~/listayours
 sudo install -m 0755 deploy/keepalive/keepalive.sh /usr/local/bin/listayours-keepalive.sh
 sudo install -m 0644 deploy/keepalive/listayours-keepalive.service /etc/systemd/system/
 sudo install -m 0644 deploy/keepalive/listayours-keepalive.timer /etc/systemd/system/
-API_DOMAIN=$(grep '^API_DOMAIN=' deploy/oracle/.env | cut -d= -f2)
+API_DOMAIN=$(grep '^API_DOMAIN=' deploy/oracle/.env | cut -d= -f2- | tr -d '"'"'"'"')
 printf 'KEEPALIVE_URL=http://127.0.0.1:8000/health\nKEEPALIVE_PUBLIC_URL=https://%s/api/public/wishlists\nKEEPALIVE_BURST_SECONDS=60\n' "$API_DOMAIN" \
   | sudo tee /etc/default/listayours-keepalive >/dev/null
 sudo systemctl daemon-reload
@@ -739,7 +753,7 @@ Relevé du 2026‑11‑08 ; chaque chiffre vient de la page citée.
 | Hébergeur (offre gratuite) | Mise en veille | RAM / CPU | Carte à l'inscription | Risque ToS / autre | Source |
 |---|---|---|---|---|---|
 | Render Free web service | Oui après **15 min** sans trafic entrant ; réveil « about one minute » ; 750 h/mois par workspace | 0,1 CPU / 512 Mo | Non précisé **[uncertain]** | « not for production use », peut redémarrer à tout moment, ports SMTP bloqués, Postgres gratuit expire après 30 jours ; conditions illisibles **[uncertain]** | https://render.com/docs/free ; https://render.com/docs/compute-plans ; https://render.com/docs/faq |
-| Koyeb Free Instance | Oui après **1 h** ; « cannot be disabled » ; réveil 1‑5 s | 0,1 vCPU / 512 Mo / 2 Go | Carte exigée selon la FAQ (pré‑autorisation 29 $) ; blog 2023 : seulement si le contrôle automatique échoue **[uncertain lequel s'applique]** | « should not be used for production applications » ; blog documentant des campagnes anti‑abus | https://www.koyeb.com/docs/reference/instances ; https://www.koyeb.com/docs/run-and-scale/scale-to-zero ; https://www.koyeb.com/docs/faqs/pricing |
+| Koyeb Free Instance | Oui après **1 h** ; « cannot be disabled » ; réveil 1‑5 s (chiffre générique du « Deep Sleep », pas spécifique à l'instance gratuite) | 0,1 vCPU / 512 Mo / 2 Go | Carte exigée selon la FAQ (pré‑autorisation 29 $) ; blog 2023 : seulement si le contrôle automatique échoue **[uncertain lequel s'applique]** | « should not be used for production applications » ; blog documentant des campagnes anti‑abus | https://www.koyeb.com/docs/reference/instances ; https://www.koyeb.com/docs/run-and-scale/scale-to-zero ; https://www.koyeb.com/docs/faqs/pricing |
 | Hugging Face Spaces (CPU Basic) | Oui après **48 h**, non configurable sur matériel gratuit | 2 vCPU / 16 Go / 50 Go éphémère | Non, mais les Docker Spaces « require a paid plan to create: PRO » (9 $/mois) | Sortie limitée aux ports 80/443/8080 ; politique de contenu contre le contournement de restrictions | https://huggingface.co/docs/hub/spaces-overview ; https://huggingface.co/docs/hub/spaces-gpus ; https://huggingface.co/pricing ; https://huggingface.co/content-policy |
 | Google Cloud Run | Scale‑to‑zero ; `min-instances=1` évite la veille mais le temps idle est **facturé** ; gratuit ≈ 7 % d'un mois à 1 vCPU / 1 Gio (180 000 vCPU‑s, 360 000 Go‑s) | Configurable | **Oui** (compte de facturation + moyen de paiement) | Pas d'always‑on gratuit ; seul le crédit d'essai de 300 $ l'absorberait | https://docs.cloud.google.com/free/docs/free-cloud-features ; https://docs.cloud.google.com/run/docs/configuring/min-instances |
 | Fly.io | « No free tier » ; 1 $ de crédit pendant 7 jours | 1 Go = 6,70 $/mois | **Oui** | — | https://docs.fly.io/about/pricing |

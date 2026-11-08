@@ -27,7 +27,7 @@ sudo install -m 0644 deploy/keepalive/listayours-keepalive.service /etc/systemd/
 sudo install -m 0644 deploy/keepalive/listayours-keepalive.timer /etc/systemd/system/
 printf 'KEEPALIVE_URL=http://127.0.0.1:8000/health\nKEEPALIVE_PUBLIC_URL=https://API_DOMAIN/api/public/wishlists\nKEEPALIVE_BURST_SECONDS=60\n' \
   | sudo tee /etc/default/listayours-keepalive >/dev/null
-sudo sed -i "s#API_DOMAIN#$(grep '^API_DOMAIN=' deploy/oracle/.env | cut -d= -f2)#" /etc/default/listayours-keepalive
+sudo sed -i "s#API_DOMAIN#$(grep '^API_DOMAIN=' deploy/oracle/.env | cut -d= -f2- | tr -d '"'"'"'"')#" /etc/default/listayours-keepalive
 sudo systemctl daemon-reload
 sudo systemctl enable --now listayours-keepalive.timer
 systemctl list-timers listayours-keepalive.timer

@@ -5,10 +5,10 @@ devient le choix principal si la carte bancaire exigée par Oracle est inaccepta
 
 Faits vérifiés le 2026-11-08 sur https://northflank.com/pricing : Sandbox "No card needed",
 "Up to $20/mo of resources on Northflank Cloud", "2 services, 2 jobs, and 1 database",
-"Always on, no sleeping". La taille de conteneur réellement couverte par ce budget n'est pas
-indiquée ; un plan 0,5 vCPU / 1 Go consommerait à peu près tout le budget **[uncertain]**.
-1 Go est le plancher mémoire de Chromium : vérifiez le coût affiché dans le tableau de bord avant
-de créer le service.
+"Always on, no sleeping". Le plan `nf-compute-50` (0,5 vCPU · 1 Go) y est affiché à "$12.00 per
+month" : il tient dans les 20 $, mais les minutes de build et une base éventuelle puisent dans le même
+budget. 1 Go est le plancher mémoire de Chromium : vérifiez le coût affiché dans le tableau de bord
+avant de créer le service.
 
 Northflank ne contient aucun fichier de configuration dans ce dépôt : tout se règle dans l'interface
 (ou via leur CLI / API). Les réglages à reproduire sont :
