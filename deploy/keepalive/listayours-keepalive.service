@@ -1,0 +1,10 @@
+[Unit]
+Description=ListaYours keep-alive (health check + light CPU burst against Oracle idle reclamation)
+After=docker.service
+Wants=docker.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/default/listayours-keepalive
+ExecStart=/usr/local/bin/listayours-keepalive.sh
+Nice=19

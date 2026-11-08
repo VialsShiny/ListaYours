@@ -50,6 +50,7 @@ make dev       # Postgres (docker) + API en rechargement + Next.js dev
 | `make format` | `ruff --fix` + `ruff format`, `prettier --write` |
 | `make test` | `pytest` (API) + `vitest` (frontend) |
 | `make typecheck` | `mypy` + `tsc --noEmit` |
+| `make seed` | Charge la liste de souhaits du propriétaire avec le vrai scraper (`DATABASE_URL`, `OWNER_EMAIL`, `OWNER_PASSWORD`, `SEED_ASSETS_BASE_URL`) |
 | `make docker-build` / `docker-up` / `docker-down` | Images et pile complète Docker Compose |
 | `make clean` | Supprime caches et artefacts de build |
 
@@ -82,6 +83,9 @@ secrets dans le dépôt). Les plus importantes : `DATABASE_URL`, `JWT_SECRET`, `
 
 - [`docs/AUDIT.md`](docs/AUDIT.md) — état réel de la pile et comportement du scraper (étape 1).
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) — journal des décisions.
+- [`docs/PRIVACY.md`](docs/PRIVACY.md) — comment l'API et la base garantissent que le propriétaire ne voit jamais les réservations.
+- [`docs/DEPLOY.md`](docs/DEPLOY.md) — mise en production gratuite avec une API qui ne dort jamais (Oracle Always Free + Vercel + Neon), étapes `[MANUAL]` marquées ; [`docs/HOSTING-RESEARCH.md`](docs/HOSTING-RESEARCH.md) détaille la comparaison des offres gratuites (relevé du 2026-11-08).
+- [`deploy/`](deploy/) — compose de production, Caddyfile, timer anti-inactivité, notes Northflank.
 - [`docs/screenshot-capture.md`](docs/screenshot-capture.md) — capture d'écran de debug du scraper.
 
 ## Dépannage
