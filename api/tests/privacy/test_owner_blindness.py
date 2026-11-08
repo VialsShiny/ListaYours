@@ -51,7 +51,7 @@ def strip_false_public_flags(body: dict) -> dict:
     for gift in body["gifts"]:
         assert gift["is_reserved"] is False and gift["reserved_by_me"] is False, gift["name"]
         gifts.append({k: v for k, v in gift.items() if k not in {"is_reserved", "reserved_by_me"}})
-    return {**body, "gifts": gifts, "reservations_visible": None}
+    return {key: value for key, value in {**body, "gifts": gifts}.items() if key != "reservations_visible"}
 
 
 def test_every_owner_facing_response_is_free_of_reservation_data(client, world) -> None:
