@@ -1,3 +1,4 @@
+import gzip
 import json
 from pathlib import Path
 
@@ -13,15 +14,28 @@ CASES = [
     ("generic_jsonld", FIXTURES / "generic_jsonld.html", "https://shirtz.cool/products/the-monsters-nearby-knit"),
     ("amazon_like", FIXTURES / "amazon_like.html", "https://www.amazon.fr/dp/B0CZ762XQ3"),
     ("robot_check", FIXTURES / "robot_check.html", "https://www.amazon.com/dp/B0CPBNV3H4"),
+    ("microdata", FIXTURES / "microdata.html", "https://gear.koenigsegg.com/product/ghost-braided-bracelet-silver/"),
+    ("amazon_real_B0CZ762XQ3", FIXTURES / "amazon_real_B0CZ762XQ3.html.gz", "https://www.amazon.fr/dp/B0CZ762XQ3"),
 ]
+
+
+def read_fixture(path: Path) -> str:
+    if path.suffix == ".gz":
+        with gzip.open(path, "rt", encoding="utf-8") as handle:
+            return handle.read()
+    return path.read_text(encoding="utf-8")
+
+
+def canonical(payload) -> str:
+    return json.dumps(payload, ensure_ascii=False, sort_keys=True)
 
 
 @pytest.mark.parametrize(("name", "html_path", "url"), CASES, ids=[case[0] for case in CASES])
 def test_extract_all_data_matches_recorded_output(name: str, html_path: Path, url: str) -> None:
     """Golden test: the parser output for recorded HTML must stay byte-identical to the fixture."""
     expected = json.loads((FIXTURES / f"{name}.expected.json").read_text(encoding="utf-8"))
-    actual = extract_all_data(html_path.read_text(encoding="utf-8"), url)
-    assert json.loads(json.dumps(actual, ensure_ascii=False, sort_keys=True)) == expected
+    actual = extract_all_data(read_fixture(html_path), url)
+    assert canonical(actual) == canonical(expected)
 
 
 def test_output_keys_are_stable() -> None:

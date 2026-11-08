@@ -3,7 +3,6 @@ pythonpath = ["."]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-filterwarnings = ["ignore::DeprecationWarning"]
 
 [tool.ruff]
 line-length = 120
@@ -13,10 +12,6 @@ exclude = [".venv", "screenshots", "app/scraper"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
 ignore = ["E501", "B008"]
-
-[tool.ruff.lint.per-file-ignores]
-"app/scraper/**" = ["E", "F", "I", "B", "UP"]
-"app/main.py" = ["I"]
 
 [tool.mypy]
 python_version = "3.11"

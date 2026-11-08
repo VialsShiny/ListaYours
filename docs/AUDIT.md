@@ -18,7 +18,7 @@
 - Fetch order: `HTTPX` strategy tries httpx first unless the host is an AliExpress domain (`PW_DOMAINS`), falls back to Playwright when httpx fails, returns empty HTML, or returns data without a `title`. `PLAYWRIGHT` strategy goes straight to Chromium. Playwright waits for `domcontentloaded` then 2 s.
 - Extraction order inside `extract_all_data`: canonical link → JSON-LD (extruct + raw `<script type=application/ld+json>`) → microdata/RDFa → OpenGraph/meta tags → Amazon parser (locks fields) → AliExpress parser (locks fields) → default heuristics for unlocked fields → nullable fields normalised to `null`.
 - Price values are strings produced by `parse_price` (e.g. `"197.40"`); discount is computed as `-NN%` only when an old price is found.
-- No explicit captcha detection exists: a blocked Amazon page yields `title` from `<title>` and mostly null fields (see fixture `robot_check.html`).
+- No explicit captcha detection exists: a blocked Amazon page yields `title` from `<title>`, `stock="OutOfStock"`, `availability=false` and null for the other fields (see fixture `robot_check.html`).
 - Side effect: importing `engine.py` creates a `screenshots/` directory in the working directory (used only in debug mode).
 
 ## Live runs (2026-11-08, original code, before any change)
@@ -37,3 +37,4 @@ extract_all_data(test.file.html) -> title="Smartphone Samsung Galaxy A56 5G ..."
 - `test.file.html` is an AliExpress page whose canonical URL differs from the product URL; the parser reports the canonical one.
 - `discount` can be `"-0%"` when the old price is barely higher than the price.
 - `reviews.rating_average` may be a float (AliExpress/Amazon parsers) or a string (JSON-LD / default parser).
+- Microdata-only pages: extruct nests the `offers` item, so the price is not read from microdata and the default heuristic picks the shortest numeric text on the page (fixture `microdata.html` records `price="12"` from "12 avis"). Frozen as-is; the recorded Amazon fixture (`amazon_real_B0CZ762XQ3.html.gz`, fetched 2026-11-08) covers the real Amazon path.

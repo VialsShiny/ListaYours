@@ -50,6 +50,13 @@ async def test_httpx_without_title_falls_back_to_playwright(recorder) -> None:
     assert strategy == "PLAYWRIGHT"
 
 
+async def test_httpx_empty_html_falls_back_to_playwright(recorder) -> None:
+    rec = recorder(httpx_result="")
+    _, strategy = await engine.scrape_product("https://example.com/p", "HTTPX", False)
+    assert rec.calls == ["httpx", "playwright"]
+    assert strategy == "PLAYWRIGHT"
+
+
 async def test_httpx_error_falls_back_to_playwright(recorder) -> None:
     rec = recorder(httpx_error=RuntimeError("429"))
     _, strategy = await engine.scrape_product("https://example.com/p", "HTTPX", False)

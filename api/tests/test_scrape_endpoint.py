@@ -29,10 +29,14 @@ def test_scrape_endpoint_reports_errors_as_success_false(monkeypatch) -> None:
 
     monkeypatch.setattr(main, "scrape_product", failing)
     client = TestClient(main.app)
-    response = client.post("/api/scrape", json={"url": "https://example.com/p"})
+    response = client.post("/api/scrape", json={"url": "https://example.com/p", "debug": True})
     assert response.status_code == 200
-    assert response.json()["success"] is False
-    assert response.json()["error"] == "boom"
+    body = response.json()
+    assert body["success"] is False
+    assert body["error"] == "boom"
+    assert body["data"] is None
+    assert body["strategy_used"] is None
+    assert body["debug"] is True
 
 
 def test_health() -> None:
