@@ -11,7 +11,7 @@ from app.seed.runner import run_seed_sync
 def main() -> None:
     parser = argparse.ArgumentParser(description="Seed the owner's wishlist with the real scraper.")
     parser.add_argument("--file", default="seed/wishlist.json", help="Seed JSON file")
-    parser.add_argument("--assets-base-url", default="http://localhost:3000", help="Where /seed images are served")
+    parser.add_argument("--assets-base-url", required=True, help="Public origin serving the frontend /seed images")
     parser.add_argument("--no-scrape", action="store_true", help="Use PDF values only (no network)")
     parser.add_argument("--report", default=None, help="Write the JSON outcome report to this path")
     args = parser.parse_args()
@@ -28,6 +28,7 @@ def main() -> None:
             "price": None if o.price is None else f"{o.price:.2f}",
             "currency": o.currency,
             "image": o.image,
+            "old_price": None if o.old_price is None else f"{o.old_price:.2f}",
             "flags": o.flags,
             "scraped_title": o.scraped_title,
         }

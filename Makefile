@@ -33,8 +33,8 @@ dev: db-up ## Run API (reload) and frontend (dev) locally against the compose Po
 	( cd $(FRONT_DIR) && npm run dev ) & \
 	wait
 
-seed: ## Seed the owner's wishlist with the real scraper (needs DATABASE_URL, OWNER_EMAIL, OWNER_PASSWORD)
-	cd $(API_DIR) && .venv/bin/python -m app.seed --file seed/wishlist.json --assets-base-url $${SEED_ASSETS_BASE_URL:-http://localhost:3000} --report seed/last-run.json
+seed: ## Seed the owner's wishlist with the real scraper (needs DATABASE_URL, OWNER_EMAIL, OWNER_PASSWORD, SEED_ASSETS_BASE_URL)
+	cd $(API_DIR) && .venv/bin/python -m app.seed --file seed/wishlist.json --assets-base-url "$${SEED_ASSETS_BASE_URL:?set SEED_ASSETS_BASE_URL to the public frontend origin}" --report seed/last-run.json
 
 build: ## Build the frontend and byte-compile the API
 	$(PY) -m compileall -q $(API_DIR)/app
