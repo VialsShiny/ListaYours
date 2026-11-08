@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.models import ROLE_OWNER, Category, Gift, User, Wishlist
-from app.seed.decide import build_description, decide, old_price_of
+from app.seed.decide import build_description, decide
 from app.seed.models import GiftOutcome, SeedGift, SeedWishlist
 from app.services.auth_service import hash_password
 from app.services.scrape_service import scrape_with_guards
@@ -19,6 +19,7 @@ def ensure_owner(db: Session, email: str, password: str | None) -> User:
     """Reuse the owner account when it exists; otherwise create it from OWNER_PASSWORD (never logged)."""
     owner = db.scalar(select(User).where(User.email == email))
     if owner is not None:
+        owner.role = ROLE_OWNER
         return owner
     if not password:
         raise RuntimeError("OWNER_PASSWORD is required to create the owner account")
@@ -67,19 +68,19 @@ async def scrape_or_none(url: str) -> dict[str, Any] | None:
 def upsert_gift(
     db: Session, wishlist: Wishlist, category: Category, gift: SeedGift, outcome: GiftOutcome, position: int
 ) -> Gift:
+    """Create the gift once; on re-runs refresh only price, old price, currency and image so owner edits survive."""
     row = db.scalar(select(Gift).where(Gift.wishlist_id == wishlist.id, Gift.purchase_url == gift.url))
     if row is None:
-        row = Gift(wishlist_id=wishlist.id, purchase_url=gift.url)
+        row = Gift(wishlist_id=wishlist.id, purchase_url=gift.url, is_visible=True)
+        row.category_id = category.id
+        row.name = gift.name
+        row.description = build_description(gift, outcome)
+        row.position = position
         db.add(row)
-    row.category_id = category.id
-    row.name = gift.name
-    row.description = build_description(gift, outcome)
     row.image_url = outcome.image
     row.price = outcome.price
-    row.old_price = old_price_of(outcome)
+    row.old_price = outcome.old_price
     row.currency = outcome.currency
-    row.is_visible = True
-    row.position = position
     db.flush()
     return row
 
@@ -91,9 +92,7 @@ async def run_seed(db: Session, seed: SeedWishlist, assets_base_url: str, scrape
     outcomes: list[GiftOutcome] = []
     for position, gift in enumerate(seed.gifts):
         data = await scrape_or_none(gift.url) if scrape else None
-        outcome = decide(gift, data, assets_base_url)
-        if not scrape:
-            outcome.flags = [flag for flag in outcome.flags if flag != "blocked"] + ["scrape_skipped"]
+        outcome = decide(gift, data, assets_base_url, skipped=not scrape)
         upsert_gift(db, wishlist, categories[gift.category], gift, outcome, position)
         outcomes.append(outcome)
         logger.info("%s -> %s %s %s", gift.name, outcome.source, outcome.price, outcome.currency)

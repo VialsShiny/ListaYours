@@ -32,6 +32,7 @@ class GiftOutcome:
     price: Decimal | None
     currency: str
     image: str | None
+    old_price: Decimal | None = None
     flags: list[str] = field(default_factory=list)
     scraped_title: str | None = None
 
