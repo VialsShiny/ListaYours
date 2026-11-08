@@ -65,11 +65,11 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setDebug((v) => !v)}
-              className={`relative inline-flex h-8 w-14 items-center rounded-full border transition ${debug ? 'border-blue-500 bg-blue-600' : 'border-slate-300 bg-slate-200'}`}
+              className={`relative inline-flex h-8 w-14 items-center rounded-full border transition ${debug ? "border-blue-500 bg-blue-600" : "border-slate-300 bg-slate-200"}`}
               aria-pressed={debug}
             >
               <span
-                className={`absolute left-1 h-6 w-6 rounded-full bg-white shadow-sm transition-all ${debug ? 'translate-x-6' : 'translate-x-0'}`}
+                className={`absolute left-1 h-6 w-6 rounded-full bg-white shadow-sm transition-all ${debug ? "translate-x-6" : "translate-x-0"}`}
               />
             </button>
           </div>
@@ -82,7 +82,8 @@ export default function Home() {
             ListaYours Scraper
           </h1>
           <p className="max-w-3xl text-lg leading-8 text-slate-600">
-            Entrez l'URL d'un produit e-commerce pour en extraire automatiquement les informations.
+            Entrez l&apos;URL d&apos;un produit e-commerce pour en extraire automatiquement les
+            informations.
           </p>
         </div>
 
