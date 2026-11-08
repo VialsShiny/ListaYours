@@ -76,13 +76,12 @@ secrets dans le dépôt). Les plus importantes : `DATABASE_URL`, `JWT_SECRET`, `
 
 - Conventional Commits imposés par commitlint (hook `commit-msg` via husky, et en CI).
 - CI GitHub Actions : commitlint, lint, typecheck, tests (API avec Postgres), build, images Docker.
-- Fichiers sources < 200 lignes, pas de commentaires en ligne, logique métier dans `services/`.
+- Nouveaux fichiers sources < 200 lignes, pas de commentaires en ligne, logique métier dans `services/` (le scraper historique est figé par ses tests de parité, voir `docs/DECISIONS.md`).
 
 ## Documentation
 
 - [`docs/AUDIT.md`](docs/AUDIT.md) — état réel de la pile et comportement du scraper (étape 1).
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) — journal des décisions.
-- [`docs/DEPLOY.md`](docs/DEPLOY.md) — mise en production gratuite, API toujours éveillée.
 - [`docs/screenshot-capture.md`](docs/screenshot-capture.md) — capture d'écran de debug du scraper.
 
 ## Dépannage

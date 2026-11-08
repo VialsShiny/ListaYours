@@ -58,7 +58,9 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-          cache-dependency-path: api/requirements-dev.txt
+          cache-dependency-path: |
+            api/requirements.txt
+            api/requirements-dev.txt
       - run: pip install -r requirements-dev.txt
       - name: Lint
         run: ruff check . && ruff format --check .
@@ -119,6 +121,7 @@ jobs:
           build-args: NEXT_PUBLIC_API_URL=http://localhost:8000
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,scope=frontend,mode=max
+      # The image runs its database migrations at startup; a SQLite URL keeps the smoke test self-contained.
       - name: Smoke-test API image health endpoint
         run: |
           docker run -d --name api -p 8000:8000 -e JWT_SECRET=ci -e DATABASE_URL=sqlite:////tmp/ci.db listayours-api:ci

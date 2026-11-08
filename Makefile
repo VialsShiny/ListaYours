@@ -29,7 +29,7 @@ db-up: ## Start only the Postgres service
 
 dev: db-up ## Run API (reload) and frontend (dev) locally against the compose Postgres
 	@trap 'kill 0' INT TERM; \
-	( cd $(API_DIR) && .venv/bin/alembic upgrade head 2>/dev/null; .venv/bin/uvicorn app.main:app --reload --port $(API_PORT) ) & \
+	( cd $(API_DIR) && .venv/bin/uvicorn app.main:app --reload --port $(API_PORT) ) & \
 	( cd $(FRONT_DIR) && npm run dev ) & \
 	wait
 

@@ -32,14 +32,14 @@ services:
       ENVIRONMENT: ${ENVIRONMENT:-development}
       API_PORT: 8000
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-listayours}:${POSTGRES_PASSWORD:-listayours}@db:5432/${POSTGRES_DB:-listayours}
-      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-change-me}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set (copy .env.example to .env and generate one)}
       JWT_EXPIRES_MINUTES: ${JWT_EXPIRES_MINUTES:-10080}
       OWNER_EMAIL: ${OWNER_EMAIL:-owner@example.com}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       SCRAPE_TIMEOUT_SECONDS: ${SCRAPE_TIMEOUT_SECONDS:-90}
       SCRAPE_CACHE_TTL_SECONDS: ${SCRAPE_CACHE_TTL_SECONDS:-300}
       RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-20}
-    ipc: host
+    shm_size: "1gb"
 
   frontend:
     build:
