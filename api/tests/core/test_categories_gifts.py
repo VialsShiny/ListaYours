@@ -50,6 +50,12 @@ def test_gift_crud_validation_and_reorder(client, owner) -> None:
     assert updated.json()["is_visible"] is False
     assert updated.json()["currency"] == "USD"
 
+    null_name = client.patch(f"/api/owner/gifts/{second['id']}", json={"name": None}, headers=headers)
+    assert null_name.status_code == 422
+    blank_name = client.post("/api/owner/gifts", json={"name": "   "}, headers=headers)
+    assert blank_name.status_code == 422
+    cleared_price = client.patch(f"/api/owner/gifts/{second['id']}", json={"price": None}, headers=headers)
+    assert cleared_price.status_code == 200 and cleared_price.json()["price"] is None
     invalid_url = client.post("/api/owner/gifts", json={"name": "x", "purchase_url": "not-a-url"}, headers=headers)
     assert invalid_url.status_code == 422
     negative = client.post("/api/owner/gifts", json={"name": "x", "price": "-1"}, headers=headers)
@@ -64,6 +70,8 @@ def test_gift_crud_validation_and_reorder(client, owner) -> None:
     assert [g["position"] for g in reordered.json()] == [0, 1]
 
     assert client.delete(f"/api/owner/gifts/{gift['id']}", headers=headers).status_code == 204
+    third = create_gift(client, owner, "Après suppression")
+    assert third["position"] == 1
     assert client.get(f"/api/owner/gifts/{gift['id']}", headers=headers).status_code == 404
     assert client.delete(f"/api/owner/gifts/{gift['id']}", headers=headers).status_code == 404
 

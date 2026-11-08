@@ -35,17 +35,19 @@ def _apply(gift: Gift, changes: dict) -> None:
     for field, value in changes.items():
         if field in {"image_url", "purchase_url"} and value is not None:
             value = str(value)
-        if isinstance(value, str) and field in {"name", "description", "currency"}:
-            value = value.strip()
         if isinstance(value, Decimal):
             value = value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        setattr(gift, field, value.upper() if field == "currency" and value else value)
+        setattr(gift, field, value)
+
+
+def next_position(db: Session, wishlist: Wishlist) -> int:
+    current_max = db.scalar(select(func.max(Gift.position)).where(Gift.wishlist_id == wishlist.id))
+    return 0 if current_max is None else current_max + 1
 
 
 def create_gift(db: Session, wishlist: Wishlist, payload: GiftCreate) -> Gift:
     _check_category(db, wishlist, payload.category_id)
-    next_position = db.scalar(select(func.count()).select_from(Gift).where(Gift.wishlist_id == wishlist.id)) or 0
-    gift = Gift(wishlist_id=wishlist.id, position=next_position)
+    gift = Gift(wishlist_id=wishlist.id, position=next_position(db, wishlist))
     _apply(gift, payload.model_dump())
     db.add(gift)
     db.commit()

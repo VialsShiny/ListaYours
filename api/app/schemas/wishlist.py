@@ -1,7 +1,11 @@
 import uuid
 from datetime import datetime
+from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+
+Title = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)]
+Slug = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=140)]
 
 
 class WishlistOut(BaseModel):
@@ -17,8 +21,8 @@ class WishlistOut(BaseModel):
 
 
 class WishlistUpdate(BaseModel):
-    title: str | None = Field(default=None, min_length=1, max_length=120)
-    slug: str | None = Field(default=None, min_length=1, max_length=140)
+    title: Title | None = None
+    slug: Slug | None = None
     description: str | None = Field(default=None, max_length=2000)
     is_published: bool | None = None
 
