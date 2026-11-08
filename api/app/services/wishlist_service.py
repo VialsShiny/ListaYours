@@ -2,6 +2,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.models import User, Wishlist
+from app.schemas.wishlist import WishlistUpdate
+from app.services.errors import NotFound
 from app.utils.slug import slugify
 
 DEFAULT_TITLE = "Liste de Souhait"
@@ -32,3 +34,22 @@ def get_owner_wishlist(db: Session, owner: User) -> Wishlist | None:
 
 def get_wishlist_by_slug(db: Session, slug: str) -> Wishlist | None:
     return db.scalar(select(Wishlist).where(Wishlist.slug == slug))
+
+
+def require_owner_wishlist(db: Session, owner: User) -> Wishlist:
+    wishlist = get_owner_wishlist(db, owner)
+    if wishlist is None:
+        raise NotFound("Aucune liste pour ce compte.")
+    return wishlist
+
+
+def update_settings(db: Session, wishlist: Wishlist, payload: WishlistUpdate) -> Wishlist:
+    changes = payload.model_dump(exclude_unset=True)
+    if "slug" in changes and changes["slug"] is not None:
+        changes["slug"] = unique_slug(db, changes["slug"], exclude_id=wishlist.id)
+    for field, value in changes.items():
+        if value is not None:
+            setattr(wishlist, field, value.strip() if isinstance(value, str) else value)
+    db.commit()
+    db.refresh(wishlist)
+    return wishlist
