@@ -1,33 +1,38 @@
-import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 type ProductCardProps = {
   json: any;
   className?: string;
   [key: string]: any;
-}
+};
 
 const formatPrice = (value: number, currency?: string) => {
-  const safeCurrency = currency || "EUR"
+  const safeCurrency = currency || "EUR";
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
     currency: safeCurrency,
-  }).format(value)
-}
+  }).format(value);
+};
 
 export default function ProductCard({ json, className, ...props }: ProductCardProps) {
-  const product = json ?? {}
-  const imageUrl = product.images?.[0] ?? "https://placehold.co/600x600/f8fafc/0f172a?text=Image"
-  const price = Number(product.price ?? 0)
-  const oldPrice = Number(product.old_price ?? 0)
-  const isAvailable = Boolean(product.availability)
-  const rating = Number(product.reviews?.rating_average ?? 0)
-  const reviewCount = Number(product.reviews?.review_count ?? 0)
-  const characteristics = Object.entries(product.characteristics ?? {}).slice(0, 4)
-  const colors = product.variants?.color ?? []
-  const variants = [
-    ...(product.variants?.size ?? []),
-    ...(product.variants?.style ?? []),
-  ]
+  const product = json ?? {};
+  const imageUrl = product.images?.[0] ?? "https://placehold.co/600x600/f8fafc/0f172a?text=Image";
+  const price = Number(product.price ?? 0);
+  const oldPrice = Number(product.old_price ?? 0);
+  const isAvailable = Boolean(product.availability);
+  const rating = Number(product.reviews?.rating_average ?? 0);
+  const reviewCount = Number(product.reviews?.review_count ?? 0);
+  const characteristics = Object.entries(product.characteristics ?? {}).slice(0, 4);
+  const colors = product.variants?.color ?? [];
+  const variants = [...(product.variants?.size ?? []), ...(product.variants?.style ?? [])];
 
   return (
     <Card
@@ -92,7 +97,9 @@ export default function ProductCard({ json, className, ...props }: ProductCardPr
                   {isAvailable ? "En stock" : "Rupture de stock"}
                 </span>
                 {product.stock ? (
-                  <span className="text-xs uppercase tracking-[0.12em] text-slate-400">{product.stock}</span>
+                  <span className="text-xs uppercase tracking-[0.12em] text-slate-400">
+                    {product.stock}
+                  </span>
                 ) : null}
               </div>
 
@@ -115,7 +122,10 @@ export default function ProductCard({ json, className, ...props }: ProductCardPr
             {characteristics.length > 0 ? (
               <div className="grid gap-2 sm:grid-cols-2">
                 {characteristics.map(([key, value]) => (
-                  <div key={key} className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+                  <div
+                    key={key}
+                    className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2"
+                  >
                     <p className="text-[10px] uppercase tracking-[0.14em] text-slate-400">{key}</p>
                     <p className="mt-1 text-sm font-medium text-slate-700">{String(value)}</p>
                   </div>
@@ -126,7 +136,7 @@ export default function ProductCard({ json, className, ...props }: ProductCardPr
         </div>
       </CardContent>
 
-      {(colors.length > 0 || variants.length > 0) ? (
+      {colors.length > 0 || variants.length > 0 ? (
         <div className="border-t border-sky-100 bg-sky-50/60 px-5 py-4">
           {colors.length > 0 ? (
             <div className="mb-4">
@@ -181,5 +191,5 @@ export default function ProductCard({ json, className, ...props }: ProductCardPr
         </a>
       </CardFooter>
     </Card>
-  )
+  );
 }
