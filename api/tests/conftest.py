@@ -72,9 +72,9 @@ def owner(client: TestClient) -> dict:
 
 @pytest.fixture
 def visitor(client: TestClient) -> dict:
-    return register(client, "visitor@listayours-test.fr", name="Léa")
+    return register(client, "visitor@listayours-test.fr", name="Oriane-Qx")
 
 
 @pytest.fixture
 def visitor2(client: TestClient) -> dict:
-    return register(client, "visitor2@listayours-test.fr", name="Lucas")
+    return register(client, "visitor2@listayours-test.fr", name="Baptistin-Qz")
