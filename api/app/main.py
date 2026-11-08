@@ -2,19 +2,13 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.models import ScrapeRequest, ScrapeResponse
+from app.models import ProductData, ScrapeRequest, ScrapeResponse
 from app.scraper.engine import scrape_product
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("main")
 
-app = FastAPI(
-    title="ListaYours Scraper API",
-    version="1.0.0"
-)
+app = FastAPI(title="ListaYours Scraper API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,9 +20,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
 
 @app.post("/api/scrape", response_model=ScrapeResponse)
 async def scrape(request: ScrapeRequest):
@@ -39,7 +35,7 @@ async def scrape(request: ScrapeRequest):
         data, strategy = await scrape_product(url_str, strategy_str, debug_bool)
         return ScrapeResponse(
             success=True,
-            data=data,
+            data=ProductData.model_validate(data),
             error=None,
             strategy_used=strategy,
             debug=debug_bool,
