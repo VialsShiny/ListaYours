@@ -19,27 +19,25 @@ def upgrade() -> None:
     op.create_table(
         "users",
         sa.Column("id", sa.Uuid(), primary_key=True),
-        sa.Column("email", sa.String(255), nullable=False),
+        sa.Column("email", sa.String(255), nullable=False, unique=True),
         sa.Column("password_hash", sa.String(255), nullable=False),
         sa.Column("display_name", sa.String(80), nullable=False),
         sa.Column("role", sa.String(16), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.CheckConstraint("role IN ('owner', 'visitor')", name="ck_users_role"),
     )
-    op.create_index("ix_users_email", "users", ["email"], unique=True)
 
     op.create_table(
         "wishlists",
         sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column("owner_id", sa.Uuid(), sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True),
         sa.Column("title", sa.String(120), nullable=False),
-        sa.Column("slug", sa.String(140), nullable=False),
+        sa.Column("slug", sa.String(140), nullable=False, unique=True),
         sa.Column("description", sa.Text(), nullable=False, server_default=""),
         sa.Column("is_published", sa.Boolean(), nullable=False, server_default=sa.true()),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
     )
-    op.create_index("ix_wishlists_slug", "wishlists", ["slug"], unique=True)
 
     op.create_table(
         "categories",

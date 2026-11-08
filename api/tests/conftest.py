@@ -1,17 +1,21 @@
 import os
+import tempfile
 from collections.abc import Iterator
 
 os.environ.setdefault("ENVIRONMENT", "test")
 os.environ.setdefault("JWT_SECRET", "test-secret-not-for-production-0123456789abcdef")
 os.environ.setdefault("OWNER_EMAIL", "owner@listayours-test.fr")
-os.environ["DATABASE_URL"] = os.environ.get("TEST_DATABASE_URL", "sqlite://")
+os.environ["DATABASE_URL"] = os.environ.get(
+    "TEST_DATABASE_URL", f"sqlite:///{tempfile.mkdtemp(prefix='listayours-tests-')}/test.db"
+)
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session, sessionmaker
 
 from app import deps
-from app.db.base import Base, engine, get_db
+from app.db.base import Base
+from app.db.session import engine, get_db
 from app.main import app
 
 TestingSession = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)

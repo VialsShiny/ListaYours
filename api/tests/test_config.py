@@ -9,7 +9,14 @@ def test_production_requires_a_strong_jwt_secret(monkeypatch) -> None:
     with pytest.raises(RuntimeError):
         load_settings()
     monkeypatch.setenv("JWT_SECRET", "x" * 32)
-    assert load_settings().is_production is True
+    monkeypatch.delenv("OWNER_EMAIL", raising=False)
+    with pytest.raises(RuntimeError):
+        load_settings()
+    monkeypatch.setenv("OWNER_EMAIL", "Me@Example.org")
+    settings = load_settings()
+    assert settings.is_production is True
+    assert settings.owner_email == "me@example.org"
+    assert settings.trust_proxy_headers is False
 
 
 def test_development_falls_back_to_a_dev_secret(monkeypatch) -> None:

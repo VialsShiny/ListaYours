@@ -4,6 +4,7 @@ from datetime import UTC, datetime, timedelta
 import bcrypt
 import jwt
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
@@ -17,6 +18,9 @@ class AuthError(Exception):
         super().__init__(message)
         self.message = message
         self.status_code = status_code
+
+
+DUMMY_HASH = bcrypt.hashpw(b"timing-equalizer", bcrypt.gensalt()).decode("utf-8")
 
 
 def hash_password(password: str) -> str:
@@ -66,17 +70,23 @@ def register_user(db: Session, payload: RegisterRequest) -> User:
         role=role_for_email(email),
     )
     db.add(user)
-    db.flush()
-    if user.role == ROLE_OWNER:
-        create_default_wishlist(db, user)
-    db.commit()
+    try:
+        db.flush()
+        if user.role == ROLE_OWNER:
+            create_default_wishlist(db, user)
+        db.commit()
+    except IntegrityError as error:
+        db.rollback()
+        raise AuthError("Un compte existe déjà avec cet e-mail.", 409) from error
     db.refresh(user)
     return user
 
 
 def authenticate(db: Session, email: str, password: str) -> User:
+    """Check credentials; an unknown e-mail still costs one bcrypt comparison so timing does not reveal accounts."""
     user = db.scalar(select(User).where(User.email == email.strip().lower()))
-    if user is None or not verify_password(password, user.password_hash):
+    password_ok = verify_password(password, user.password_hash if user else DUMMY_HASH)
+    if user is None or not password_ok:
         raise AuthError("E-mail ou mot de passe incorrect.", 401)
     return user
 

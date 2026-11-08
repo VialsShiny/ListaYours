@@ -22,7 +22,8 @@ def test_upgrade_head_creates_every_model_table(tmp_path) -> None:
     engine = create_engine(url)
     config = alembic_config(url)
     Base.metadata.drop_all(bind=engine)
-    command.downgrade(config, "base") if url.startswith("postgresql") else None
+    if url.startswith("postgresql"):
+        command.downgrade(config, "base")
     command.upgrade(config, "head")
     try:
         inspector = inspect(engine)
@@ -31,10 +32,15 @@ def test_upgrade_head_creates_every_model_table(tmp_path) -> None:
         for table in Base.metadata.tables.values():
             columns = {column["name"] for column in inspector.get_columns(table.name)}
             assert columns == {column.name for column in table.columns}, table.name
-        reservation_uniques = inspector.get_unique_constraints("reservations") + [
-            index for index in inspector.get_indexes("reservations") if index["unique"]
-        ]
-        assert any(constraint["column_names"] == ["gift_id"] for constraint in reservation_uniques)
+        for table, column in (("reservations", "gift_id"), ("users", "email"), ("wishlists", "slug")):
+            uniques = inspector.get_unique_constraints(table) + [
+                index for index in inspector.get_indexes(table) if index["unique"]
+            ]
+            assert any(constraint["column_names"] == [column] for constraint in uniques), (table, column)
+        for table in Base.metadata.tables.values():
+            expected_indexes = {tuple(column.name for column in index.columns) for index in table.indexes}
+            actual_indexes = {tuple(index["column_names"]) for index in inspector.get_indexes(table.name)}
+            assert expected_indexes <= actual_indexes, table.name
     finally:
         command.downgrade(config, "base")
         engine.dispose()

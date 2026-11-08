@@ -6,7 +6,8 @@ playwright==1.41.0
 beautifulsoup4==4.12.3
 extruct==0.16.0
 lxml==4.9.4
-w3lib==2.1.2sqlalchemy==2.0.57
+w3lib==2.1.2
+sqlalchemy==2.0.57
 alembic==1.20.1
 psycopg[binary]==3.3.8
 pyjwt==2.15.1

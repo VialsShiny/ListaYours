@@ -1,11 +1,12 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, Uuid
+from sqlalchemy import Boolean, ForeignKey, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.db.models.user import utcnow
+from app.db.types import UtcDateTime
 
 
 class Wishlist(Base):
@@ -16,13 +17,11 @@ class Wishlist(Base):
         Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True
     )
     title: Mapped[str] = mapped_column(String(120), nullable=False)
-    slug: Mapped[str] = mapped_column(String(140), nullable=False, unique=True, index=True)
+    slug: Mapped[str] = mapped_column(String(140), nullable=False, unique=True)
     description: Mapped[str] = mapped_column(Text, nullable=False, default="")
     is_published: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow
-    )
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, nullable=False, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime, nullable=False, default=utcnow, onupdate=utcnow)
 
     categories = relationship("Category", back_populates="wishlist", cascade="all, delete-orphan")
     gifts = relationship("Gift", back_populates="wishlist", cascade="all, delete-orphan")

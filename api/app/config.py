@@ -21,6 +21,7 @@ class Settings:
     scrape_timeout_seconds: float
     scrape_cache_ttl_seconds: int
     rate_limit_per_minute: int
+    trust_proxy_headers: bool
 
     @property
     def is_production(self) -> bool:
@@ -35,16 +36,20 @@ def load_settings() -> Settings:
         raise RuntimeError(f"JWT_SECRET must be set and at least {MIN_JWT_SECRET_LENGTH} characters in production")
     if not jwt_secret:
         jwt_secret = DEV_JWT_SECRET
+    owner_email = os.getenv("OWNER_EMAIL", "").strip().lower()
+    if environment == "production" and not owner_email:
+        raise RuntimeError("OWNER_EMAIL must be set in production")
     return Settings(
         environment=environment,
         database_url=os.getenv("DATABASE_URL", "sqlite:///./listayours.db"),
         jwt_secret=jwt_secret,
         jwt_expires_minutes=int(os.getenv("JWT_EXPIRES_MINUTES", "10080")),
-        owner_email=os.getenv("OWNER_EMAIL", "owner@example.com").strip().lower(),
+        owner_email=owner_email or "owner@example.com",
         cors_origins=_csv(os.getenv("CORS_ORIGINS", "http://localhost:3000")),
         scrape_timeout_seconds=float(os.getenv("SCRAPE_TIMEOUT_SECONDS", "90")),
         scrape_cache_ttl_seconds=int(os.getenv("SCRAPE_CACHE_TTL_SECONDS", "300")),
         rate_limit_per_minute=int(os.getenv("RATE_LIMIT_PER_MINUTE", "20")),
+        trust_proxy_headers=os.getenv("TRUST_PROXY_HEADERS", "false").lower() in {"1", "true", "yes"},
     )
 
 

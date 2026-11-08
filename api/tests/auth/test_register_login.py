@@ -36,6 +36,33 @@ def test_password_rules(client) -> None:
     assert too_long.status_code == 422
 
 
+def test_password_byte_length_is_checked(client) -> None:
+    multibyte = "é" * 40
+    response = client.post(
+        "/api/auth/register", json={"email": "c@listayours-test.fr", "password": multibyte, "display_name": "x"}
+    )
+    assert response.status_code == 422
+
+
+def test_forwarded_for_header_does_not_bypass_rate_limit(client) -> None:
+    from app import deps
+
+    original = deps.auth_limiter.limit
+    deps.auth_limiter.limit = 2
+    try:
+        statuses = [
+            client.post(
+                "/api/auth/login",
+                json={"email": "x@listayours-test.fr", "password": "motdepasse123"},
+                headers={"X-Forwarded-For": f"10.0.0.{i}"},
+            ).status_code
+            for i in range(3)
+        ]
+    finally:
+        deps.auth_limiter.limit = original
+    assert statuses == [401, 401, 429]
+
+
 def test_login_success_and_failure(client) -> None:
     register(client, "lea@listayours-test.fr", password="motdepasse123")
     ok = client.post("/api/auth/login", json={"email": "lea@listayours-test.fr", "password": "motdepasse123"})

@@ -5,8 +5,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.db.base import get_db
 from app.db.models import User
+from app.db.session import get_db
 from app.services.auth_service import decode_access_token, get_user
 from app.utils.rate_limit import SlidingWindowLimiter, enforce
 
@@ -46,11 +46,11 @@ def require_visitor(user: Annotated[User, Depends(get_current_user)]) -> User:
 
 
 def auth_rate_limit(request: Request) -> None:
-    enforce(auth_limiter, request, "auth")
+    enforce(auth_limiter, request, "auth", get_settings().trust_proxy_headers)
 
 
 def scrape_rate_limit(request: Request) -> None:
-    enforce(scrape_limiter, request, "scrape")
+    enforce(scrape_limiter, request, "scrape", get_settings().trust_proxy_headers)
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]

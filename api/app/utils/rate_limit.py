@@ -30,15 +30,16 @@ class SlidingWindowLimiter:
             self._hits.clear()
 
 
-def client_key(request: Request) -> str:
-    forwarded = request.headers.get("x-forwarded-for")
+def client_key(request: Request, trust_proxy_headers: bool) -> str:
+    """Identify the caller; X-Forwarded-For is honoured only when the deployment sits behind a trusted proxy."""
+    forwarded = request.headers.get("x-forwarded-for") if trust_proxy_headers else None
     if forwarded:
         return forwarded.split(",")[0].strip()
     return request.client.host if request.client else "unknown"
 
 
-def enforce(limiter: SlidingWindowLimiter, request: Request, scope: str) -> None:
-    if not limiter.allow(f"{scope}:{client_key(request)}"):
+def enforce(limiter: SlidingWindowLimiter, request: Request, scope: str, trust_proxy_headers: bool = False) -> None:
+    if not limiter.allow(f"{scope}:{client_key(request, trust_proxy_headers)}"):
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Trop de requêtes, réessayez dans une minute.",
