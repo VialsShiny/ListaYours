@@ -1,0 +1,15 @@
+{
+  "name": "listayours",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ListaYours monorepo tooling (commitlint, husky)",
+  "scripts": {
+    "prepare": "husky",
+    "commitlint": "commitlint"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "husky": "^9.1.7"
+  }
+}
