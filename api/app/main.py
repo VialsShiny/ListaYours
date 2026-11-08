@@ -1,15 +1,14 @@
 import logging
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.config import get_settings
-from app.models import ProductData, ScrapeRequest, ScrapeResponse
-from app.routers import auth
-from app.scraper.engine import scrape_product
+from app.routers import auth, owner_categories, owner_gifts, owner_wishlist, public, reservations, scrape
+from app.services.errors import ServiceError
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-logger = logging.getLogger("main")
 
 settings = get_settings()
 
@@ -23,26 +22,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router)
+
+@app.exception_handler(ServiceError)
+async def service_error_handler(_request: Request, error: ServiceError) -> JSONResponse:
+    return JSONResponse(status_code=error.status_code, content={"detail": error.message})
+
+
+for router in (
+    auth.router,
+    scrape.router,
+    owner_wishlist.router,
+    owner_categories.router,
+    owner_gifts.router,
+    public.router,
+    reservations.router,
+):
+    app.include_router(router)
 
 
 @app.get("/health")
-def health_check():
+def health_check() -> dict[str, str]:
     return {"status": "ok"}
-
-
-@app.post("/api/scrape", response_model=ScrapeResponse)
-async def scrape(request: ScrapeRequest):
-    debug_bool = bool(request.debug)
-    try:
-        data, strategy = await scrape_product(str(request.url), str(request.strategy), debug_bool)
-        return ScrapeResponse(
-            success=True,
-            data=ProductData.model_validate(data),
-            error=None,
-            strategy_used=strategy,
-            debug=debug_bool,
-        )
-    except Exception as e:
-        logger.error(f"Erreur d'exécution : {e}")
-        return ScrapeResponse(success=False, data=None, error=str(e), strategy_used=None, debug=debug_bool)
