@@ -3,23 +3,27 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.config import get_settings
 from app.models import ProductData, ScrapeRequest, ScrapeResponse
+from app.routers import auth
 from app.scraper.engine import scrape_product
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("main")
 
-app = FastAPI(title="ListaYours Scraper API", version="1.0.0")
+settings = get_settings()
+
+app = FastAPI(title="ListaYours API", version="2.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-    ],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth.router)
 
 
 @app.get("/health")
@@ -29,11 +33,9 @@ def health_check():
 
 @app.post("/api/scrape", response_model=ScrapeResponse)
 async def scrape(request: ScrapeRequest):
+    debug_bool = bool(request.debug)
     try:
-        url_str = str(request.url)
-        strategy_str = str(request.strategy)
-        debug_bool = bool(request.debug)
-        data, strategy = await scrape_product(url_str, strategy_str, debug_bool)
+        data, strategy = await scrape_product(str(request.url), str(request.strategy), debug_bool)
         return ScrapeResponse(
             success=True,
             data=ProductData.model_validate(data),
@@ -43,10 +45,4 @@ async def scrape(request: ScrapeRequest):
         )
     except Exception as e:
         logger.error(f"Erreur d'exécution : {e}")
-        return ScrapeResponse(
-            success=False,
-            data=None,
-            error=str(e),
-            strategy_used=None,
-            debug=debug_bool,
-        )
+        return ScrapeResponse(success=False, data=None, error=str(e), strategy_used=None, debug=debug_bool)
