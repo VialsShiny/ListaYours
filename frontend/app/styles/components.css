@@ -1,0 +1,191 @@
+@layer components {
+  .micro {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    line-height: 1.4;
+  }
+
+  .display {
+    font-family: var(--font-display);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  .display-hero {
+    font-size: clamp(3.5rem, 12vw, 11rem);
+  }
+
+  .display-section {
+    font-size: clamp(2.25rem, 6vw, 5rem);
+  }
+
+  .display-card {
+    font-size: clamp(1.5rem, 2.5vw, 2rem);
+  }
+
+  .hairline {
+    border-top: 1px solid var(--line);
+  }
+
+  .hairline-frame {
+    border: 1px solid var(--line);
+  }
+
+  .link-arrow {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1px;
+  }
+
+  .link-arrow::after {
+    content: " \2192";
+  }
+
+  .vertical-label {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space: nowrap;
+  }
+
+  .field {
+    width: 100%;
+    border: 1px solid var(--line);
+    background: var(--white);
+    padding: 0.75rem 0.875rem;
+    line-height: 1.4;
+    border-radius: 0;
+  }
+
+  .field::placeholder {
+    color: var(--ink-soft);
+  }
+
+  .field:disabled {
+    opacity: 0.55;
+  }
+
+  .scroller {
+    display: flex;
+    gap: 1.25rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 1rem;
+    padding-block: 1rem 1.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--block) transparent;
+  }
+
+  .scroller > * {
+    scroll-snap-align: start;
+    flex: 0 0 auto;
+  }
+
+  .photo img {
+    transition: filter 0.35s ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .photo-rest-grey img {
+      filter: grayscale(1);
+    }
+
+    .photo-rest-grey:is(:hover, :focus-within) img,
+    .gift-card:is(:hover, :focus-within) .photo-rest-grey img {
+      filter: grayscale(0);
+    }
+  }
+
+  .photo-reserved img,
+  .gift-card:is(:hover, :focus-within) .photo-reserved img {
+    filter: grayscale(1);
+    opacity: 0.55;
+  }
+
+  .stripes {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      var(--ink) 0,
+      var(--ink) 1px,
+      transparent 1px,
+      transparent 9px
+    );
+  }
+
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface-alt) 0%, #e6e6e6 50%, var(--surface-alt) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
+
+  .ly-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(10, 10, 10, 0.45);
+    transition: opacity 0.3s ease;
+  }
+
+  .ly-drawer-backdrop[data-starting-style],
+  .ly-drawer-backdrop[data-ending-style] {
+    opacity: 0;
+  }
+
+  .ly-drawer-popup {
+    position: fixed;
+    inset-block: 0;
+    right: 0;
+    z-index: 51;
+    display: flex;
+    flex-direction: column;
+    width: min(100vw, 40rem);
+    background: var(--white);
+    box-shadow: var(--shadow-card);
+    transform: translate3d(var(--drawer-swipe-movement-x, 0px), 0, 0);
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    outline: none;
+  }
+
+  .ly-drawer-popup[data-swiping] {
+    transition: none;
+  }
+
+  .ly-drawer-popup[data-starting-style],
+  .ly-drawer-popup[data-ending-style] {
+    transform: translate3d(calc(100% + 2px), 0, 0);
+  }
+
+  .ly-dialog-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 52;
+    width: min(calc(100vw - 2rem), 28rem);
+    transform: translate(-50%, -50%);
+    background: var(--white);
+    box-shadow: var(--shadow-card);
+    transition:
+      opacity 0.25s ease,
+      transform 0.25s ease;
+  }
+
+  .ly-dialog-popup[data-starting-style],
+  .ly-dialog-popup[data-ending-style] {
+    opacity: 0;
+    transform: translate(-50%, -48%);
+  }
+}
