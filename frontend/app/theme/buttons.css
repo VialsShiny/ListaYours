@@ -132,15 +132,17 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .btn-text:hover,
-  .btn-ghost:hover {
+  .btn-text:hover {
     color: var(--ink);
     background: var(--tile);
   }
 
   .btn-ghost:hover,
   .btn-text-accent:hover {
-    color: var(--accent);
+    background: transparent;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
   }
 
   .btn-primary:hover {
@@ -153,6 +155,7 @@
   }
 
   .btn-destructive:hover {
-    background: rgba(207, 51, 40, 0.08);
+    color: #b32a20;
+    border-color: #b32a20;
   }
 }

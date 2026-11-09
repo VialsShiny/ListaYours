@@ -44,7 +44,7 @@ export function Hero() {
           {LANDING_STEPS.map((step) => (
             <li key={step.number} className="flex flex-col gap-1">
               <span className="index-tag">{step.number}</span>
-              <span className="text-secondary font-semibold text-on-ink">{step.title}</span>
+              <span className="text-secondary font-semibold text-ink">{step.title}</span>
             </li>
           ))}
         </ol>
