@@ -2,6 +2,7 @@ import { Hero } from "@/components/landing/Hero";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { Section } from "@/components/layout/Section";
 import { DisplayTitle } from "@/components/layout/DisplayTitle";
+import { MicroLabel } from "@/components/layout/MicroLabel";
 import Link from "next/link";
 
 export default function HomePage() {
@@ -9,21 +10,21 @@ export default function HomePage() {
     <>
       <Hero />
       <HowItWorks />
-      <Section tone="white" aria-labelledby="essentiels">
-        <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
+      <Section aria-labelledby="essentiels" className="pt-0">
+        <div className="panel grid gap-6 p-6 md:grid-cols-[1fr_auto] md:items-end md:p-8">
           <div>
-            <p className="micro mb-4 text-ink-soft">Pour qui</p>
+            <MicroLabel className="mb-3">Pour qui</MicroLabel>
             <DisplayTitle as="h2" size="section" id="essentiels">
               Les essentiels
             </DisplayTitle>
-            <p className="mt-6 max-w-prose text-sm leading-relaxed text-ink">
+            <p className="text-subhead mt-4 max-w-prose text-ink-soft">
               Un anniversaire, un mariage, une naissance : la personne qui reçoit compose sa liste,
               publie un lien, et ses proches se répartissent les cadeaux sans se croiser.
             </p>
           </div>
           <Link
             href="/connexion"
-            className="link-arrow micro justify-self-start text-ink md:justify-self-end"
+            className="btn btn-secondary justify-self-start md:justify-self-end"
           >
             Déjà un compte ? Connexion
           </Link>

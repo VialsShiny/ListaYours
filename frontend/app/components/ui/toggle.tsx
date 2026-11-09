@@ -19,7 +19,7 @@ export function Toggle({ id, label, checked, onChange, hint, disabled, className
   const hintId = hint ? `${id}-hint` : undefined;
   return (
     <div className={cn("flex items-start gap-3", className)}>
-      <span className="relative mt-0.5 inline-flex h-6 w-11 shrink-0">
+      <span className="relative mt-0.5 inline-flex h-7 w-12 shrink-0">
         <input
           id={id}
           type="checkbox"
@@ -33,19 +33,19 @@ export function Toggle({ id, label, checked, onChange, hint, disabled, className
         />
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-full border border-ink bg-white transition-colors duration-200 peer-checked:bg-ink peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink peer-disabled:opacity-45"
+          className="pointer-events-none absolute inset-0 rounded-full border border-line bg-surface-2 transition-colors duration-200 peer-checked:border-accent peer-checked:bg-accent peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-focus peer-disabled:opacity-45"
         />
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute top-1 left-1 size-4 rounded-full bg-ink transition-transform duration-200 peer-checked:translate-x-5 peer-checked:bg-white"
+          className="pointer-events-none absolute top-1 left-1 size-5 rounded-full bg-ink shadow-1 transition-transform duration-200 peer-checked:translate-x-5 peer-checked:bg-on-accent"
         />
       </span>
       <span className="flex flex-col gap-1">
-        <label htmlFor={id} className="micro cursor-pointer text-ink">
+        <label htmlFor={id} className="text-subhead cursor-pointer font-semibold text-ink">
           {label}
         </label>
         {hint ? (
-          <span id={hintId} className="text-xs text-ink-soft">
+          <span id={hintId} className="text-footnote text-ink-soft">
             {hint}
           </span>
         ) : null}

@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type ErrorPanelProps = {
   message: string;
@@ -7,20 +8,23 @@ type ErrorPanelProps = {
 };
 
 /**
- * Hairline-framed error block with a "Réessayer" button.
+ * Error block with a "Réessayer" button.
  */
 export function ErrorPanel({ message, onRetry, className }: ErrorPanelProps) {
   return (
     <div
       role="alert"
-      className={`hairline-frame flex flex-col gap-4 p-6 md:flex-row md:items-center md:justify-between ${className ?? ""}`}
+      className={cn(
+        "panel flex flex-col gap-4 p-6 md:flex-row md:items-center md:justify-between",
+        className,
+      )}
     >
       <div>
-        <p className="micro mb-2 text-ink-soft">Erreur</p>
-        <p className="text-sm text-ink">{message}</p>
+        <p className="eyebrow mb-2 text-accent-text">Erreur</p>
+        <p className="text-subhead text-ink">{message}</p>
       </div>
       {onRetry ? (
-        <Button variant="outline" onClick={onRetry}>
+        <Button variant="secondary" onClick={onRetry}>
           Réessayer
         </Button>
       ) : null}

@@ -9,7 +9,7 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentPropsWithoutRef<
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, React.ComponentPropsWithoutRef<"textarea">>(
   function Textarea({ className, ...props }, ref) {
-    return <textarea ref={ref} className={cn("field min-h-28 resize-y", className)} {...props} />;
+    return <textarea ref={ref} className={cn("field field-multiline", className)} {...props} />;
   },
 );
 
