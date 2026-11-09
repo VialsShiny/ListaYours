@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 type ToggleProps = {
   id: string;
-  label: string;
+  label: React.ReactNode;
   checked: boolean;
   onChange: (checked: boolean) => void;
   hint?: string;
