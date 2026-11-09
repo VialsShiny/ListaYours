@@ -28,7 +28,9 @@ Until those files exist, the site renders with three Google Fonts loaded through
 Syne is noticeably wider than most display faces, which is why the hero title size is
 `clamp(2.5rem, 0.5rem + 9vw, 8.5rem)` (about 43px at 390px, 123px at 1280px): at the mockup's
 54–72px a word like « réservations » no longer fits a phone screen. Once Against is in place
-the clamp can be raised again (decision 17 in `docs/DECISIONS.md`).
+the clamp can be raised again (decision 17 in `docs/DECISIONS.md`). The auth pages use an even
+smaller title (`clamp(2.5rem, 0.25rem + 6vw, 6.5rem)` in `AuthPage.tsx`) so that « Connexion »
+fits beside the form card from 1024px.
 
 ## Adding the brand fonts
 
