@@ -31,19 +31,21 @@
     object-fit: cover;
   }
 
-  @media (min-width: 768px) {
-    .thumb {
-      width: 64px;
-      height: 64px;
-      border-radius: var(--radius-field);
-    }
-
+  @media (min-width: 1024px) {
     .auth-card {
       padding: 40px;
       background: var(--card);
       border: 1px solid var(--line);
       border-radius: var(--radius-panel);
       box-shadow: var(--shadow-2);
+    }
+  }
+
+  @media (min-width: 768px) {
+    .thumb {
+      width: 64px;
+      height: 64px;
+      border-radius: var(--radius-field);
     }
   }
 

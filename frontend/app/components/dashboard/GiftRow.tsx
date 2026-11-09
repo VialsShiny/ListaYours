@@ -56,7 +56,11 @@ export function GiftRow({
       <p className="price w-[90px] shrink-0 text-[16px] max-md:hidden">{price}</p>
       <Toggle
         id={`gift-${gift.id}-visible`}
-        label={`Visible : ${gift.name}`}
+        label={
+          <>
+            Visible<span className="sr-only"> : {gift.name}</span>
+          </>
+        }
         size="sm"
         checked={gift.is_visible}
         disabled={busy}

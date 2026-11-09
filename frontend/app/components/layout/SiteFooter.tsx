@@ -33,7 +33,11 @@ export function SiteFooter() {
             <div key={column.title} className="flex flex-col gap-2.5">
               <MicroLabel as="p">{column.title}</MicroLabel>
               {column.links.map((link) => (
-                <Link key={link.href} href={link.href} className="inline-flex min-h-6 items-center">
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="inline-flex min-h-11 items-center"
+                >
                   {link.label}
                 </Link>
               ))}

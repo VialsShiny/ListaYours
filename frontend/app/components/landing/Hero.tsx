@@ -12,10 +12,10 @@ export function Hero() {
 
   return (
     <section className="relative overflow-hidden" aria-labelledby="hero-title">
-      <p aria-hidden="true" className="ghost-word -top-4 right-[-6%] hidden md:block">
+      <p aria-hidden="true" className="ghost-word -top-4 right-[-6%] hidden lg:block">
         LISTE
       </p>
-      <div className="container relative grid grid-cols-[minmax(0,1fr)] gap-10 pt-8 md:grid-cols-[minmax(0,1fr)_300px] md:items-start md:gap-12 md:pt-14 xl:gap-16">
+      <div className="container relative grid grid-cols-[minmax(0,1fr)] gap-10 pt-8 md:pt-14 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start lg:gap-12 xl:gap-16">
         <div className="flex min-w-0 flex-col gap-6 md:gap-9">
           <MicroLabel>Listes de souhaits partagées</MicroLabel>
           <DisplayTitle size="hero" id="hero-title" className="tracking-[-0.05em]">
@@ -45,7 +45,7 @@ export function Hero() {
             {!loading && error ? `Aucune liste disponible : ${error}` : null}
           </p>
         </div>
-        <SampleCard slug={first?.slug ?? null} className="md:mt-16" />
+        <SampleCard slug={first?.slug ?? null} className="max-w-[300px] lg:mt-16" />
       </div>
     </section>
   );
