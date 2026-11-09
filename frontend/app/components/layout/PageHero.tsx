@@ -5,32 +5,37 @@ import { cn } from "@/lib/utils";
 type PageHeroProps = {
   eyebrow: string;
   title: string;
-  size?: "hero" | "section";
   titleId?: string;
+  period?: boolean;
+  aside?: React.ReactNode;
   className?: string;
   children?: React.ReactNode;
 };
 
 /**
- * Rounded cherry-to-jet gradient block that opens every page.
+ * Page opening: eyebrow, huge display title with the accent period, optional right-hand aside.
  */
 export function PageHero({
   eyebrow,
   title,
-  size = "section",
   titleId,
+  period = true,
+  aside,
   className,
   children,
 }: PageHeroProps) {
   return (
-    <header className="container pt-4 md:pt-6">
-      <div className={cn("hero", size === "section" && "py-10 md:py-12", className)}>
-        <MicroLabel>{eyebrow}</MicroLabel>
-        <DisplayTitle size={size} id={titleId} className={cn(size === "section" ? "mt-3" : "mt-6")}>
-          {title}
-        </DisplayTitle>
-        {children}
+    <header className={cn("container pt-8 md:pt-14", className)}>
+      <div className="flex flex-wrap items-end justify-between gap-6">
+        <div className="flex min-w-0 flex-col gap-5">
+          <MicroLabel>{eyebrow}</MicroLabel>
+          <DisplayTitle size="hero" id={titleId} period={period}>
+            {title}
+          </DisplayTitle>
+        </div>
+        {aside ? <div className="flex min-w-0 flex-col items-end gap-3 pb-2">{aside}</div> : null}
       </div>
+      {children}
     </header>
   );
 }
