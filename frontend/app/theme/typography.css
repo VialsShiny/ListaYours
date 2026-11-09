@@ -24,6 +24,7 @@
   letter-spacing: -0.055em;
   text-wrap: balance;
   overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .display-hero {
@@ -31,12 +32,16 @@
 }
 
 .display-section {
+  font-family: var(--font-display);
+  font-weight: 800;
   font-size: var(--text-section-title);
   letter-spacing: -0.04em;
   line-height: 1;
 }
 
 .display-sub {
+  font-family: var(--font-display);
+  font-weight: 800;
   font-size: var(--text-sub-title);
   letter-spacing: -0.03em;
   line-height: 1.1;

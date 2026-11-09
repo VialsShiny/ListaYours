@@ -15,13 +15,23 @@ export function StatusMessage({ message, tone = "info", className }: StatusMessa
       role={tone === "error" ? "alert" : "status"}
       aria-live="polite"
       className={cn(
-        "text-secondary",
+        "text-secondary flex items-center gap-2",
         tone === "error" ? "font-semibold text-accent" : "text-soft",
         !message && "sr-only",
         className,
       )}
     >
-      {tone === "error" && message ? <span aria-hidden="true">⚠ </span> : null}
+      {message ? (
+        <span
+          aria-hidden="true"
+          className={cn(
+            "inline-grid size-5 shrink-0 place-items-center rounded-full text-[11px] font-semibold",
+            tone === "error" ? "bg-accent text-card" : "bg-ink text-on-ink",
+          )}
+        >
+          {tone === "error" ? "!" : "✓"}
+        </span>
+      ) : null}
       {message ?? ""}
     </p>
   );

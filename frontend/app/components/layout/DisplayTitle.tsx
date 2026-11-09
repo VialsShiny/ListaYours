@@ -31,7 +31,7 @@ export function DisplayTitle({
       {children}
       {period ? (
         <span className="period" aria-hidden="true">
-          .
+          {"\u2060."}
         </span>
       ) : null}
     </Tag>

@@ -1,30 +1,34 @@
+import { DisplayTitle } from "@/components/layout/DisplayTitle";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type ErrorPanelProps = {
   message: string;
+  title?: string;
   onRetry?: () => void;
   className?: string;
 };
 
 /**
- * Error block with a "Réessayer" button.
+ * Error block with a 1.5px accent border and a "Réessayer" button.
  */
-export function ErrorPanel({ message, onRetry, className }: ErrorPanelProps) {
+export function ErrorPanel({
+  message,
+  title = "Quelque chose n'a pas fonctionné",
+  onRetry,
+  className,
+}: ErrorPanelProps) {
   return (
     <div
       role="alert"
-      className={cn(
-        "panel flex flex-col gap-4 p-6 md:flex-row md:items-center md:justify-between",
-        className,
-      )}
+      className={cn("panel panel-error flex flex-col items-start gap-3 p-7", className)}
     >
-      <div>
-        <p className="eyebrow mb-2 text-accent">Erreur</p>
-        <p className="text-secondary text-ink">{message}</p>
-      </div>
+      <DisplayTitle as="p" size="sub">
+        {title}
+      </DisplayTitle>
+      <p className="text-secondary max-w-prose text-soft">{message}</p>
       {onRetry ? (
-        <Button variant="secondary" onClick={onRetry}>
+        <Button variant="secondary" size="sm" className="mt-1" onClick={onRetry}>
           Réessayer
         </Button>
       ) : null}
