@@ -68,14 +68,13 @@ svg {
   border-radius: var(--radius-field);
 }
 
+.on-ink :focus-visible {
+  outline-color: var(--on-ink);
+}
+
 ::selection {
   background: var(--ink);
   color: var(--on-ink);
-}
-
-.container {
-  width: min(100% - 2 * var(--space-4), 1152px);
-  margin-inline: auto;
 }
 
 .section {

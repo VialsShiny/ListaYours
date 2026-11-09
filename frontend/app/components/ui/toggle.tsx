@@ -30,7 +30,7 @@ export function Toggle({
 }: ToggleProps) {
   const hintId = hint ? `${id}-hint` : undefined;
   return (
-    <div className={cn("flex items-center gap-3", className)}>
+    <div className={cn("flex min-h-11 items-center gap-3", className)}>
       <span className="relative inline-flex shrink-0">
         <input
           id={id}
