@@ -24,34 +24,34 @@ export default function ProductCard({ product, className }: ProductCardProps) {
   return (
     <article
       aria-label="Aperçu du produit analysé"
-      className={cn("grid gap-4 bg-white p-4 shadow-soft sm:grid-cols-[7rem_1fr]", className)}
+      className={cn("panel grid gap-4 p-4 sm:grid-cols-[7rem_1fr]", className)}
     >
-      <div className="w-28">
-        <GiftPhoto src={image || null} alt={product.title ?? "Produit"} restGrey={false} />
+      <div className="w-28 overflow-hidden rounded-control">
+        <GiftPhoto src={image || null} alt={product.title ?? "Produit"} />
       </div>
       <div className="flex min-w-0 flex-col gap-2">
-        <p className="micro text-ink-soft">{product.brand ?? "Marque inconnue"}</p>
-        <h4 className="display text-xl leading-tight">{product.title ?? "Produit sans titre"}</h4>
+        <p className="eyebrow">{product.brand ?? "Marque inconnue"}</p>
+        <h4 className="title-card">{product.title ?? "Produit sans titre"}</h4>
         <GiftPrice
           price={product.price}
           oldPrice={product.old_price}
           currency={product.currency ?? "EUR"}
         />
-        <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs text-ink-soft">
-          <dt className="micro">Disponibilité</dt>
+        <dl className="text-footnote mt-1 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-ink-soft">
+          <dt className="font-semibold">Disponibilité</dt>
           <dd>
             {availability}
             {product.stock ? ` · ${product.stock}` : ""}
           </dd>
           {product.category ? (
             <>
-              <dt className="micro">Catégorie</dt>
+              <dt className="font-semibold">Catégorie</dt>
               <dd className="truncate">{product.category}</dd>
             </>
           ) : null}
           {product.sku ? (
             <>
-              <dt className="micro">Référence</dt>
+              <dt className="font-semibold">Référence</dt>
               <dd className="truncate">{product.sku}</dd>
             </>
           ) : null}

@@ -15,16 +15,16 @@ export function OwnerDashboard() {
 
   return (
     <>
-      <div className="px-4 md:px-12 lg:px-16">
+      <div className="container mt-6 flex flex-col gap-3">
         <Notice>
           Rappel : vous ne voyez jamais les réservations. Vos proches gardent la surprise.
         </Notice>
-        <StatusMessage message={store.actionError} tone="error" className="py-3" />
+        <StatusMessage message={store.actionError} tone="error" />
       </div>
 
       {store.loading && !store.data ? (
-        <Section tone="white" aria-busy="true">
-          <p className="micro mb-6 text-ink-soft">Chargement du tableau de bord…</p>
+        <Section aria-busy="true">
+          <p className="eyebrow mb-6">Chargement du tableau de bord…</p>
           <div className="grid gap-4 md:grid-cols-3">
             <div className="skeleton h-40" />
             <div className="skeleton h-40" />
@@ -34,22 +34,22 @@ export function OwnerDashboard() {
       ) : null}
 
       {store.error && !store.data ? (
-        <Section tone="white">
+        <Section>
           <ErrorPanel message={store.error} onRetry={store.refetch} />
         </Section>
       ) : null}
 
       {store.data ? (
         <>
-          <Section tone="white" aria-labelledby="reglages">
+          <Section aria-labelledby="reglages">
             <DashboardSectionTitle id="reglages" index="01" title="Réglages" />
             <SettingsForm store={store} wishlist={store.data.wishlist} />
           </Section>
-          <Section tone="band" aria-labelledby="categories">
+          <Section aria-labelledby="categories" className="pt-0">
             <DashboardSectionTitle id="categories" index="02" title="Catégories" />
             <CategoryManager store={store} categories={store.data.categories} />
           </Section>
-          <Section tone="white" aria-labelledby="cadeaux">
+          <Section aria-labelledby="cadeaux" className="pt-0">
             <DashboardSectionTitle id="cadeaux" index="03" title="Cadeaux" />
             <GiftManager
               store={store}

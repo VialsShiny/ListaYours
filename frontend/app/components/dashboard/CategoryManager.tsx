@@ -40,7 +40,7 @@ export function CategoryManager({ store, categories }: CategoryManagerProps) {
           text="Créez une première catégorie pour ranger vos cadeaux."
         />
       ) : (
-        <ol className="flex flex-col divide-y divide-line border-y border-line bg-white">
+        <ol className="panel flex flex-col divide-y divide-line overflow-hidden">
           {ordered.map((category, index) => (
             <CategoryRow
               key={category.id}

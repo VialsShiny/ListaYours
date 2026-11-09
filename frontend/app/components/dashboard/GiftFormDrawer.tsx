@@ -74,8 +74,8 @@ export function GiftFormDrawer({ open, gift, categories, store, onClose }: GiftF
     >
       <DrawerContent aria-describedby={undefined}>
         <DrawerHeader>
-          <p className="micro text-ink-soft">{gift ? "Modification" : "Nouveau cadeau"}</p>
-          <DrawerTitle>{gift ? `${gift.name}.` : "Ajouter un cadeau."}</DrawerTitle>
+          <p className="eyebrow">{gift ? "Modification" : "Nouveau cadeau"}</p>
+          <DrawerTitle>{gift ? gift.name : "Ajouter un cadeau"}</DrawerTitle>
           <DrawerDescription>
             Pré-remplissez depuis une adresse produit, puis ajustez les champs.
           </DrawerDescription>
@@ -94,9 +94,7 @@ export function GiftFormDrawer({ open, gift, categories, store, onClose }: GiftF
           <Button type="submit" form={formId} variant="primary" disabled={saving || store.busy}>
             {saving ? "Enregistrement…" : gift ? "Enregistrer" : "Ajouter le cadeau"}
           </Button>
-          <DrawerClose className="micro cursor-pointer px-2 py-2 text-ink underline decoration-1 underline-offset-4 hover:text-ink-soft">
-            Annuler
-          </DrawerClose>
+          <DrawerClose className="btn btn-ghost">Annuler</DrawerClose>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>

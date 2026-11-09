@@ -11,7 +11,7 @@ export function DashboardSectionTitle({ id, index, title, aside }: DashboardSect
   return (
     <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <p className="micro mb-3 text-ink-soft">{index}</p>
+        <p className="index-tag mb-2">{index}</p>
         <DisplayTitle as="h2" size="section" id={id}>
           {title}
         </DisplayTitle>

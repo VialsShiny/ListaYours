@@ -63,8 +63,8 @@ export function AuthForm({ mode }: AuthFormProps) {
   }
 
   return (
-    <Card tone="white" className="w-full max-w-md">
-      <p className="micro mb-4 text-ink-soft">Compte</p>
+    <Card className="w-full max-w-md">
+      <p className="eyebrow mb-3">Compte</p>
       <DisplayTitle size="section" className="mb-8">
         {copy.title}
       </DisplayTitle>
@@ -116,13 +116,13 @@ export function AuthForm({ mode }: AuthFormProps) {
           )}
         </Field>
         <StatusMessage message={error} tone="error" />
-        <Button type="submit" variant="primary" block disabled={busy} className="mt-2 py-4">
+        <Button type="submit" variant="primary" block disabled={busy} className="mt-2">
           {busy ? copy.busy : copy.submit}
         </Button>
       </form>
-      <p className="hairline mt-8 flex flex-wrap items-baseline gap-x-2 pt-4 text-sm text-ink-soft">
+      <p className="text-subhead mt-8 flex flex-wrap items-baseline gap-x-2 border-t border-line pt-5 text-ink-soft">
         {copy.other.text}
-        <Link href={otherHref} className="link-arrow font-medium text-ink">
+        <Link href={otherHref} className="text-link">
           {copy.other.label}
         </Link>
       </p>
