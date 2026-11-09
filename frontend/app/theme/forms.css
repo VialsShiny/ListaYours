@@ -1,0 +1,109 @@
+.field {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--target-primary);
+  padding: 0 var(--space-4);
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius-field);
+  font-size: 16px;
+  transition: border-color var(--dur-toggle) var(--ease-out);
+}
+
+.field::placeholder {
+  color: var(--soft);
+}
+
+.field:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+  border-color: var(--ink);
+}
+
+.field[aria-invalid="true"] {
+  border: 2px solid var(--accent);
+}
+
+.field:disabled {
+  background: var(--tile);
+  color: var(--soft);
+  border-color: transparent;
+  cursor: not-allowed;
+}
+
+.field-multiline {
+  min-height: 7rem;
+  padding-block: var(--space-3);
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.field-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.field-help {
+  font-size: var(--text-small);
+  color: var(--soft);
+}
+
+.field-error {
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.toggle-track {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  width: 52px;
+  height: 32px;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--toggle-off);
+  transition: background-color var(--dur-toggle) var(--ease-out);
+}
+
+.toggle-knob {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(13, 13, 13, 0.2);
+  transition: transform var(--dur-toggle) var(--ease-out);
+}
+
+.toggle-input:checked + .toggle-track {
+  background: var(--ink);
+}
+
+.toggle-input:checked + .toggle-track .toggle-knob {
+  transform: translateX(20px);
+}
+
+.toggle-input:focus-visible + .toggle-track {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.toggle-input:disabled + .toggle-track {
+  opacity: 0.45;
+}
+
+.toggle-sm {
+  width: 44px;
+  height: 26px;
+}
+
+.toggle-sm .toggle-knob {
+  width: 20px;
+  height: 20px;
+}
+
+.toggle-input:checked + .toggle-sm .toggle-knob {
+  transform: translateX(18px);
+}
