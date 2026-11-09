@@ -23,7 +23,7 @@
   line-height: 0.9;
   letter-spacing: -0.055em;
   text-wrap: balance;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .display-hero {
