@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MicroLabel } from "@/components/layout/MicroLabel";
@@ -10,6 +10,7 @@ import { NavigatorBar } from "@/components/wishlist/NavigatorBar";
 import { NavigatorStage } from "@/components/wishlist/NavigatorStage";
 import { ReservationControl, type ViewerRole } from "@/components/wishlist/ReservationControl";
 import { useGiftNavigator } from "@/hooks/use-gift-navigator";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import type { PublicGift } from "@/lib/types";
 import type { GiftGroup } from "@/lib/wishlist-groups";
 
@@ -35,6 +36,12 @@ export function GiftNavigator({
 }: GiftNavigatorProps) {
   const nav = useGiftNavigator(groups);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const desktop = useMediaQuery("(min-width: 1024px)");
+
+  useEffect(() => {
+    if (desktop) setSheetOpen(false);
+  }, [desktop]);
+
   if (!nav.current) return null;
   const { gift, groupIndex, groupKey, groupName } = nav.current;
   const muted = viewer !== "owner" && gift.is_reserved && !gift.reserved_by_me;

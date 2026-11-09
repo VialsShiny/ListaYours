@@ -56,7 +56,7 @@ export function GiftCard({ gift, viewer, loginHref, pending, onReserve, onCancel
               href={gift.purchase_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-link inline-flex min-h-6 items-center"
+              className="text-link inline-flex min-h-11 items-center"
             >
               Voir le produit →
             </a>

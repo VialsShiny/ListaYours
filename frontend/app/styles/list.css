@@ -35,9 +35,7 @@
 
   .navigator-image[data-motion="pointer"] img {
     transition: opacity var(--dur-toggle) var(--ease-out);
-  }
 
-  .navigator-image[data-motion="pointer"] img {
     @starting-style {
       opacity: 0;
     }

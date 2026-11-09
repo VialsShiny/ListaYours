@@ -25,7 +25,7 @@ export function ViewSwitch({ view, hrefFor, className }: ViewSwitchProps) {
           href={hrefFor(option.mode)}
           replace
           scroll={false}
-          aria-current={view === option.mode ? "true" : undefined}
+          aria-current={view === option.mode ? "page" : undefined}
           className="flex-1"
         >
           {option.label}
