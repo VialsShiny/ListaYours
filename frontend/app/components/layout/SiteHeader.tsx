@@ -2,73 +2,59 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { MobileMenu } from "@/components/layout/MobileMenu";
 import { useAuth } from "@/hooks/use-auth";
 import { usePublicWishlists } from "@/hooks/use-public-wishlist";
-
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
-  const pathname = usePathname();
-  const active = pathname === href || (href !== "/" && pathname?.startsWith(href));
-  return (
-    <Link href={href} aria-current={active ? "page" : undefined}>
-      {children}
-    </Link>
-  );
-}
+import { buildNav, isActiveHref, type NavRole } from "@/lib/nav-links";
 
 export function SiteHeader() {
-  const { status, user, isOwner, signOut } = useAuth();
+  const { status, isOwner, signOut } = useAuth();
+  const pathname = usePathname();
   const wishlists = usePublicWishlists();
   const firstSlug = wishlists.data?.[0]?.slug;
+  const role: NavRole = isOwner ? "owner" : status === "authenticated" ? "visitor" : "anonymous";
+  const nav = buildNav(role, firstSlug ? `/l/${firstSlug}` : null);
 
   return (
-    <header className="nav">
-      <Link href="/" className="wordmark text-lead shrink-0">
-        ListaYours.
-      </Link>
-      <nav aria-label="Navigation principale" className="flex min-w-0 items-center gap-2">
-        <ul className="nav-links">
-          {firstSlug ? (
-            <li>
-              <NavLink href={`/l/${firstSlug}`}>La liste</NavLink>
-            </li>
-          ) : null}
-          {status === "authenticated" && !isOwner ? (
-            <li>
-              <NavLink href="/mes-reservations">Mes réservations</NavLink>
-            </li>
-          ) : null}
-          {isOwner ? (
-            <li>
-              <NavLink href="/tableau-de-bord">Tableau de bord</NavLink>
-            </li>
-          ) : null}
-          {status === "anonymous" ? (
-            <li>
-              <NavLink href="/connexion">Connexion</NavLink>
-            </li>
-          ) : null}
-          {status === "authenticated" && user ? (
-            <>
-              <li
-                className="text-secondary hidden px-3 font-medium text-soft sm:block"
-                aria-label="Utilisateur connecté"
-              >
-                {user.display_name}
+    <div className="nav-wrap">
+      <header className="nav container">
+        <Link href="/" className="wordmark shrink-0">
+          ListaYours
+        </Link>
+        <nav aria-label="Navigation principale" className="hidden min-w-0 md:block">
+          <ul className="nav-links">
+            {nav.links.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  aria-current={isActiveHref(item.href, pathname) ? "page" : undefined}
+                >
+                  {item.label}
+                </Link>
               </li>
-              <li>
-                <button type="button" onClick={signOut}>
-                  Déconnexion
-                </button>
-              </li>
-            </>
+            ))}
+          </ul>
+        </nav>
+        <div className="nav-actions hidden md:flex">
+          {nav.actions.map((item, index) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={
+                index === nav.actions.length - 1 ? "btn btn-primary btn-sm" : "btn btn-text"
+              }
+            >
+              {item.label}
+            </Link>
+          ))}
+          {nav.showSignOut ? (
+            <button type="button" onClick={signOut} className="btn btn-primary btn-sm">
+              Déconnexion
+            </button>
           ) : null}
-        </ul>
-        {status === "anonymous" ? (
-          <Link href="/inscription" className="btn btn-primary shrink-0">
-            Inscription
-          </Link>
-        ) : null}
-      </nav>
-    </header>
+        </div>
+        <MobileMenu nav={nav} pathname={pathname} onSignOut={signOut} />
+      </header>
+    </div>
   );
 }
