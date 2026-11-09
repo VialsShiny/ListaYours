@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowRight } from "lucide-react";
 import { StatusMessage } from "@/components/feedback/StatusMessage";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input, Textarea } from "@/components/ui/input";
@@ -12,7 +11,6 @@ import { useClipboard } from "@/hooks/use-clipboard";
 import type { OwnerStore } from "@/hooks/use-owner-data";
 import { patchWishlist } from "@/lib/api-owner";
 import type { OwnerWishlist } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 type SettingsFormProps = { store: OwnerStore; wishlist: OwnerWishlist };
 
@@ -65,7 +63,7 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
         : null;
 
   return (
-    <Card tone="white" className="max-w-3xl">
+    <Card className="max-w-3xl">
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <Field id="wishlist-title" label="Titre" required>
           {(describedBy) => (
@@ -109,21 +107,15 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
           checked={published}
           onChange={setPublished}
         />
-        <div className="hairline flex flex-wrap items-center gap-3 pt-5">
+        <div className="flex flex-wrap items-center gap-3 border-t border-line pt-5">
           <Button type="submit" variant="primary" disabled={store.busy}>
             {store.busy ? "Enregistrement…" : "Enregistrer"}
           </Button>
-          <Button type="button" variant="outline" onClick={() => clipboard.copy(publicUrl)}>
+          <Button type="button" variant="secondary" onClick={() => clipboard.copy(publicUrl)}>
             Copier le lien
           </Button>
-          <a
-            href={publicPath}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(buttonVariants({ variant: "ghost" }))}
-          >
+          <a href={publicPath} target="_blank" rel="noopener noreferrer" className="btn btn-arrow">
             Aperçu public
-            <ArrowRight className="size-4" aria-hidden="true" />
           </a>
         </div>
         <StatusMessage message={clipboardMessage ?? saved} />

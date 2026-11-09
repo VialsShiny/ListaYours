@@ -34,8 +34,8 @@ export function ScrapePrefill({ initialUrl, onPrefill }: ScrapePrefillProps) {
   }
 
   return (
-    <section aria-labelledby="prefill-title" className="flex flex-col gap-4 bg-surface-alt p-4">
-      <h3 id="prefill-title" className="micro text-ink-soft">
+    <section aria-labelledby="prefill-title" className="panel flex flex-col gap-4 bg-surface-2 p-4">
+      <h3 id="prefill-title" className="eyebrow">
         Pré-remplir depuis une URL
       </h3>
       <div className="grid gap-4 sm:grid-cols-[1fr_auto_auto] sm:items-end">

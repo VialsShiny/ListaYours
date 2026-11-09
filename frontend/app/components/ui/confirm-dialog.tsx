@@ -35,13 +35,13 @@ export function ConfirmDialog({
       <AlertDialog.Portal>
         <AlertDialog.Backdrop className="ly-drawer-backdrop" />
         <AlertDialog.Popup className="ly-dialog-popup p-6 md:p-8">
-          <p className="micro mb-3 text-ink-soft">Confirmation</p>
-          <AlertDialog.Title className="display display-card mb-3">{title}</AlertDialog.Title>
-          <AlertDialog.Description className="text-sm text-ink-soft">
+          <p className="eyebrow mb-3">Confirmation</p>
+          <AlertDialog.Title className="title-card mb-3">{title}</AlertDialog.Title>
+          <AlertDialog.Description className="text-subhead text-ink-soft">
             {description}
           </AlertDialog.Description>
-          <div className="hairline mt-6 flex flex-wrap justify-end gap-3 pt-4">
-            <Button variant="outline" onClick={onCancel} disabled={busy}>
+          <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-line pt-5">
+            <Button variant="secondary" onClick={onCancel} disabled={busy}>
               Annuler
             </Button>
             <Button variant="primary" onClick={onConfirm} disabled={busy}>

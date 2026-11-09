@@ -49,7 +49,7 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
   return (
     <div className="flex flex-col gap-10">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <p className="text-sm text-ink-soft">
+        <p className="text-subhead text-ink-soft">
           {gifts.length} {gifts.length > 1 ? "cadeaux" : "cadeau"} ·{" "}
           {gifts.filter((gift) => !gift.is_visible).length} masqué(s)
         </p>
@@ -73,10 +73,10 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
               aria-labelledby={`gifts-${group.key}`}
               className="flex flex-col gap-4"
             >
-              <h3 id={`gifts-${group.key}`} className="display text-2xl leading-tight">
-                {group.name}.
+              <h3 id={`gifts-${group.key}`} className="title-card">
+                {group.name}
               </h3>
-              <ol className="flex flex-col divide-y divide-line border-y border-line bg-white">
+              <ol className="panel flex flex-col divide-y divide-line overflow-hidden">
                 {group.gifts.map((gift, index) => (
                   <GiftRow
                     key={gift.id}

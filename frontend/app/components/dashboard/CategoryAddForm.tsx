@@ -22,11 +22,8 @@ export function CategoryAddForm({ store }: { store: OwnerStore }) {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col gap-4 self-start bg-white p-5 shadow-soft"
-    >
-      <p className="micro text-ink-soft">Nouvelle catégorie</p>
+    <form onSubmit={handleSubmit} className="panel flex flex-col gap-4 self-start p-5">
+      <p className="eyebrow">Nouvelle catégorie</p>
       <Field id="new-category" label="Nom" required>
         {(describedBy) => (
           <Input

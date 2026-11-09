@@ -6,8 +6,14 @@ type DisplayTitleProps = React.ComponentProps<"h1"> & {
   size?: "hero" | "section" | "card";
 };
 
+const sizes = {
+  hero: "display-wide",
+  section: "title-section",
+  card: "title-card",
+};
+
 /**
- * Playfair Display 900 headline. The closing period is part of the brand: pass text without it.
+ * Display heading in the title typeface; `hero` is the ultra-wide uppercase style.
  */
 export function DisplayTitle({
   as = "h1",
@@ -18,8 +24,8 @@ export function DisplayTitle({
 }: DisplayTitleProps) {
   const Tag = as;
   return (
-    <Tag className={cn("display", `display-${size}`, className)} {...props}>
-      {children}.
+    <Tag className={cn(sizes[size], className)} {...props}>
+      {children}
     </Tag>
   );
 }

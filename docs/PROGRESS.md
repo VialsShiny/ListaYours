@@ -58,3 +58,10 @@ GitHub pull requests merged into `feat/wishlist-platform`.
 - Passed: all; no factual contradiction found.
 - Failed: nothing.
 - Remains: every `[MANUAL]` step (accounts, card, DNS, secrets) belongs to the owner; nothing is deployed.
+
+## 9. Restyle with the cherry/jet/water theme — PR #28 (2026-11-09)
+- Changed: `frontend/app/theme/*.css` (copied verbatim), `globals.css` token mapping, Inter via `next/font/google`, every page and component restyled (pill nav, gradient hero, `.index-tag` sections, `.card` gifts, panels), `docs/FONTS.md`, decisions 14–15.
+- Ran: lint, typecheck, vitest (29), `next build`, docker compose build of the frontend image, browser checks at 375/768/1440 in light and dark (landing, public list, registration, reservation, second visitor, "Mes réservations", owner dashboard and drawer), WCAG contrast script (34 pairs).
+- Passed: all; lowest contrast 4.65:1 (hero eyebrow on the lightest gradient stop); no horizontal scroll at any width; owner view shows no reservation data.
+- Failed: first pass had Tailwind's own `container` utility overriding the theme's `.container` (overflow at 375) and a two-line "LISTAYOURS" at 375 → `@utility container` override and a mobile `display-wide` size.
+- Remains: the brand fonts Against and QuickSans are not in the repository (see `docs/FONTS.md`); the 409 conflict path was exercised through the API only.

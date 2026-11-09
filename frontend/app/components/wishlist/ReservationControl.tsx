@@ -31,7 +31,7 @@ export function ReservationControl({
 
   if (viewer === "anonymous") {
     return (
-      <Link href={loginHref} className="link-arrow micro text-ink">
+      <Link href={loginHref} className="btn btn-secondary w-full">
         Se connecter pour réserver
       </Link>
     );
@@ -39,7 +39,7 @@ export function ReservationControl({
 
   if (gift.reserved_by_me) {
     return (
-      <Button variant="outline" block disabled={pending} onClick={() => onCancel(gift.id)}>
+      <Button variant="secondary" block disabled={pending} onClick={() => onCancel(gift.id)}>
         {pending ? "Annulation…" : "Annuler ma réservation"}
       </Button>
     );
@@ -47,8 +47,8 @@ export function ReservationControl({
 
   if (gift.is_reserved) {
     return (
-      <p className="micro border border-ink/40 px-5 py-3 text-center text-ink" role="status">
-        Réservé
+      <p className="badge badge-reserved min-h-11 justify-center" role="status">
+        Déjà réservé
       </p>
     );
   }

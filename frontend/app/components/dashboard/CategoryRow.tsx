@@ -44,7 +44,7 @@ export function CategoryRow({
 
   return (
     <li className="flex flex-wrap items-center gap-3 px-4 py-3 md:flex-nowrap">
-      <span className="micro w-8 shrink-0 text-ink-soft">{String(index + 1).padStart(2, "0")}</span>
+      <span className="index-tag w-10 shrink-0">{String(index + 1).padStart(2, "0")}</span>
       {editing ? (
         <form onSubmit={submitRename} className="flex min-w-0 flex-1 items-center gap-2">
           <label htmlFor={inputId} className="sr-only">
@@ -56,7 +56,6 @@ export function CategoryRow({
             value={draft}
             maxLength={80}
             onChange={(event) => setDraft(event.target.value)}
-            className="py-2"
           />
           <Button type="submit" variant="icon" aria-label="Valider le nom" disabled={busy}>
             <Check aria-hidden="true" />
@@ -73,7 +72,7 @@ export function CategoryRow({
           </Button>
         </form>
       ) : (
-        <p className="display min-w-0 flex-1 truncate text-xl leading-tight">{category.name}</p>
+        <p className="text-headline min-w-0 flex-1 truncate font-semibold">{category.name}</p>
       )}
       <div className="flex shrink-0 items-center gap-1">
         {!editing ? (

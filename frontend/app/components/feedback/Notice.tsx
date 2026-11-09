@@ -9,15 +9,15 @@ type NoticeProps = {
 };
 
 /**
- * Hairline notice: a sentence between two 1px rules, optionally followed by an arrow link.
+ * Soft notice panel: a sentence, optionally followed by a link.
  */
 export function Notice({ children, href, linkLabel, className }: NoticeProps) {
   return (
-    <div className={cn("hairline border-b border-b-line py-4 text-sm", className)}>
+    <div className={cn("panel text-subhead bg-surface-2 px-5 py-4", className)}>
       <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
         <span>{children}</span>
         {href && linkLabel ? (
-          <Link href={href} className="link-arrow font-medium text-ink">
+          <Link href={href} className="text-link">
             {linkLabel}
           </Link>
         ) : null}

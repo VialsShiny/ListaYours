@@ -19,7 +19,7 @@ function DrawerClose(props: DrawerPrimitive.Close.Props) {
 
 /**
  * Right-hand side panel, 40rem wide at most, full width on phones.
- * Enter/exit motion lives in `globals.css` (`.ly-drawer-*`) so reduced motion disables it.
+ * Enter/exit motion lives in `styles/components.css` (`.ly-drawer-*`); reduced motion disables it.
  */
 function DrawerContent({ className, children, ...props }: DrawerPrimitive.Popup.Props) {
   return (
@@ -51,14 +51,14 @@ function DrawerHeader({ className, children, ...props }: React.ComponentProps<"d
     <div
       data-slot="drawer-header"
       className={cn(
-        "hairline-frame flex shrink-0 items-start justify-between gap-4 border-x-0 border-t-0 px-6 py-5",
+        "flex shrink-0 items-start justify-between gap-4 border-b border-line px-6 py-5",
         className,
       )}
       {...props}
     >
       <div className="flex min-w-0 flex-col gap-1">{children}</div>
       <DrawerClose
-        className="micro inline-flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-ink text-ink hover:bg-ink hover:text-white"
+        className="btn btn-icon btn-outline-icon shrink-0"
         aria-label="Fermer le panneau"
       >
         <X className="size-4" aria-hidden="true" />
@@ -81,7 +81,10 @@ function DrawerFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="drawer-footer"
-      className={cn("hairline flex shrink-0 flex-wrap items-center gap-3 px-6 py-4", className)}
+      className={cn(
+        "flex shrink-0 flex-wrap items-center gap-3 border-t border-line px-6 py-4",
+        className,
+      )}
       {...props}
     />
   );
@@ -91,7 +94,7 @@ function DrawerTitle({ className, ...props }: DrawerPrimitive.Title.Props) {
   return (
     <DrawerPrimitive.Title
       data-slot="drawer-title"
-      className={cn("display display-card", className)}
+      className={cn("title-card", className)}
       {...props}
     />
   );
@@ -101,7 +104,7 @@ function DrawerDescription({ className, ...props }: DrawerPrimitive.Description.
   return (
     <DrawerPrimitive.Description
       data-slot="drawer-description"
-      className={cn("text-sm text-ink-soft", className)}
+      className={cn("text-subhead text-ink-soft", className)}
       {...props}
     />
   );
