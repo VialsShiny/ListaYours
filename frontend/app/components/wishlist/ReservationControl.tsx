@@ -34,7 +34,7 @@ export function ReservationControl({
 }: ReservationControlProps) {
   if (viewer === "owner") return null;
 
-  if (viewer === "anonymous") {
+  if (viewer === "anonymous" && !gift.is_reserved) {
     return (
       <Link href={loginHref} className={cn("btn btn-primary w-full", className)}>
         Réserver
@@ -42,7 +42,7 @@ export function ReservationControl({
     );
   }
 
-  if (gift.reserved_by_me) {
+  if (viewer === "visitor" && gift.reserved_by_me) {
     return (
       <div className={cn("flex w-full flex-col items-center gap-2", className)}>
         <Button variant="secondary" block disabled={pending} onClick={() => onCancel(gift.id)}>

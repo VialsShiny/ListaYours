@@ -13,22 +13,29 @@ import {
 export type NavigatorMotion = "pointer" | "keyboard";
 
 /**
- * One-gift-at-a-time navigation over the grouped list: current index, previous/next without
- * wrap-around, jump to a gift or a category, and Left/Right arrow keys on the document.
+ * One-gift-at-a-time navigation over the grouped list. The current gift is tracked by id, so a
+ * refetch that reorders gifts keeps the viewer on the same gift. Previous/next never wrap around,
+ * and Left/Right arrow keys on the document move too.
  * Keyboard moves are flagged so the view can skip animation for them.
  */
 export function useGiftNavigator(groups: GiftGroup<PublicGift>[]) {
   const flat = useMemo(() => flattenGroups(groups), [groups]);
   const total = flat.length;
-  const [index, setIndex] = useState(0);
+  const [currentId, setCurrentId] = useState<PublicGift["id"] | null>(null);
   const [motion, setMotion] = useState<NavigatorMotion>("pointer");
-  const safeIndex = Math.min(index, Math.max(0, total - 1));
+  const found = flat.findIndex((item) => item.gift.id === currentId);
+  const safeIndex = found >= 0 ? found : 0;
   const current = flat[safeIndex] ?? null;
 
-  const go = useCallback((next: number, source: NavigatorMotion = "pointer") => {
-    setMotion(source);
-    setIndex(next);
-  }, []);
+  const go = useCallback(
+    (next: number, source: NavigatorMotion = "pointer") => {
+      const target = flat[next];
+      if (!target) return;
+      setMotion(source);
+      setCurrentId(target.gift.id);
+    },
+    [flat],
+  );
 
   const previous = useCallback(
     (source: NavigatorMotion = "pointer") => go(stepIndex(safeIndex, -1, total), source),

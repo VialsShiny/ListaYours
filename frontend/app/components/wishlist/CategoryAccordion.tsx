@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import type { ViewerRole } from "@/components/wishlist/ReservationControl";
 import { formatPrice } from "@/lib/format";
@@ -28,6 +28,7 @@ export function CategoryAccordion({
   onSelectGift,
 }: CategoryAccordionProps) {
   const [openKey, setOpenKey] = useState<string | null>(currentGroupKey);
+  const idPrefix = useId();
 
   useEffect(() => {
     setOpenKey(currentGroupKey);
@@ -37,14 +38,14 @@ export function CategoryAccordion({
     <div className="flex flex-col">
       {groups.map((group, index) => {
         const open = openKey === group.key;
-        const panelId = `accordion-${group.key}`;
+        const panelId = `${idPrefix}-${group.key}`;
         return (
           <div key={group.key} className="border-b border-line last:border-b-0">
             <button
               type="button"
               className="accordion-row"
               aria-expanded={open}
-              aria-controls={panelId}
+              aria-controls={open ? panelId : undefined}
               onClick={() => setOpenKey(open ? null : group.key)}
             >
               <span className="min-w-0">
@@ -78,7 +79,9 @@ export function CategoryAccordion({
                           <span className="truncate">{gift.name}</span>
                         </span>
                         <span className="shrink-0">
-                          {reserved ? "Réservé" : (formatPrice(gift.price, gift.currency) ?? "—")}
+                          {reserved
+                            ? "Réservé"
+                            : (formatPrice(gift.price, gift.currency) ?? "Prix non renseigné")}
                         </span>
                       </button>
                     </li>
