@@ -31,7 +31,7 @@ export function ReservationCard({ item, pending, onCancel }: ReservationCardProp
         <div className="flex min-w-0 flex-1 flex-col gap-1.5 md:gap-2">
           <Link
             href={`/l/${wishlist.slug}`}
-            className="eyebrow eyebrow-accent text-micro inline-flex min-h-6 items-center self-start tracking-[0.1em]"
+            className="eyebrow eyebrow-accent text-micro inline-flex min-h-11 items-center self-start tracking-[0.1em]"
           >
             {wishlist.title}
           </Link>

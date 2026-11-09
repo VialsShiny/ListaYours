@@ -18,10 +18,10 @@
 
   .thumb {
     flex: none;
-    width: 64px;
-    height: 64px;
+    width: 52px;
+    height: 52px;
     overflow: hidden;
-    border-radius: var(--radius-field);
+    border-radius: 12px;
     background: var(--tile);
   }
 
@@ -31,13 +31,13 @@
     object-fit: cover;
   }
 
-  .thumb-sm {
-    width: 52px;
-    height: 52px;
-    border-radius: 12px;
-  }
-
   @media (min-width: 768px) {
+    .thumb {
+      width: 64px;
+      height: 64px;
+      border-radius: var(--radius-field);
+    }
+
     .auth-card {
       padding: 40px;
       background: var(--card);

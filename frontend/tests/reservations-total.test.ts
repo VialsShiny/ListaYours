@@ -29,6 +29,12 @@ describe("formatReservationsTotal", () => {
     expect(total?.replace(/\s/g, " ")).toBe("305,68 €");
   });
 
+  it("returns null when the priced gifts mix currencies", () => {
+    const usd = item(2, "10.00");
+    usd.gift.currency = "USD";
+    expect(formatReservationsTotal([item(1, "199.00"), usd])).toBeNull();
+  });
+
   it("returns null when nothing has a price", () => {
     expect(formatReservationsTotal([item(1, null)])).toBeNull();
     expect(formatReservationsTotal([])).toBeNull();

@@ -37,7 +37,7 @@ export function GiftRow({
       <span className="drag-handle max-md:hidden" aria-hidden="true">
         ⋮⋮
       </span>
-      <div className="thumb thumb-sm md:thumb">
+      <div className="thumb">
         {gift.image_url ? (
           <img src={gift.image_url} alt="" loading="lazy" referrerPolicy="no-referrer" />
         ) : (
@@ -56,7 +56,7 @@ export function GiftRow({
       <p className="price w-[90px] shrink-0 text-[16px] max-md:hidden">{price}</p>
       <Toggle
         id={`gift-${gift.id}-visible`}
-        label="Visible"
+        label={`Visible : ${gift.name}`}
         size="sm"
         checked={gift.is_visible}
         disabled={busy}
