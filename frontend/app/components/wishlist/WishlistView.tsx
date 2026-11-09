@@ -40,8 +40,8 @@ export function WishlistView({ slug }: { slug: string }) {
     return (
       <>
         <WishlistHeaderSkeleton />
-        <section className="bg-white px-4 py-12 md:px-12 lg:px-16" aria-busy="true">
-          <p className="micro mb-8 text-ink-soft">Chargement de la liste…</p>
+        <section className="container pt-12" aria-busy="true">
+          <p className="eyebrow mb-6">Chargement de la liste…</p>
           <GiftCarouselSkeleton />
         </section>
       </>
@@ -50,7 +50,7 @@ export function WishlistView({ slug }: { slug: string }) {
 
   if (error || !data) {
     return (
-      <section className="px-4 py-12 md:px-12 lg:px-16">
+      <section className="container pt-8">
         <ErrorPanel message={error ?? "Cette liste est introuvable."} onRetry={refetch} />
       </section>
     );
@@ -59,7 +59,7 @@ export function WishlistView({ slug }: { slug: string }) {
   return (
     <>
       <WishlistHeader wishlist={data.wishlist} anchors={groups} giftCount={data.gifts.length} />
-      <div className="px-4 md:px-12 lg:px-16">
+      <div className="container mt-6 flex flex-col gap-3 empty:hidden">
         {viewer === "anonymous" && !data.reservations_visible ? (
           <Notice href={loginHref} linkLabel="Se connecter">
             Connectez-vous pour voir les disponibilités et réserver.
@@ -71,10 +71,10 @@ export function WishlistView({ slug }: { slug: string }) {
             réservation.
           </Notice>
         ) : null}
-        <StatusMessage message={actions.message} className="py-3" />
+        <StatusMessage message={actions.message} />
       </div>
       {groups.length === 0 ? (
-        <section className="bg-white px-4 py-12 md:px-12 lg:px-16">
+        <section className="container pt-12">
           <EmptyState title="Aucun cadeau pour le moment" text="La liste se remplit bientôt." />
         </section>
       ) : (

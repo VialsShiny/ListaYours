@@ -32,7 +32,7 @@ export function GiftCarousel({
 
   return (
     <div className="flex flex-col gap-4">
-      <ul ref={scrollerRef} className="scroller -mx-4 px-4 md:-mx-3 md:px-3" aria-label={label}>
+      <ul ref={scrollerRef} className="scroller -mx-4 px-4" aria-label={label}>
         {gifts.map((gift) => (
           <li key={gift.id} className="flex">
             <GiftCard
@@ -58,11 +58,7 @@ export function GiftCarousel({
 
 export function GiftCarouselSkeleton({ count = 4 }: { count?: number }) {
   return (
-    <ul
-      className="scroller -mx-4 px-4 md:mx-0 md:px-0"
-      aria-busy="true"
-      aria-label="Chargement des cadeaux"
-    >
+    <ul className="scroller -mx-4 px-4" aria-busy="true" aria-label="Chargement des cadeaux">
       {Array.from({ length: count }, (_, index) => (
         <li key={index} className="flex">
           <GiftCardSkeleton />
