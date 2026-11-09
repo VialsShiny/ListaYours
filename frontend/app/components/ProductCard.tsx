@@ -26,18 +26,18 @@ export default function ProductCard({ product, className }: ProductCardProps) {
       aria-label="Aperçu du produit analysé"
       className={cn("panel grid gap-4 p-4 sm:grid-cols-[7rem_1fr]", className)}
     >
-      <div className="w-28 overflow-hidden rounded-control">
+      <div className="w-28 overflow-hidden rounded-field">
         <GiftPhoto src={image || null} alt={product.title ?? "Produit"} />
       </div>
       <div className="flex min-w-0 flex-col gap-2">
         <p className="eyebrow">{product.brand ?? "Marque inconnue"}</p>
-        <h4 className="title-card">{product.title ?? "Produit sans titre"}</h4>
+        <h4 className="display-card">{product.title ?? "Produit sans titre"}</h4>
         <GiftPrice
           price={product.price}
           oldPrice={product.old_price}
           currency={product.currency ?? "EUR"}
         />
-        <dl className="text-footnote mt-1 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-ink-soft">
+        <dl className="text-small mt-1 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-soft">
           <dt className="font-semibold">Disponibilité</dt>
           <dd>
             {availability}

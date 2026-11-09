@@ -120,7 +120,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           {busy ? copy.busy : copy.submit}
         </Button>
       </form>
-      <p className="text-subhead mt-8 flex flex-wrap items-baseline gap-x-2 border-t border-line pt-5 text-ink-soft">
+      <p className="text-secondary mt-8 flex flex-wrap items-baseline gap-x-2 border-t border-line pt-5 text-soft">
         {copy.other.text}
         <Link href={otherHref} className="text-link">
           {copy.other.label}

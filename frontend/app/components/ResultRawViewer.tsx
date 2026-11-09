@@ -34,13 +34,13 @@ export default function ResultRawViewer({ json, className }: ResultRawViewerProp
           <DrawerTitle>Résultat brut</DrawerTitle>
           <DrawerDescription>Données renvoyées par l&apos;API, telles quelles.</DrawerDescription>
         </DrawerHeader>
-        <DrawerBody className="bg-surface-2">
+        <DrawerBody className="bg-tile">
           {json ? (
-            <pre className="text-caption overflow-auto leading-6 text-ink">
+            <pre className="text-micro overflow-auto leading-6 text-ink">
               {JSON.stringify(json, null, 2)}
             </pre>
           ) : (
-            <p className="text-subhead text-ink-soft">Aucune donnée disponible.</p>
+            <p className="text-secondary text-soft">Aucune donnée disponible.</p>
           )}
         </DrawerBody>
         <DrawerFooter>

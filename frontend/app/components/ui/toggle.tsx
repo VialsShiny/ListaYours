@@ -9,17 +9,29 @@ type ToggleProps = {
   onChange: (checked: boolean) => void;
   hint?: string;
   disabled?: boolean;
+  size?: "md" | "sm";
+  labelHidden?: boolean;
   className?: string;
 };
 
 /**
  * Switch-styled checkbox: a real `<input type="checkbox">` keeps native keyboard and form behaviour.
  */
-export function Toggle({ id, label, checked, onChange, hint, disabled, className }: ToggleProps) {
+export function Toggle({
+  id,
+  label,
+  checked,
+  onChange,
+  hint,
+  disabled,
+  size = "md",
+  labelHidden = false,
+  className,
+}: ToggleProps) {
   const hintId = hint ? `${id}-hint` : undefined;
   return (
-    <div className={cn("flex items-start gap-3", className)}>
-      <span className="relative mt-0.5 inline-flex h-7 w-12 shrink-0">
+    <div className={cn("flex min-h-11 items-center gap-3", className)}>
+      <span className="relative inline-flex shrink-0">
         <input
           id={id}
           type="checkbox"
@@ -29,23 +41,18 @@ export function Toggle({ id, label, checked, onChange, hint, disabled, className
           aria-describedby={hintId}
           aria-checked={checked}
           onChange={(event) => onChange(event.target.checked)}
-          className="peer absolute inset-0 z-10 m-0 size-full cursor-pointer appearance-none opacity-0 disabled:cursor-not-allowed"
+          className="toggle-input peer absolute inset-0 z-10 m-0 size-full cursor-pointer appearance-none opacity-0 disabled:cursor-not-allowed"
         />
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-full border border-line bg-surface-2 transition-colors duration-200 peer-checked:border-accent peer-checked:bg-accent peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-focus peer-disabled:opacity-45"
-        />
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute top-1 left-1 size-5 rounded-full bg-ink shadow-1 transition-transform duration-200 peer-checked:translate-x-5 peer-checked:bg-on-accent"
-        />
+        <span aria-hidden="true" className={cn("toggle-track", size === "sm" && "toggle-sm")}>
+          <span className="toggle-knob" />
+        </span>
       </span>
-      <span className="flex flex-col gap-1">
-        <label htmlFor={id} className="text-subhead cursor-pointer font-semibold text-ink">
+      <span className={cn("flex min-w-0 flex-col gap-0.5", labelHidden && "sr-only")}>
+        <label htmlFor={id} className="cursor-pointer text-[14px] font-medium text-ink">
           {label}
         </label>
         {hint ? (
-          <span id={hintId} className="text-footnote text-ink-soft">
+          <span id={hintId} className="field-help">
             {hint}
           </span>
         ) : null}

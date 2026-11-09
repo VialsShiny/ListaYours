@@ -20,8 +20,8 @@ export function ErrorPanel({ message, onRetry, className }: ErrorPanelProps) {
       )}
     >
       <div>
-        <p className="eyebrow mb-2 text-accent-text">Erreur</p>
-        <p className="text-subhead text-ink">{message}</p>
+        <p className="eyebrow mb-2 text-accent">Erreur</p>
+        <p className="text-secondary text-ink">{message}</p>
       </div>
       {onRetry ? (
         <Button variant="secondary" onClick={onRetry}>

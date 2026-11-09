@@ -114,7 +114,12 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
           <Button type="button" variant="secondary" onClick={() => clipboard.copy(publicUrl)}>
             Copier le lien
           </Button>
-          <a href={publicPath} target="_blank" rel="noopener noreferrer" className="btn btn-arrow">
+          <a
+            href={publicPath}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-primary"
+          >
             Aperçu public
           </a>
         </div>

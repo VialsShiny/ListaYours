@@ -32,10 +32,10 @@ export function ReservationsView() {
       <PageHero eyebrow="Espace visiteur" title="Mes réservations" />
       <Section className="flex-1">
         {status === "loading" ? (
-          <p className="text-subhead text-ink-soft">Vérification de la session…</p>
+          <p className="text-secondary text-soft">Vérification de la session…</p>
         ) : null}
         {status === "anonymous" ? (
-          <p className="text-subhead text-ink-soft">Redirection vers la connexion…</p>
+          <p className="text-secondary text-soft">Redirection vers la connexion…</p>
         ) : null}
         {isOwner ? (
           <Notice href="/tableau-de-bord" linkLabel="Tableau de bord">
@@ -47,7 +47,7 @@ export function ReservationsView() {
           <>
             <StatusMessage message={actions.message} className="mb-4" />
             {list.loading ? (
-              <p className="text-subhead text-ink-soft">Chargement de vos réservations…</p>
+              <p className="text-secondary text-soft">Chargement de vos réservations…</p>
             ) : null}
             {list.error ? <ErrorPanel message={list.error} onRetry={list.refetch} /> : null}
             {!list.loading && list.data?.length === 0 ? (

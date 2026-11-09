@@ -7,10 +7,19 @@ const buttonVariants = cva("btn [&_svg]:pointer-events-none [&_svg]:shrink-0", {
     variant: {
       primary: "btn-primary",
       secondary: "btn-secondary",
+      destructive: "btn-destructive",
+      "destructive-fill": "btn-destructive-fill",
+      muted: "btn-muted",
       ghost: "btn-ghost",
-      arrow: "btn-arrow",
+      text: "btn-text",
+      "text-accent": "btn-text btn-text-accent",
       icon: "btn-icon",
-      "outline-icon": "btn-icon btn-outline-icon",
+      "icon-lg": "btn-icon btn-icon-lg",
+    },
+    size: {
+      md: "",
+      sm: "btn-sm",
+      hero: "btn-hero",
     },
     block: {
       true: "w-full",
@@ -19,6 +28,7 @@ const buttonVariants = cva("btn [&_svg]:pointer-events-none [&_svg]:shrink-0", {
   },
   defaultVariants: {
     variant: "primary",
+    size: "md",
     block: false,
   },
 });
@@ -26,7 +36,7 @@ const buttonVariants = cva("btn [&_svg]:pointer-events-none [&_svg]:shrink-0", {
 type ButtonProps = React.ComponentPropsWithoutRef<"button"> & VariantProps<typeof buttonVariants>;
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { className, variant, block, type = "button", ...props },
+  { className, variant, size, block, type = "button", ...props },
   ref,
 ) {
   return (
@@ -34,7 +44,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
       ref={ref}
       type={type}
       data-slot="button"
-      className={cn(buttonVariants({ variant, block }), className)}
+      className={cn(buttonVariants({ variant, size, block }), className)}
       {...props}
     />
   );

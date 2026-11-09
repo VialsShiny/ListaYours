@@ -15,8 +15,8 @@ export function StatusMessage({ message, tone = "info", className }: StatusMessa
       role={tone === "error" ? "alert" : "status"}
       aria-live="polite"
       className={cn(
-        "text-subhead",
-        tone === "error" ? "font-semibold text-accent-text" : "text-ink-soft",
+        "text-secondary",
+        tone === "error" ? "font-semibold text-accent" : "text-soft",
         !message && "sr-only",
         className,
       )}

@@ -35,7 +35,7 @@ export function CategorySection({
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="index-tag">{String(index + 1).padStart(2, "0")}</p>
-            <h2 id={headingId} className="title-section mt-2">
+            <h2 id={headingId} className="display display-section mt-2">
               {group.name}
             </h2>
           </div>

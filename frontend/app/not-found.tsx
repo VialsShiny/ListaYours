@@ -9,7 +9,7 @@ export default function NotFound() {
       <div className="panel p-6 md:p-8">
         <MicroLabel className="mb-3">Erreur 404</MicroLabel>
         <DisplayTitle size="section">Page introuvable</DisplayTitle>
-        <p className="text-subhead mt-4 max-w-prose text-ink-soft">
+        <p className="text-secondary mt-4 max-w-prose text-soft">
           Cette adresse ne mène à aucune liste ni à aucune page connue.
         </p>
         <Link href="/" className="btn btn-secondary mt-6">

@@ -8,11 +8,11 @@ type FieldProps = {
   error?: string | null;
   required?: boolean;
   className?: string;
-  children: (describedBy: string | undefined) => React.ReactNode;
+  children: (describedBy: string | undefined, invalid: boolean) => React.ReactNode;
 };
 
 /**
- * Label + control + optional hint/error, wiring `aria-describedby` for the control.
+ * Label + control + optional hint/error, wiring `aria-describedby` and `aria-invalid`.
  */
 export function Field({ id, label, hint, error, required, className, children }: FieldProps) {
   const hintId = hint ? `${id}-hint` : undefined;
@@ -20,19 +20,19 @@ export function Field({ id, label, hint, error, required, className, children }:
   const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
 
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
-      <label htmlFor={id} className="text-subhead font-semibold text-ink">
+    <div className={cn("flex min-w-0 flex-col gap-2", className)}>
+      <label htmlFor={id} className="field-label">
         {label}
         {required ? <span aria-hidden="true"> *</span> : null}
       </label>
-      {children(describedBy)}
+      {children(describedBy, Boolean(error))}
       {hint ? (
-        <p id={hintId} className="text-footnote text-ink-soft">
+        <p id={hintId} className="field-help">
           {hint}
         </p>
       ) : null}
       {error ? (
-        <p id={errorId} className="text-footnote font-semibold text-accent-text" role="alert">
+        <p id={errorId} className="field-error" role="alert">
           {error}
         </p>
       ) : null}

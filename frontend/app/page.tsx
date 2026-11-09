@@ -17,7 +17,7 @@ export default function HomePage() {
             <DisplayTitle as="h2" size="section" id="essentiels">
               Les essentiels
             </DisplayTitle>
-            <p className="text-subhead mt-4 max-w-prose text-ink-soft">
+            <p className="text-secondary mt-4 max-w-prose text-soft">
               Un anniversaire, un mariage, une naissance : la personne qui reçoit compose sa liste,
               publie un lien, et ses proches se répartissent les cadeaux sans se croiser.
             </p>

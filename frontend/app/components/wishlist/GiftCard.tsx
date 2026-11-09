@@ -40,16 +40,16 @@ export function GiftCard({
       <GiftPhoto src={gift.image_url} alt={gift.name} reserved={reservedByOther} />
       <div className="card-body flex-1">
         <span className="badge self-start">{categoryName}</span>
-        <h3 id={titleId} className="title-card">
+        <h3 id={titleId} className="display-card">
           {gift.name}
         </h3>
         <GiftPrice price={gift.price} oldPrice={gift.old_price} currency={gift.currency} />
         {gift.description ? (
-          <p className="text-subhead line-clamp-3 whitespace-pre-line text-ink-soft">
+          <p className="text-secondary line-clamp-3 whitespace-pre-line text-soft">
             {gift.description}
           </p>
         ) : (
-          <p className="text-subhead text-ink-soft">Aucune précision.</p>
+          <p className="text-secondary text-soft">Aucune précision.</p>
         )}
         <div className="mt-auto flex flex-col gap-3 pt-3">
           {gift.purchase_url ? (
@@ -57,7 +57,7 @@ export function GiftCard({
               href={gift.purchase_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-link text-subhead self-start"
+              className="text-link text-secondary self-start"
             >
               Voir le produit ↗
             </a>
