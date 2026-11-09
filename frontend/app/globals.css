@@ -1,60 +1,57 @@
 @import "tailwindcss";
+@import "./theme/index.css" layer(components);
 @import "./styles/components.css";
+@import "./styles/overlays.css";
 
 :root {
-  color-scheme: light;
-
-  --bg: #d9d9db;
-  --surface: #f2f2f2;
-  --surface-alt: #f5f5f5;
-  --white: #ffffff;
-  --ink: #0a0a0a;
-  --ink-soft: #6b6b6b;
-  --block: #8a8a8a;
-  --line: #0a0a0a;
-  --sale: #d9480f;
-
-  --shadow-card: 0 30px 80px rgba(10, 10, 10, 0.14);
-  --shadow-soft: 0 12px 40px rgba(10, 10, 10, 0.08);
+  --font-display: "Against", var(--font-inter), "Inter", system-ui, sans-serif;
+  --font-text:
+    "QuickSans", var(--font-inter), "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 @theme inline {
   --color-*: initial;
   --color-bg: var(--bg);
   --color-surface: var(--surface);
-  --color-surface-alt: var(--surface-alt);
-  --color-white: var(--white);
+  --color-surface-2: var(--surface-2);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
-  --color-block: var(--block);
   --color-line: var(--line);
-  --color-sale: var(--sale);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-accent-text: var(--accent-text);
+  --color-water: var(--water);
+  --color-cherry: var(--cherry);
+  --color-jet: var(--jet);
+  --color-material: var(--material);
+  --color-focus: var(--focus);
 
-  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
+  --font-heading: var(--font-display);
+  --font-body: var(--font-text);
 
-  --shadow-card: var(--shadow-card);
-  --shadow-soft: var(--shadow-soft);
+  --text-large-title: var(--text-large-title);
+  --text-title-1: var(--text-title-1);
+  --text-title-2: var(--text-title-2);
+  --text-title-3: var(--text-title-3);
+  --text-headline: var(--text-headline);
+  --text-body: var(--text-body);
+  --text-callout: var(--text-callout);
+  --text-subhead: var(--text-subhead);
+  --text-footnote: var(--text-footnote);
+  --text-caption: var(--text-caption);
+
+  --radius-control: var(--radius-s);
+  --radius-card: var(--radius-m);
+  --radius-hero: var(--radius-l);
+  --radius-pill: var(--radius-pill);
+
+  --shadow-1: var(--shadow-1);
+  --shadow-2: var(--shadow-2);
 }
 
 @layer base {
-  * {
-    box-sizing: border-box;
-  }
-
-  html {
-    scroll-behavior: smooth;
-    -webkit-text-size-adjust: 100%;
-  }
-
   body {
-    margin: 0;
     min-height: 100vh;
-    background-color: var(--bg);
-    color: var(--ink);
-    font-family: var(--font-sans);
-    font-size: 1rem;
-    line-height: 1.6;
     overflow-x: hidden;
   }
 
@@ -72,25 +69,7 @@
   }
 
   ::selection {
-    background-color: var(--ink);
-    color: var(--white);
-  }
-
-  :focus-visible {
-    outline: 2px solid var(--ink);
-    outline-offset: 2px;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    html {
-      scroll-behavior: auto;
-    }
-
-    *,
-    *::before,
-    *::after {
-      animation: none !important;
-      transition: none !important;
-    }
+    background-color: var(--accent);
+    color: var(--on-accent);
   }
 }
