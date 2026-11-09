@@ -45,7 +45,7 @@ export function MobileMenu({ nav, pathname, onSignOut }: MobileMenuProps) {
                   <Link
                     href={item.href}
                     aria-current={isActiveHref(item.href, pathname) ? "page" : undefined}
-                    className="display flex min-h-[84px] items-center justify-between gap-4 text-[clamp(2rem,10vw,2.75rem)] tracking-[-0.045em]"
+                    className="display flex min-h-[84px] items-center justify-between gap-4 text-[clamp(1.75rem,8.5vw,2.75rem)] tracking-[-0.045em]"
                     onClick={() => setOpen(false)}
                   >
                     <span className="min-w-0">{item.label}</span>

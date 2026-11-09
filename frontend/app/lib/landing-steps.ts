@@ -1,17 +1,17 @@
 export const LANDING_STEPS = [
   {
-    number: "01",
-    title: "Parcourez",
-    text: "Une liste publique, rangée par catégories, avec le prix, la photo et un lien vers le produit.",
+    number: "#01",
+    title: "Créez votre liste",
+    text: "Collez un lien produit, la fiche se remplit toute seule. Rangez les cadeaux par catégorie.",
   },
   {
-    number: "02",
-    title: "Réservez",
-    text: "Connectez-vous, réservez un cadeau en un clic. Il disparaît des disponibilités pour les autres.",
+    number: "#02",
+    title: "Partagez le lien",
+    text: "Un seul lien public. Vos proches créent un compte pour réserver, sans rien installer.",
   },
   {
-    number: "03",
-    title: "Surprise gardée",
-    text: "Le ou la propriétaire de la liste ne voit jamais ce qui est réservé, ni par qui.",
+    number: "#03",
+    title: "La surprise reste entière",
+    text: "Chaque cadeau n'est réservé qu'une fois. De votre côté, tout apparaît toujours disponible.",
   },
 ] as const;

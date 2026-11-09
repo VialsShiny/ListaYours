@@ -45,7 +45,7 @@
   --text-card-title: clamp(1rem, 0.85rem + 0.5vw, 1.1875rem);
   --text-sub-title: clamp(1.5rem, 1.25rem + 0.9vw, 1.75rem);
   --text-section-title: clamp(2rem, 1.25rem + 3vw, 3.75rem);
-  --text-hero-title: clamp(3rem, 1.5rem + 8vw, 10.5rem);
+  --text-hero-title: clamp(2.5rem, 0.5rem + 9vw, 8.5rem);
 
   --space-1: 4px;
   --space-2: 8px;
