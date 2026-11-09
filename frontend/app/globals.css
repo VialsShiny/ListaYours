@@ -49,6 +49,11 @@
   --shadow-2: var(--shadow-2);
 }
 
+@utility container {
+  width: min(100% - 2 * var(--space-4), 1200px);
+  margin-inline: auto;
+}
+
 @layer base {
   body {
     min-height: 100vh;

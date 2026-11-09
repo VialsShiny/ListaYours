@@ -17,9 +17,8 @@ export function WishlistHeader({ wishlist, anchors, giftCount }: WishlistHeaderP
       {wishlist.description ? <p className="text-headline mt-6">{wishlist.description}</p> : null}
       {anchors.length > 0 ? (
         <nav aria-label="Catégories" className="mt-8 flex flex-wrap gap-2">
-          {anchors.map((item, index) => (
-            <a key={item.anchor} href={`#${item.anchor}`} className="badge min-h-11 gap-2 px-4">
-              <span className="index-tag text-footnote">{String(index + 1).padStart(2, "0")}</span>
+          {anchors.map((item) => (
+            <a key={item.anchor} href={`#${item.anchor}`} className="badge min-h-11 px-4">
               {item.name}
             </a>
           ))}
