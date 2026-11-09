@@ -22,7 +22,7 @@ export function SiteHeader() {
 
   return (
     <header className="nav">
-      <Link href="/" className="wordmark text-title-3 shrink-0">
+      <Link href="/" className="wordmark text-lead shrink-0">
         ListaYours.
       </Link>
       <nav aria-label="Navigation principale" className="flex min-w-0 items-center gap-2">
@@ -50,7 +50,7 @@ export function SiteHeader() {
           {status === "authenticated" && user ? (
             <>
               <li
-                className="text-callout hidden px-3 font-medium text-ink-soft sm:block"
+                className="text-secondary hidden px-3 font-medium text-soft sm:block"
                 aria-label="Utilisateur connecté"
               >
                 {user.display_name}

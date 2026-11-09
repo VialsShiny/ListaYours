@@ -15,7 +15,7 @@ export function SlideButton({ onClick, label }: SlideButtonProps) {
       <span className="eyebrow" aria-hidden="true">
         Suivant
       </span>
-      <Button variant="outline-icon" onClick={onClick} aria-label={label}>
+      <Button variant="icon" onClick={onClick} aria-label={label}>
         <ArrowRight aria-hidden="true" />
       </Button>
     </span>

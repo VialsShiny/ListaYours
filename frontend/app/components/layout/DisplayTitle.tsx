@@ -7,9 +7,9 @@ type DisplayTitleProps = React.ComponentProps<"h1"> & {
 };
 
 const sizes = {
-  hero: "display-wide",
-  section: "title-section",
-  card: "title-card",
+  hero: "display display-hero",
+  section: "display display-section",
+  card: "display-card",
 };
 
 /**

@@ -72,7 +72,7 @@ export function CategoryRow({
           </Button>
         </form>
       ) : (
-        <p className="text-headline min-w-0 flex-1 truncate font-semibold">{category.name}</p>
+        <p className="text-body min-w-0 flex-1 truncate font-semibold">{category.name}</p>
       )}
       <div className="flex shrink-0 items-center gap-1">
         {!editing ? (

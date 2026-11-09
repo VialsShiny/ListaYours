@@ -14,7 +14,7 @@ export function WishlistHeader({ wishlist, anchors, giftCount }: WishlistHeaderP
   const countLabel = `${giftCount} ${giftCount > 1 ? "cadeaux" : "cadeau"}`;
   return (
     <PageHero eyebrow={`Liste de souhaits · ${countLabel}`} title={wishlist.title} size="hero">
-      {wishlist.description ? <p className="text-headline mt-6">{wishlist.description}</p> : null}
+      {wishlist.description ? <p className="text-body mt-6">{wishlist.description}</p> : null}
       {anchors.length > 0 ? (
         <nav aria-label="Catégories" className="mt-8 flex flex-wrap gap-2">
           {anchors.map((item) => (

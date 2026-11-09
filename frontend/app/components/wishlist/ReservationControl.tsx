@@ -47,7 +47,7 @@ export function ReservationControl({
 
   if (gift.is_reserved) {
     return (
-      <p className="badge badge-reserved min-h-11 justify-center" role="status">
+      <p className="badge min-h-11 justify-center" role="status">
         Déjà réservé
       </p>
     );

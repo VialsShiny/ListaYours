@@ -13,7 +13,7 @@ export function HowItWorks() {
             Trois gestes
           </DisplayTitle>
         </div>
-        <p className="text-subhead max-w-sm text-ink-soft">
+        <p className="text-secondary max-w-sm text-soft">
           Pas de doublon, pas de gêne : chaque cadeau n&apos;est réservé qu&apos;une fois.
         </p>
       </div>
@@ -21,8 +21,8 @@ export function HowItWorks() {
         {LANDING_STEPS.map((step) => (
           <li key={step.number} className="panel flex flex-col gap-3 p-6">
             <p className="index-tag">{step.number}</p>
-            <h3 className="title-card">{step.title}</h3>
-            <p className="text-subhead text-ink-soft">{step.text}</p>
+            <h3 className="display-card">{step.title}</h3>
+            <p className="text-secondary text-soft">{step.text}</p>
           </li>
         ))}
       </ol>

@@ -13,7 +13,7 @@ type NoticeProps = {
  */
 export function Notice({ children, href, linkLabel, className }: NoticeProps) {
   return (
-    <div className={cn("panel text-subhead bg-surface-2 px-5 py-4", className)}>
+    <div className={cn("panel text-secondary bg-tile px-5 py-4", className)}>
       <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
         <span>{children}</span>
         {href && linkLabel ? (

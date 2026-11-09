@@ -22,7 +22,7 @@ export function GiftPrice({ price, oldPrice, currency, className }: GiftPricePro
         <span className="sr-only">Prix actuel : </span>
         {formatPrice(price, currency)}
       </span>
-      <s className="price-old text-subhead font-medium">
+      <s className="price-old text-secondary font-medium">
         <span className="sr-only">Ancien prix : </span>
         {formatPrice(oldPrice, currency)}
       </s>

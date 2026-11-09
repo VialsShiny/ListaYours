@@ -13,17 +13,17 @@ export function DashboardView() {
     <>
       <PageHero eyebrow="Espace propriétaire" title="Tableau de bord">
         {user ? (
-          <p className="text-subhead mt-4">Connecté en tant que {user.display_name}.</p>
+          <p className="text-secondary mt-4">Connecté en tant que {user.display_name}.</p>
         ) : null}
       </PageHero>
       {status === "loading" ? (
         <Section>
-          <p className="text-subhead text-ink-soft">Vérification de la session…</p>
+          <p className="text-secondary text-soft">Vérification de la session…</p>
         </Section>
       ) : null}
       {status === "anonymous" ? (
         <Section>
-          <p className="text-subhead text-ink-soft">Redirection vers la connexion…</p>
+          <p className="text-secondary text-soft">Redirection vers la connexion…</p>
         </Section>
       ) : null}
       {status === "authenticated" && !isOwner ? (

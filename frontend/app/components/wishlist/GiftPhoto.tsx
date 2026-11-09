@@ -9,7 +9,7 @@ type GiftPhotoProps = {
 };
 
 /**
- * 4:5 product media on the `--surface-2` tone. Inside a `.card[data-reserved="true"]` the image
+ * Square product media on the `--tile` surface. Inside a `.card[data-reserved="true"]` the image
  * is desaturated by the theme; the "Réservé" badge carries the same information in text.
  */
 export function GiftPhoto({ src, alt, reserved = false, className }: GiftPhotoProps) {
@@ -18,16 +18,11 @@ export function GiftPhoto({ src, alt, reserved = false, className }: GiftPhotoPr
       {src ? (
         <img src={src} alt={alt} loading="lazy" decoding="async" referrerPolicy="no-referrer" />
       ) : (
-        <div
-          className="flex size-full items-center justify-center text-ink-soft"
-          aria-hidden="true"
-        >
+        <div className="flex size-full items-center justify-center text-soft" aria-hidden="true">
           <Gift className="size-12" strokeWidth={1.25} />
         </div>
       )}
-      {reserved ? (
-        <span className="badge badge-reserved absolute top-3 left-3">Réservé</span>
-      ) : null}
+      {reserved ? <span className="badge absolute top-3 left-3">Réservé</span> : null}
     </div>
   );
 }
