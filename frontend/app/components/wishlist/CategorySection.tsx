@@ -1,7 +1,8 @@
 "use client";
 
-import { GiftCarousel } from "@/components/wishlist/GiftCarousel";
+import { GiftGrid } from "@/components/wishlist/GiftGrid";
 import type { ViewerRole } from "@/components/wishlist/ReservationControl";
+import { formatIndex } from "@/lib/wishlist-navigation";
 import type { GiftGroup } from "@/lib/wishlist-groups";
 import type { PublicGift } from "@/lib/types";
 
@@ -16,7 +17,7 @@ type CategorySectionProps = {
 };
 
 /**
- * One category = one numbered section ("#01") with its carousel.
+ * One category of the grid view: accent index tag, display title and count above a hairline.
  */
 export function CategorySection({
   group,
@@ -30,30 +31,27 @@ export function CategorySection({
   const headingId = `${group.anchor}-titre`;
   const count = group.gifts.length;
   return (
-    <section id={group.anchor} aria-labelledby={headingId} className="scroll-mt-24 pt-12 md:pt-16">
-      <div className="container">
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="index-tag">{String(index + 1).padStart(2, "0")}</p>
-            <h2 id={headingId} className="display display-section mt-2">
-              {group.name}
-            </h2>
-          </div>
-          <p className="eyebrow">
-            {count} {count > 1 ? "cadeaux" : "cadeau"}
-          </p>
+    <section id={group.anchor} aria-labelledby={headingId} className="scroll-mt-28 pt-10 md:pt-14">
+      <div className="hairline mb-5 flex flex-wrap items-baseline justify-between gap-3 pt-5 md:mb-7 md:pt-6">
+        <div className="flex min-w-0 items-baseline gap-2.5 md:gap-4">
+          <span className="index-tag">{formatIndex(index)}</span>
+          <h2 id={headingId} className="display display-section min-w-0">
+            {group.name}
+          </h2>
         </div>
-        <GiftCarousel
-          label={`Cadeaux de la catégorie ${group.name}`}
-          gifts={group.gifts}
-          categoryName={group.name}
-          viewer={viewer}
-          loginHref={loginHref}
-          pendingId={pendingId}
-          onReserve={onReserve}
-          onCancel={onCancel}
-        />
+        <p className="text-secondary text-soft">
+          {count} {count > 1 ? "cadeaux" : "cadeau"}
+        </p>
       </div>
+      <GiftGrid
+        label={`Cadeaux de la catégorie ${group.name}`}
+        gifts={group.gifts}
+        viewer={viewer}
+        loginHref={loginHref}
+        pendingId={pendingId}
+        onReserve={onReserve}
+        onCancel={onCancel}
+      />
     </section>
   );
 }

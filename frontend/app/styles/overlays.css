@@ -1,17 +1,4 @@
 @layer components {
-  .scroller {
-    display: flex;
-    gap: var(--space-4);
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    padding-block: var(--space-2) var(--space-5);
-  }
-
-  .scroller > * {
-    scroll-snap-align: start;
-    flex: 0 0 auto;
-  }
-
   .skeleton {
     border-radius: 12px;
     background: var(--tile);

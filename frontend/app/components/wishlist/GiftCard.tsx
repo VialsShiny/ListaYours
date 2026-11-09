@@ -3,11 +3,11 @@
 import { GiftPhoto } from "@/components/wishlist/GiftPhoto";
 import { GiftPrice } from "@/components/wishlist/GiftPrice";
 import { ReservationControl, type ViewerRole } from "@/components/wishlist/ReservationControl";
+import { hasDiscount } from "@/lib/format";
 import type { PublicGift } from "@/lib/types";
 
 type GiftCardProps = {
   gift: PublicGift;
-  categoryName: string;
   viewer: ViewerRole;
   loginHref: string;
   pending: boolean;
@@ -16,18 +16,10 @@ type GiftCardProps = {
 };
 
 /**
- * Portrait card (280px) used in the public carousels. `data-reserved` desaturates the photo for
- * visitors only: owners never receive reservation data.
+ * Grid card: square photo on a tile, name in the display font, price, note, product link,
+ * then the reservation control. `data-reserved` is only ever set for non-owner viewers.
  */
-export function GiftCard({
-  gift,
-  categoryName,
-  viewer,
-  loginHref,
-  pending,
-  onReserve,
-  onCancel,
-}: GiftCardProps) {
+export function GiftCard({ gift, viewer, loginHref, pending, onReserve, onCancel }: GiftCardProps) {
   const reservedByOther = viewer !== "owner" && gift.is_reserved && !gift.reserved_by_me;
   const titleId = `gift-${gift.id}-title`;
 
@@ -35,43 +27,51 @@ export function GiftCard({
     <article
       aria-labelledby={titleId}
       data-reserved={reservedByOther ? "true" : undefined}
-      className="card w-[280px]"
+      className="card"
     >
-      <GiftPhoto src={gift.image_url} alt={gift.name} reserved={reservedByOther} />
+      <GiftPhoto src={gift.image_url} alt={gift.name} />
       <div className="card-body flex-1">
-        <span className="badge self-start">{categoryName}</span>
-        <h3 id={titleId} className="display-card">
-          {gift.name}
-        </h3>
-        <GiftPrice price={gift.price} oldPrice={gift.old_price} currency={gift.currency} />
-        {gift.description ? (
-          <p className="text-secondary line-clamp-3 whitespace-pre-line text-soft">
-            {gift.description}
-          </p>
-        ) : (
-          <p className="text-secondary text-soft">Aucune précision.</p>
-        )}
-        <div className="mt-auto flex flex-col gap-3 pt-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+          <h3 id={titleId} className="display-card line-clamp-3 min-w-0">
+            {gift.name}
+          </h3>
+          <GiftPrice
+            price={gift.price}
+            oldPrice={gift.old_price}
+            currency={gift.currency}
+            muted={reservedByOther}
+            withNote={false}
+            className="shrink-0 text-[16px]"
+          />
+        </div>
+        <div className="flex min-h-6 flex-wrap items-center gap-x-3 gap-y-1 text-small">
+          {gift.description ? (
+            <p className="line-clamp-2 min-w-0 text-soft">{gift.description}</p>
+          ) : null}
+          {hasDiscount(gift.price, gift.old_price) && !reservedByOther ? (
+            <span className="font-semibold text-accent">Prix réduit</span>
+          ) : null}
           {gift.purchase_url ? (
             <a
               href={gift.purchase_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-link text-secondary self-start"
+              className="text-link inline-flex min-h-6 items-center"
             >
-              Voir le produit ↗
+              Voir le produit →
             </a>
           ) : null}
-          <ReservationControl
-            gift={gift}
-            viewer={viewer}
-            loginHref={loginHref}
-            pending={pending}
-            onReserve={onReserve}
-            onCancel={onCancel}
-          />
         </div>
       </div>
+      <ReservationControl
+        gift={gift}
+        viewer={viewer}
+        loginHref={loginHref}
+        pending={pending}
+        onReserve={onReserve}
+        onCancel={onCancel}
+        compact
+      />
     </article>
   );
 }

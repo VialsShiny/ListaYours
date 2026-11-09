@@ -1,28 +1,36 @@
 import { PageHero } from "@/components/layout/PageHero";
+import { ViewSwitch } from "@/components/wishlist/ViewSwitch";
+import type { ViewMode } from "@/hooks/use-view-mode";
 import type { WishlistSummary } from "@/lib/types";
 
 type WishlistHeaderProps = {
   wishlist: WishlistSummary;
-  anchors: Array<{ anchor: string; name: string }>;
   giftCount: number;
+  view: ViewMode;
+  hrefFor: (mode: ViewMode) => string;
 };
 
 /**
- * Gradient hero with the ultra-wide wishlist title and one pill per category.
+ * Eyebrow, huge list title with the accent period, and the Naviguer / Grille switch.
  */
-export function WishlistHeader({ wishlist, anchors, giftCount }: WishlistHeaderProps) {
+export function WishlistHeader({ wishlist, giftCount, view, hrefFor }: WishlistHeaderProps) {
   const countLabel = `${giftCount} ${giftCount > 1 ? "cadeaux" : "cadeau"}`;
   return (
-    <PageHero eyebrow={`Liste de souhaits · ${countLabel}`} title={wishlist.title}>
-      {wishlist.description ? <p className="text-body mt-6">{wishlist.description}</p> : null}
-      {anchors.length > 0 ? (
-        <nav aria-label="Catégories" className="mt-8 flex flex-wrap gap-2">
-          {anchors.map((item) => (
-            <a key={item.anchor} href={`#${item.anchor}`} className="badge min-h-11 px-4">
-              {item.name}
-            </a>
-          ))}
-        </nav>
+    <PageHero
+      eyebrow={`Liste de souhaits · ${countLabel}`}
+      title={wishlist.title}
+      titleId="liste-titre"
+      aside={
+        <>
+          <ViewSwitch view={view} hrefFor={hrefFor} className="w-full md:w-auto" />
+          <p className="text-[14px] text-soft max-md:hidden">
+            Naviguer : un cadeau à la fois. Grille : tout d&apos;un coup d&apos;œil.
+          </p>
+        </>
+      }
+    >
+      {wishlist.description ? (
+        <p className="text-lead mt-6 max-w-[46ch] text-soft">{wishlist.description}</p>
       ) : null}
     </PageHero>
   );

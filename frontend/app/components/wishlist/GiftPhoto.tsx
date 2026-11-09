@@ -4,17 +4,16 @@ import { cn } from "@/lib/utils";
 type GiftPhotoProps = {
   src: string | null | undefined;
   alt: string;
-  reserved?: boolean;
   className?: string;
 };
 
 /**
- * Square product media on the `--tile` surface. Inside a `.card[data-reserved="true"]` the image
- * is desaturated by the theme; the "Réservé" badge carries the same information in text.
+ * Square product media on the `--tile` surface, image contained with padding.
+ * Inside a `.card[data-reserved="true"]` the theme lowers the image to 45% opacity.
  */
-export function GiftPhoto({ src, alt, reserved = false, className }: GiftPhotoProps) {
+export function GiftPhoto({ src, alt, className }: GiftPhotoProps) {
   return (
-    <div className={cn("card-media relative", className)}>
+    <div className={cn("card-media", className)}>
       {src ? (
         <img src={src} alt={alt} loading="lazy" decoding="async" referrerPolicy="no-referrer" />
       ) : (
@@ -22,7 +21,6 @@ export function GiftPhoto({ src, alt, reserved = false, className }: GiftPhotoPr
           <Gift className="size-12" strokeWidth={1.25} />
         </div>
       )}
-      {reserved ? <span className="badge absolute top-3 left-3">Réservé</span> : null}
     </div>
   );
 }
