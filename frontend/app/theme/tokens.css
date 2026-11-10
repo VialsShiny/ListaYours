@@ -79,4 +79,21 @@
   --dur-dialog: 180ms;
   --dur-drawer-in: 320ms;
   --dur-drawer-out: 200ms;
+  --dur-switch: 260ms;
+  --dur-progress: 220ms;
+  --dur-cascade: 300ms;
+  --dur-lift: 200ms;
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --move: 1;
+  --move-ui: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --move: 0;
+  }
+}
+
+:root[data-modality="keyboard"] {
+  --move-ui: 0;
 }
