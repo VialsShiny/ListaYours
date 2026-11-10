@@ -27,7 +27,7 @@ function collect(value: unknown, path: string, out: Line[]): Line[] {
 }
 
 function countWords(text: string): number {
-  return text.split(/\s+/).filter((token) => /[\p{L}\p{N}]/u.test(token)).length;
+  return text.split(/\s+/).filter((token) => /[A-Za-z0-9À-ÿœ]/.test(token)).length;
 }
 
 const lines = collect(voice, "voice", []);
@@ -59,6 +59,6 @@ describe("voice", () => {
 
   it("lists the only placeholder the owner has to fill", () => {
     const placeholders = new Set(lines.flatMap((line) => line.text.match(/\[[A-ZÉ]+\]/g) ?? []));
-    expect([...placeholders]).toEqual(["[PRÉNOM]"]);
+    expect(Array.from(placeholders)).toEqual(["[PRÉNOM]"]);
   });
 });
