@@ -39,7 +39,7 @@
     background: var(--card);
     box-shadow: var(--shadow-drawer);
     transform: translate3d(var(--drawer-swipe-movement-x, 0px), 0, 0);
-    transition: transform var(--dur-drawer-in) var(--ease-drawer);
+    transition: transform calc(var(--dur-drawer-in) * var(--move)) var(--ease-drawer);
     outline: none;
   }
 
@@ -69,7 +69,7 @@
     border-radius: var(--radius-panel) var(--radius-panel) 0 0;
     box-shadow: var(--shadow-sheet);
     transform: translate3d(0, var(--drawer-swipe-movement-y, 0px), 0);
-    transition: transform var(--dur-drawer-in) var(--ease-drawer);
+    transition: transform calc(var(--dur-drawer-in) * var(--move)) var(--ease-drawer);
     outline: none;
   }
 
@@ -109,13 +109,17 @@
     transform-origin: center;
     transition:
       opacity var(--dur-dialog) var(--ease-out),
-      transform var(--dur-dialog) var(--ease-out);
+      transform calc(var(--dur-dialog) * var(--move)) var(--ease-out);
   }
 
   .ly-dialog-popup[data-starting-style],
   .ly-dialog-popup[data-ending-style] {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.95);
+    transform: translate(-50%, -50%) scale(calc(1 - 0.05 * var(--move)));
+  }
+
+  .ly-dialog-popup[data-ending-style] {
+    transition-duration: 120ms;
   }
 
   .ly-menu-popup {
@@ -136,6 +140,10 @@
     opacity: 0;
   }
 
+  .ly-menu-popup[data-ending-style] {
+    transition-duration: 120ms;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .skeleton {
       animation: none;
@@ -154,6 +162,10 @@
     .ly-dialog-popup[data-starting-style],
     .ly-dialog-popup[data-ending-style] {
       opacity: 0;
+    }
+
+    .ly-drawer-popup[data-starting-style],
+    .ly-sheet-popup[data-starting-style] {
       transform: translate3d(0, 0, 0);
     }
 
