@@ -46,6 +46,7 @@
 }
 
 .field-help {
+  overflow-wrap: anywhere;
   font-size: var(--text-small);
   color: var(--soft);
 }

@@ -66,7 +66,7 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
       onSubmit={handleSubmit}
       className="grid gap-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] md:gap-6"
     >
-      <div className="panel flex flex-col gap-5 p-5 md:p-8">
+      <div className="panel flex min-w-0 flex-col gap-5 p-5 md:p-8">
         <Field id="wishlist-title" label={voice.dashboard.settings.title} required>
           {(describedBy) => (
             <Input
@@ -104,7 +104,7 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
                   value={slug}
                   onChange={(event) => setSlug(event.target.value.toLowerCase())}
                   aria-describedby={describedBy}
-                  className="min-w-0 flex-1 border-0 bg-transparent p-0 outline-none"
+                  className="min-h-full min-w-0 flex-1 self-stretch border-0 bg-transparent p-0 outline-none"
                 />
               </div>
               <Button
@@ -119,7 +119,7 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
           )}
         </Field>
       </div>
-      <div className="panel flex flex-col justify-between gap-5 p-5 md:p-8">
+      <div className="panel flex min-w-0 flex-col justify-between gap-5 p-5 md:p-8">
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 flex-col gap-1">
             <p className="text-[16px] font-semibold">{voice.dashboard.settings.publicLabel}</p>

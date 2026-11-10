@@ -7,7 +7,7 @@ import { formatPrice } from "@/lib/format";
 type ReservationsTotalProps = { amount: number; currency: string };
 
 /**
- * "Total estimé" that counts up to its value (900ms ease-out, tabular digits). Screen readers
+ * « En tout, à peu près » : a total that counts up to its value (900ms ease-out, tabular digits). Screen readers
  * get the final amount only.
  */
 export function ReservationsTotal({ amount, currency }: ReservationsTotalProps) {

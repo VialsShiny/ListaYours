@@ -67,7 +67,7 @@ export function GiftNavigator({
 
   return (
     <section ref={sectionRef} aria-labelledby="navigator-titre" className="container pt-6 md:pt-8">
-      <div className="navigator">
+      <div className="navigator" data-overflow-ok="">
         <p aria-hidden="true" className="ghost-word navigator-ghost">
           {gift.name}
         </p>
@@ -107,7 +107,7 @@ export function GiftNavigator({
           />
         </aside>
       </div>
-      <div className="sticky-bar -mx-4 mt-6 flex gap-3 lg:hidden">
+      <div className="sticky-bar -mx-[16px] mt-6 flex gap-3 lg:hidden">
         <Button variant="secondary" className="flex-1" onClick={() => setSheetOpen(true)}>
           {voice.list.categories}
           <ChevronUp className="size-4" aria-hidden="true" />

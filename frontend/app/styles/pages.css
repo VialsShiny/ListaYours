@@ -1,4 +1,10 @@
 @layer components {
+  .title-column {
+    container-type: inline-size;
+    flex: 1 1 0;
+    min-width: min(100%, 24rem);
+  }
+
   .auth-card {
     display: flex;
     flex-direction: column;
@@ -11,7 +17,7 @@
   }
 
   .section-switch a {
-    min-height: 40px;
+    min-height: var(--target);
     padding-inline: 22px;
     font-size: 14px;
   }
@@ -32,6 +38,11 @@
   }
 
   @media (min-width: 1024px) {
+    .title-column {
+      container-type: inline-size;
+      flex: 1 1 0;
+    }
+
     .auth-card {
       padding: 40px;
       background: var(--card);

@@ -44,7 +44,7 @@ export const voice = {
       {
         number: "#02",
         title: "Tu réserves",
-        text: "Un compte en trente secondes, pour éviter deux fois le même cadeau.",
+        text: "Il faut un compte, pour éviter deux fois le même cadeau.",
       },
       {
         number: "#03",
@@ -60,7 +60,7 @@ export const voice = {
     here: "Par ici",
     home: "Accueil",
     you: "Toi",
-    signature: "Fait main par [PRÉNOM]. Pas de newsletter.",
+    signature: "Fait main par [PRÉNOM].",
   },
   auth: {
     login: {

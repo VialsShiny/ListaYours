@@ -15,6 +15,10 @@
     min-width: min(11.5rem, 100%);
   }
 
+  .sticky-bar .btn-state {
+    min-width: 0;
+  }
+
   .shake {
     animation: shake calc(320ms * var(--move) * var(--move-ui)) var(--ease-out) 1;
   }

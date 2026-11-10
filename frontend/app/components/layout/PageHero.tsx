@@ -27,7 +27,7 @@ export function PageHero({
   return (
     <header className={cn("container pt-8 md:pt-14", className)}>
       <div className="flex flex-wrap items-end justify-between gap-6">
-        <div className="flex min-w-0 flex-col gap-5">
+        <div className="title-column flex flex-col gap-5">
           <MicroLabel>{eyebrow}</MicroLabel>
           <DisplayTitle size="hero" id={titleId} period={period}>
             {title}

@@ -44,7 +44,7 @@ const gifts: PublicGift[] = [
 const categories = [{ id: 10, name: "Les essentiels", position: 0 }];
 const groups = groupGiftsByCategory(categories, gifts, { dropEmpty: true });
 const noop = () => undefined;
-const RESERVATION_WORDS = /r[ée]serv|d[ée]j[àa] pris|pris|offres/i;
+const RESERVATION_WORDS = /r[ée]serv|\bpris\b|\boffres?\b/i;
 
 function render(viewer: ViewerRole) {
   const common = {
@@ -81,6 +81,10 @@ describe("owner view never reveals reservations", () => {
     expect(owner.card).not.toContain("<button");
     expect(owner.grid).not.toMatch(RESERVATION_WORDS);
     expect(owner.grid).not.toContain("data-reserved");
+  });
+
+  it("keeps the owner notices free of reservation words", () => {
+    expect(voice.list.ownerTitle + voice.list.ownerText).not.toMatch(RESERVATION_WORDS);
   });
 
   it("renders no reservation text in the navigator nor in the accordion", () => {

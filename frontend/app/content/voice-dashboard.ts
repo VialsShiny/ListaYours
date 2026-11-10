@@ -8,7 +8,7 @@ export const dashboard = {
   viewList: "Voir ma liste →",
   notice: "Les réservations ne s'affichent jamais ici. C'est voulu.",
   loading: "Je prépare le tableau…",
-  notOwner: "Ici, c'est chez le propriétaire.",
+  notOwner: "Ici, c'est chez moi.",
   sections: { settings: "Paramètres", categories: "Catégories", gifts: "Cadeaux" },
   settings: {
     title: "Titre de la liste",
@@ -66,7 +66,6 @@ export const dashboard = {
     saveFailed: "Le cadeau n'a pas été enregistré.",
     cancel: "Annuler",
     save: "Enregistrer",
-    saveNew: "Enregistrer le cadeau",
     descriptionHint: "La taille, une couleur, ou une alternative",
     prefillTitle: "Remplir depuis un lien",
     prefillUrl: "Adresse du produit",

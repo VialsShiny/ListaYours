@@ -1,20 +1,14 @@
-"use client";
-
 import Link from "next/link";
 import { voice } from "@/content/voice";
 import { MicroLabel } from "@/components/layout/MicroLabel";
-import { usePublicWishlists } from "@/hooks/use-public-wishlist";
 
 export function SiteFooter() {
-  const firstSlug = usePublicWishlists().data?.[0]?.slug;
   const columns = [
     {
       title: voice.footer.here,
       links: [
         { href: "/", label: voice.footer.home },
-        firstSlug
-          ? { href: `/l/${firstSlug}`, label: voice.nav.list }
-          : { href: "/#comment-ca-se-passe", label: voice.nav.how },
+        { href: "/#comment-ca-se-passe", label: voice.nav.how },
       ],
     },
     {
