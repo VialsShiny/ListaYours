@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { voice } from "@/content/voice";
 import { usePathname } from "next/navigation";
 import { MobileMenu } from "@/components/layout/MobileMenu";
 import { useAuth } from "@/hooks/use-auth";
@@ -19,9 +20,9 @@ export function SiteHeader() {
     <div className="nav-wrap">
       <header className="nav container">
         <Link href="/" className="wordmark shrink-0">
-          ListaYours
+          {voice.brand}
         </Link>
-        <nav aria-label="Navigation principale" className="hidden min-w-0 md:block">
+        <nav aria-label={voice.nav.navLabel} className="hidden min-w-0 md:block">
           <ul className="nav-links">
             {nav.links.map((item) => (
               <li key={item.href}>
@@ -49,7 +50,7 @@ export function SiteHeader() {
           ))}
           {nav.showSignOut ? (
             <button type="button" onClick={signOut} className="btn btn-primary btn-sm">
-              Déconnexion
+              {voice.nav.signOut}
             </button>
           ) : null}
         </div>

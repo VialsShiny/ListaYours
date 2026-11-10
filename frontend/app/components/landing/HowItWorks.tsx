@@ -1,26 +1,32 @@
 "use client";
 
 import { useRef } from "react";
+import { voice } from "@/content/voice";
 import { Section } from "@/components/layout/Section";
 import { DisplayTitle } from "@/components/layout/DisplayTitle";
 import { useReveal } from "@/hooks/use-reveal";
-import { LANDING_STEPS } from "@/lib/landing-steps";
 import { cascadeStyle } from "@/lib/motion";
+
+const copy = voice.landing;
 
 export function HowItWorks() {
   const listRef = useRef<HTMLOListElement | null>(null);
   useReveal(listRef);
 
   return (
-    <Section aria-labelledby="comment-ca-marche" id="comment-ca-marche" className="scroll-mt-6">
+    <Section
+      aria-labelledby="comment-ca-se-passe-titre"
+      id="comment-ca-se-passe"
+      className="scroll-mt-6"
+    >
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4 md:mb-14">
-        <DisplayTitle as="h2" size="section" id="comment-ca-marche-titre" className="min-w-0">
-          Comment ça marche
+        <DisplayTitle as="h2" size="section" id="comment-ca-se-passe-titre" className="min-w-0">
+          {copy.howTitle}
         </DisplayTitle>
-        <p className="text-secondary pb-2 text-soft">Trois étapes, aucune configuration.</p>
+        <p className="text-secondary pb-2 text-soft">{copy.howAside}</p>
       </div>
       <ol ref={listRef} className="grid gap-8 md:grid-cols-3 md:gap-12">
-        {LANDING_STEPS.map((step, index) => (
+        {copy.steps.map((step, index) => (
           <li
             key={step.number}
             className="reveal hairline flex flex-col gap-3 pt-5 md:pt-6"

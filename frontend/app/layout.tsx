@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Syne, Unbounded } from "next/font/google";
 import "./globals.css";
+import { voice } from "@/content/voice";
 import { AuthProvider } from "@/hooks/use-auth";
 import { SiteShell } from "@/components/layout/SiteShell";
 import { Toasts } from "@/components/layout/Toasts";
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
     default: "ListaYours.",
     template: "%s — ListaYours.",
   },
-  description: "La liste de souhaits à partager : parcourez, réservez, gardez la surprise.",
+  description: voice.description,
 };
 
 export const viewport: Viewport = {
