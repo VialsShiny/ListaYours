@@ -7,6 +7,7 @@
 @import "./styles/navigator-layout.css";
 @import "./styles/pages.css";
 @import "./styles/motion.css";
+@import "./styles/feedback.css";
 
 :root {
   --font-display: "Against", var(--font-syne), "Syne", var(--font-inter), system-ui, sans-serif;

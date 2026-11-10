@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { StatusMessage } from "@/components/feedback/StatusMessage";
 import { Button } from "@/components/ui/button";
+import { SwapLabel } from "@/components/ui/swap-label";
 import { Field } from "@/components/ui/field";
 import { Input, Textarea } from "@/components/ui/input";
 import { Toggle } from "@/components/ui/toggle";
 import { useClipboard } from "@/hooks/use-clipboard";
 import type { OwnerStore } from "@/hooks/use-owner-data";
+import { notifyError, notifySuccess } from "@/lib/toast";
 import { patchWishlist } from "@/lib/api-owner";
 import type { OwnerWishlist } from "@/lib/types";
 
@@ -19,7 +20,6 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
   const [slug, setSlug] = useState(wishlist.slug);
   const [published, setPublished] = useState(wishlist.is_published);
   const [origin, setOrigin] = useState("");
-  const [saved, setSaved] = useState<string | null>(null);
   const [syncedAt, setSyncedAt] = useState(wishlist.updated_at);
   const clipboard = useClipboard();
 
@@ -40,7 +40,6 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSaved(null);
     const { ok } = await store.run(
       (token) =>
         patchWishlist(token, {
@@ -51,15 +50,14 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
         }),
       "L'enregistrement des réglages a échoué.",
     );
-    if (ok) setSaved("Réglages enregistrés.");
+    if (ok) notifySuccess("Réglages enregistrés.");
   }
 
-  const clipboardMessage =
-    clipboard.status === "copied"
-      ? "Lien copié"
-      : clipboard.status === "error"
-        ? "Copie impossible"
-        : null;
+  const copyLabel = clipboard.status === "copied" ? "Lien copié" : "Copier le lien";
+
+  useEffect(() => {
+    if (clipboard.status === "error") notifyError("Copie impossible.");
+  }, [clipboard.status]);
 
   return (
     <form
@@ -110,10 +108,10 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
               <Button
                 type="button"
                 variant="secondary"
-                className="shrink-0"
-                onClick={() => clipboard.copy(publicUrl)}
+                className="btn-state shrink-0"
+                onClick={() => void clipboard.copy(publicUrl)}
               >
-                Copier le lien
+                <SwapLabel label={copyLabel} />
               </Button>
             </div>
           )}
@@ -141,7 +139,6 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
           <Button type="submit" variant="primary" block disabled={store.busy}>
             {store.busy ? "Enregistrement…" : "Enregistrer"}
           </Button>
-          <StatusMessage message={clipboardMessage ?? saved} />
         </div>
       </div>
     </form>

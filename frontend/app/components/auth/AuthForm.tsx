@@ -87,6 +87,8 @@ export function AuthForm({ mode }: AuthFormProps) {
         ) : null}
         <Field
           id="email"
+          key={errorOn === "email" ? error : "email"}
+          className={errorOn === "email" ? "shake" : undefined}
           label="Adresse e-mail"
           required
           error={errorOn === "email" ? error : null}
@@ -107,6 +109,8 @@ export function AuthForm({ mode }: AuthFormProps) {
         </Field>
         <Field
           id="password"
+          key={errorOn === "password" ? error : "password"}
+          className={errorOn === "password" ? "shake" : undefined}
           label="Mot de passe"
           hint={mode === "register" ? "Utilisez au moins 8 caractères." : undefined}
           error={errorOn === "password" ? error : null}

@@ -3,6 +3,7 @@ import { Inter, Syne, Unbounded } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/hooks/use-auth";
 import { SiteShell } from "@/components/layout/SiteShell";
+import { Toasts } from "@/components/layout/Toasts";
 
 const inter = Inter({
   subsets: ["latin", "latin-ext"],
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <AuthProvider>
           <SiteShell>{children}</SiteShell>
+          <Toasts />
         </AuthProvider>
       </body>
     </html>

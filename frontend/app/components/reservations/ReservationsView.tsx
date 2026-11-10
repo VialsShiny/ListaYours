@@ -5,15 +5,16 @@ import Link from "next/link";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ErrorPanel } from "@/components/feedback/ErrorPanel";
 import { Notice } from "@/components/feedback/Notice";
-import { StatusMessage } from "@/components/feedback/StatusMessage";
 import { PageHero } from "@/components/layout/PageHero";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ReservationCard } from "@/components/reservations/ReservationCard";
+import { ReservationsTotal } from "@/components/reservations/ReservationsTotal";
+import { useActionToast } from "@/hooks/use-action-toast";
 import { useAsync } from "@/hooks/use-async";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { useReservationActions } from "@/hooks/use-reservation-actions";
 import { fetchMyReservations } from "@/lib/api-public";
-import { formatReservationsTotal } from "@/lib/reservations-total";
+import { sumReservations } from "@/lib/reservations-total";
 import type { MyReservation } from "@/lib/types";
 
 export function ReservationsView() {
@@ -30,7 +31,8 @@ export function ReservationsView() {
       list.setData((current) => current?.filter((item) => item.gift.id !== giftId) ?? current),
   });
   const items = list.data ?? [];
-  const total = formatReservationsTotal(items);
+  const total = sumReservations(items);
+  useActionToast(actions.message);
 
   async function confirmCancel() {
     if (!toCancel) return;
@@ -43,14 +45,7 @@ export function ReservationsView() {
       <PageHero
         eyebrow="Mon compte"
         title="Mes réservations"
-        aside={
-          total ? (
-            <p className="flex flex-col items-end gap-1">
-              <span className="text-small text-soft">Total estimé</span>
-              <span className="display text-[26px] tracking-[-0.03em] md:text-[40px]">{total}</span>
-            </p>
-          ) : null
-        }
+        aside={total ? <ReservationsTotal amount={total.amount} currency={total.currency} /> : null}
       />
       <section className="container flex flex-1 flex-col gap-4 pt-10 md:pt-14">
         {status === "loading" ? (
@@ -67,7 +62,6 @@ export function ReservationsView() {
         ) : null}
         {enabled ? (
           <>
-            <StatusMessage message={actions.message} />
             {list.loading ? (
               <p className="text-secondary text-soft">Chargement de vos réservations…</p>
             ) : null}
