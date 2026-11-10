@@ -1,9 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { ErrorPanel } from "@/components/feedback/ErrorPanel";
 import { Notice } from "@/components/feedback/Notice";
-import { StatusMessage } from "@/components/feedback/StatusMessage";
 import { PageHero } from "@/components/layout/PageHero";
 import { SectionSwitch } from "@/components/dashboard/SectionSwitch";
 import { CategoryManager } from "@/components/dashboard/CategoryManager";
@@ -11,6 +11,7 @@ import { DashboardSectionTitle } from "@/components/dashboard/DashboardSectionTi
 import { GiftManager } from "@/components/dashboard/GiftManager";
 import { SettingsForm } from "@/components/dashboard/SettingsForm";
 import { useOwnerData } from "@/hooks/use-owner-data";
+import { notifyError } from "@/lib/toast";
 
 const SECTIONS = [
   { id: "parametres", label: "Paramètres" },
@@ -21,6 +22,10 @@ const SECTIONS = [
 export function OwnerDashboard() {
   const store = useOwnerData();
   const slug = store.data?.wishlist.slug;
+
+  useEffect(() => {
+    if (store.actionError) notifyError(store.actionError);
+  }, [store.actionError]);
 
   return (
     <>
@@ -41,7 +46,6 @@ export function OwnerDashboard() {
             surprise reste entière.
           </Notice>
           <SectionSwitch sections={SECTIONS} ready={Boolean(store.data)} />
-          <StatusMessage message={store.actionError} tone="error" />
         </div>
       </PageHero>
 
