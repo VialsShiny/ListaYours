@@ -97,7 +97,7 @@ describe("visitor view shows the reservation states", () => {
   it("marks the gift reserved by someone else and the one reserved by me", () => {
     expect(visitor.card).toContain('data-reserved="true"');
     expect(visitor.card).toContain(voice.list.taken);
-    expect(visitor.grid).toContain(voice.list.mine.replace("'", "&#x27;"));
+    expect(visitor.grid).toContain(voice.list.mine.replaceAll("'", "&#x27;"));
     expect(visitor.grid).toContain(voice.list.cancel);
     expect(visitor.accordion).toContain(voice.list.reservedShort);
     expect(visitor.navigator).toContain(voice.list.taken);
