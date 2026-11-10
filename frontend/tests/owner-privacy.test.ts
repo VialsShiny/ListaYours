@@ -84,7 +84,7 @@ describe("owner view never reveals reservations", () => {
 
   it("renders no reservation text in the navigator nor in the accordion", () => {
     expect(owner.navigator).not.toMatch(RESERVATION_WORDS);
-    expect(owner.navigator).not.toContain("opacity:0.45");
+    expect(owner.navigator).not.toContain("data-muted");
     expect(owner.accordion).not.toMatch(RESERVATION_WORDS);
     expect(owner.accordion).toContain("199,00");
   });
@@ -100,5 +100,6 @@ describe("visitor view shows the reservation states", () => {
     expect(visitor.grid).toContain("Annuler");
     expect(visitor.accordion).toContain("Réservé");
     expect(visitor.navigator).toContain("Déjà réservé");
+    expect(visitor.navigator).toContain('data-muted="true"');
   });
 });

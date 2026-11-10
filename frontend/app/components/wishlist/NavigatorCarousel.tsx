@@ -32,7 +32,7 @@ export function NavigatorCarousel({
     align: "center",
     containScroll: false,
     skipSnaps: false,
-    duration: 22,
+    duration: prefersReducedMotion() ? 0 : 22,
   });
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;

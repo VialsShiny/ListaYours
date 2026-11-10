@@ -77,7 +77,9 @@ export function GiftNavigator({
             index={nav.index}
             motion={nav.motion}
             viewer={viewer}
-            onSelect={(index) => nav.goToIndex(index, "pointer")}
+            onSelect={(index) => {
+              if (index !== nav.index) nav.goToIndex(index, "pointer");
+            }}
           />
           <NavigatorBar
             index={nav.index}

@@ -3,16 +3,20 @@
 import { useEffect, useState } from "react";
 import { Segmented } from "@/components/ui/segmented";
 
-type SectionSwitchProps = { sections: Array<{ id: string; label: string }> };
+type SectionSwitchProps = {
+  sections: Array<{ id: string; label: string }>;
+  ready: boolean;
+};
 
 /**
- * Anchor links to the dashboard sections; the sliding pill follows the section in view.
+ * Anchor links to the dashboard sections; the sliding pill follows the section in view once
+ * the sections are rendered (`ready`).
  */
-export function SectionSwitch({ sections }: SectionSwitchProps) {
+export function SectionSwitch({ sections, ready }: SectionSwitchProps) {
   const [active, setActive] = useState(0);
 
   useEffect(() => {
-    if (typeof IntersectionObserver === "undefined") return;
+    if (!ready || typeof IntersectionObserver === "undefined") return;
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = entries
@@ -29,7 +33,7 @@ export function SectionSwitch({ sections }: SectionSwitchProps) {
       if (element) observer.observe(element);
     });
     return () => observer.disconnect();
-  }, [sections]);
+  }, [sections, ready]);
 
   return (
     <Segmented

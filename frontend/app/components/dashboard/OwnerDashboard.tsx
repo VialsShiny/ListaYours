@@ -40,7 +40,7 @@ export function OwnerDashboard() {
             L&apos;état des réservations n&apos;est jamais affiché ici. C&apos;est voulu : la
             surprise reste entière.
           </Notice>
-          <SectionSwitch sections={SECTIONS} />
+          <SectionSwitch sections={SECTIONS} ready={Boolean(store.data)} />
           <StatusMessage message={store.actionError} tone="error" />
         </div>
       </PageHero>
