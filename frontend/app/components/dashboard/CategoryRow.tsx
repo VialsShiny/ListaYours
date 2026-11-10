@@ -1,34 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowDown, ArrowUp, Check, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HoldButton } from "@/components/ui/hold-button";
 import { Input } from "@/components/ui/input";
+import { SortableRow } from "@/components/dashboard/SortableRow";
 import type { Category } from "@/lib/types";
 import { formatIndex } from "@/lib/wishlist-navigation";
 
 type CategoryRowProps = {
   category: Category;
   index: number;
-  total: number;
   count: number;
   busy: boolean;
   onRename: (name: string) => Promise<boolean>;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
   onDelete: () => void;
+  onConfirmDelete: () => void;
 };
 
 export function CategoryRow({
   category,
   index,
-  total,
   count,
   busy,
   onRename,
-  onMoveUp,
-  onMoveDown,
   onDelete,
+  onConfirmDelete,
 }: CategoryRowProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(category.name);
@@ -46,10 +44,11 @@ export function CategoryRow({
   }
 
   return (
-    <li className="list-row flex-wrap md:flex-nowrap">
-      <span className="drag-handle max-md:hidden" aria-hidden="true">
-        ⋮⋮
-      </span>
+    <SortableRow
+      id={category.id}
+      handleLabel={`Réordonner ${category.name}`}
+      className="list-row flex-wrap md:flex-nowrap"
+    >
       <span className="index-tag w-9 shrink-0 text-[14px]">{formatIndex(index)}</span>
       {editing ? (
         <form onSubmit={submitRename} className="flex min-w-0 flex-1 items-center gap-2">
@@ -87,31 +86,19 @@ export function CategoryRow({
         {count} {count > 1 ? "cadeaux" : "cadeau"}
       </span>
       <div className="flex w-full shrink-0 items-center gap-1 md:w-auto">
-        <Button
-          variant="icon"
-          aria-label={`Monter ${category.name}`}
-          disabled={busy || index === 0}
-          onClick={onMoveUp}
-        >
-          <ArrowUp aria-hidden="true" />
-        </Button>
-        <Button
-          variant="icon"
-          aria-label={`Descendre ${category.name}`}
-          disabled={busy || index === total - 1}
-          onClick={onMoveDown}
-        >
-          <ArrowDown aria-hidden="true" />
-        </Button>
         {!editing ? (
           <Button variant="text" onClick={() => setEditing(true)}>
             Renommer
           </Button>
         ) : null}
-        <Button variant="text-accent" disabled={busy} onClick={onDelete}>
-          Supprimer
-        </Button>
+        <HoldButton
+          label="Supprimer"
+          holdLabel={`Maintenir 1 seconde pour supprimer ${category.name} ; ses cadeaux iront dans Autres`}
+          disabled={busy}
+          onConfirm={onDelete}
+          onFallback={onConfirmDelete}
+        />
       </div>
-    </li>
+    </SortableRow>
   );
 }

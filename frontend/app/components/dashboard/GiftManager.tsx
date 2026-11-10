@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -9,8 +10,13 @@ import { GiftFormDrawer } from "@/components/dashboard/GiftFormDrawer";
 import { GiftRow } from "@/components/dashboard/GiftRow";
 import type { OwnerStore } from "@/hooks/use-owner-data";
 import { deleteGift, reorderGifts, updateGift } from "@/lib/api-owner";
-import { sortByPosition, swapIds } from "@/lib/reorder";
+import { sortByPosition } from "@/lib/reorder";
 import type { Category, OwnerGift } from "@/lib/types";
+
+const SortableList = dynamic(
+  () => import("@/components/dashboard/SortableList").then((module) => module.SortableList),
+  { ssr: false },
+);
 
 const INITIAL_ROWS = 6;
 
@@ -20,9 +26,10 @@ type DrawerState = { open: false } | { open: true; gift: OwnerGift | null };
 
 export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
   const [drawer, setDrawer] = useState<DrawerState>({ open: false });
-  const [toDelete, setToDelete] = useState<OwnerGift | null>(null);
+  const [toConfirm, setToConfirm] = useState<OwnerGift | null>(null);
   const [expanded, setExpanded] = useState(false);
   const ordered = useMemo(() => sortByPosition(gifts), [gifts]);
+  const byId = useMemo(() => new Map(ordered.map((gift) => [gift.id, gift])), [ordered]);
   const names = useMemo(
     () => new Map(categories.map((category) => [String(category.id), category.name])),
     [categories],
@@ -30,11 +37,12 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
   const visible = expanded ? ordered : ordered.slice(0, INITIAL_ROWS);
   const hidden = ordered.length - visible.length;
 
-  function move(index: number, direction: -1 | 1) {
-    const neighbour = ordered[index + direction];
-    if (!neighbour) return;
-    const ids = swapIds(ordered, ordered[index].id, neighbour.id);
-    void store.run((token) => reorderGifts(token, ids), "Le réordonnancement a échoué.");
+  function reorder(visibleIds: Array<OwnerGift["id"]>) {
+    const rest = ordered.slice(visible.length).map((gift) => gift.id);
+    void store.run(
+      (token) => reorderGifts(token, [...visibleIds, ...rest]),
+      "Le réordonnancement a échoué.",
+    );
   }
 
   function toggleVisibility(gift: OwnerGift) {
@@ -44,14 +52,15 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
     );
   }
 
-  async function confirmDelete() {
-    if (!toDelete) return;
+  async function remove(gift: OwnerGift) {
     const { ok } = await store.run(
-      (token) => deleteGift(token, toDelete.id),
+      (token) => deleteGift(token, gift.id),
       "La suppression a échoué.",
     );
-    if (ok) setToDelete(null);
+    if (ok) setToConfirm(null);
   }
+
+  const openForm = (gift: OwnerGift | null) => setDrawer({ open: true, gift });
 
   return (
     <div className="flex flex-col gap-4 md:gap-6">
@@ -64,11 +73,7 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
             <p className="text-secondary text-soft">
               {gifts.length} {gifts.length > 1 ? "cadeaux" : "cadeau"}
             </p>
-            <Button
-              variant="primary"
-              className="max-md:hidden"
-              onClick={() => setDrawer({ open: true, gift: null })}
-            >
+            <Button variant="primary" className="max-md:hidden" onClick={() => openForm(null)}>
               Ajouter un cadeau
             </Button>
           </div>
@@ -79,43 +84,45 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
           title="Aucun cadeau pour l'instant"
           text="Ajoutez votre premier cadeau en collant un lien produit."
           action={
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setDrawer({ open: true, gift: null })}
-            >
+            <Button variant="primary" size="sm" onClick={() => openForm(null)}>
               Ajouter un cadeau
             </Button>
           }
         />
       ) : (
-        <ol className="panel flex flex-col overflow-hidden">
-          {visible.map((gift, index) => (
-            <GiftRow
-              key={gift.id}
-              gift={gift}
-              categoryName={names.get(String(gift.category_id)) ?? "Autres"}
-              isFirst={index === 0}
-              isLast={index === ordered.length - 1}
-              busy={store.busy}
-              onEdit={() => setDrawer({ open: true, gift })}
-              onToggleVisibility={() => toggleVisibility(gift)}
-              onMoveUp={() => move(index, -1)}
-              onMoveDown={() => move(index, 1)}
-              onDelete={() => setToDelete(gift)}
-            />
-          ))}
+        <div className="panel flex flex-col overflow-hidden">
+          <SortableList
+            ids={visible.map((gift) => gift.id)}
+            labelOf={(id) => byId.get(id)?.name ?? ""}
+            onReorder={reorder}
+            renderRow={(id) => {
+              const gift = byId.get(id);
+              if (!gift) return null;
+              return (
+                <GiftRow
+                  key={gift.id}
+                  gift={gift}
+                  categoryName={names.get(String(gift.category_id)) ?? "Autres"}
+                  busy={store.busy}
+                  onEdit={() => openForm(gift)}
+                  onToggleVisibility={() => toggleVisibility(gift)}
+                  onDelete={() => void remove(gift)}
+                  onConfirmDelete={() => setToConfirm(gift)}
+                />
+              );
+            }}
+          />
           {hidden > 0 ? (
-            <li className="flex justify-center border-t border-line">
+            <div className="flex justify-center border-t border-line">
               <Button variant="text-accent" className="min-h-16" onClick={() => setExpanded(true)}>
                 Afficher les {hidden} autres cadeaux →
               </Button>
-            </li>
+            </div>
           ) : null}
-        </ol>
+        </div>
       )}
       <div className="sticky-bar -mx-4 md:hidden">
-        <Button variant="primary" block onClick={() => setDrawer({ open: true, gift: null })}>
+        <Button variant="primary" block onClick={() => openForm(null)}>
           Ajouter un cadeau
         </Button>
       </div>
@@ -127,12 +134,12 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
         onClose={() => setDrawer({ open: false })}
       />
       <ConfirmDialog
-        open={toDelete !== null}
-        title={toDelete ? `Supprimer « ${toDelete.name} » ?` : ""}
+        open={toConfirm !== null}
+        title={toConfirm ? `Supprimer « ${toConfirm.name} » ?` : ""}
         description="Le cadeau disparaîtra de la liste publique et les réservations associées seront perdues."
         busy={store.busy}
-        onConfirm={confirmDelete}
-        onCancel={() => setToDelete(null)}
+        onConfirm={() => toConfirm && void remove(toConfirm)}
+        onCancel={() => setToConfirm(null)}
       />
     </div>
   );

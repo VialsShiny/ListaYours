@@ -77,13 +77,6 @@
     border-top: 1px solid var(--line);
   }
 
-  .drag-handle {
-    color: var(--soft);
-    letter-spacing: -2px;
-    font-size: 18px;
-    user-select: none;
-  }
-
   .progress-line {
     position: relative;
     height: 1px;

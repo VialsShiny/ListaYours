@@ -8,6 +8,7 @@
 @import "./styles/pages.css";
 @import "./styles/motion.css";
 @import "./styles/feedback.css";
+@import "./styles/dashboard-motion.css";
 
 :root {
   --font-display: "Against", var(--font-syne), "Syne", var(--font-inter), system-ui, sans-serif;
