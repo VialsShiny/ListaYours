@@ -1,42 +1,37 @@
 "use client";
 
-import { ArrowDown, ArrowUp, Gift } from "lucide-react";
+import { Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HoldButton } from "@/components/ui/hold-button";
 import { Toggle } from "@/components/ui/toggle";
+import { SortableRow } from "@/components/dashboard/SortableRow";
 import { formatPrice } from "@/lib/format";
 import type { OwnerGift } from "@/lib/types";
 
 type GiftRowProps = {
   gift: OwnerGift;
   categoryName: string;
-  isFirst: boolean;
-  isLast: boolean;
   busy: boolean;
   onEdit: () => void;
   onToggleVisibility: () => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
   onDelete: () => void;
 };
 
 export function GiftRow({
   gift,
   categoryName,
-  isFirst,
-  isLast,
   busy,
   onEdit,
   onToggleVisibility,
-  onMoveUp,
-  onMoveDown,
   onDelete,
 }: GiftRowProps) {
   const price = formatPrice(gift.price, gift.currency) ?? "Prix non renseigné";
   return (
-    <li className="list-row min-h-24 flex-wrap md:flex-nowrap">
-      <span className="drag-handle max-md:hidden" aria-hidden="true">
-        ⋮⋮
-      </span>
+    <SortableRow
+      id={gift.id}
+      handleLabel={`Réordonner ${gift.name}`}
+      className="list-row min-h-24 flex-wrap md:flex-nowrap"
+    >
       <div className="thumb">
         {gift.image_url ? (
           <img src={gift.image_url} alt="" loading="lazy" referrerPolicy="no-referrer" />
@@ -68,29 +63,16 @@ export function GiftRow({
         className="shrink-0 max-md:[&_label]:sr-only"
       />
       <div className="flex w-full shrink-0 items-center gap-1 md:w-auto">
-        <Button
-          variant="icon"
-          aria-label={`Monter ${gift.name}`}
-          disabled={busy || isFirst}
-          onClick={onMoveUp}
-        >
-          <ArrowUp aria-hidden="true" />
-        </Button>
-        <Button
-          variant="icon"
-          aria-label={`Descendre ${gift.name}`}
-          disabled={busy || isLast}
-          onClick={onMoveDown}
-        >
-          <ArrowDown aria-hidden="true" />
-        </Button>
         <Button variant="secondary" size="sm" disabled={busy} onClick={onEdit}>
           Modifier
         </Button>
-        <Button variant="text-accent" disabled={busy} onClick={onDelete}>
-          Supprimer
-        </Button>
+        <HoldButton
+          label="Supprimer"
+          holdLabel={`Maintenir pour supprimer ${gift.name}`}
+          disabled={busy}
+          onConfirm={onDelete}
+        />
       </div>
-    </li>
+    </SortableRow>
   );
 }

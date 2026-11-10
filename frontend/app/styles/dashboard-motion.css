@@ -1,0 +1,69 @@
+@layer components {
+  .hold {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .hold-fill {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--accent);
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path 200ms var(--ease-out);
+  }
+
+  .hold[data-holding="true"] .hold-fill {
+    clip-path: inset(0 0 0 0);
+    transition: clip-path 1200ms linear;
+  }
+
+  .hold-label {
+    position: relative;
+    transition: color var(--dur-toggle) var(--ease-out);
+  }
+
+  .hold[data-holding="true"] .hold-label {
+    color: #fff;
+  }
+
+  .sortable-row {
+    position: relative;
+    transition: transform calc(320ms * var(--move)) var(--ease-spring);
+  }
+
+  .sortable-row[data-dragging="true"] {
+    z-index: 2;
+    background: var(--card);
+    box-shadow: var(--shadow-2);
+    transition: none;
+  }
+
+  .sortable-handle {
+    display: inline-grid;
+    place-items: center;
+    width: var(--target);
+    height: var(--target);
+    margin-left: calc(var(--space-2) * -1);
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--soft);
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .sortable-handle:active {
+    cursor: grabbing;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hold[data-holding="true"] .hold-fill {
+      transition-duration: 1200ms;
+    }
+  }
+}
