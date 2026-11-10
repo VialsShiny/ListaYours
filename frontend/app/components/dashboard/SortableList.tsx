@@ -60,7 +60,10 @@ export function SortableList({ ids, labelOf, onReorder, renderRow, className }: 
   };
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+      scrollBehavior: "instant",
+    }),
   );
 
   function handleDragEnd(event: DragEndEvent) {
