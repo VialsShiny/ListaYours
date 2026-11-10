@@ -21,7 +21,7 @@ import { groupGiftsByCategory } from "@/lib/wishlist-groups";
 export function WishlistView({ slug }: { slug: string }) {
   const { status, isOwner } = useAuth();
   const { data, error, loading, refetch, patchGift } = usePublicWishlist(slug);
-  const { view, hrefFor } = useViewMode();
+  const { view, hrefFor, switchTo } = useViewMode();
   const loginHref = `/connexion?next=${encodeURIComponent(`/l/${slug}`)}`;
   const viewer: ViewerRole = isOwner
     ? "owner"
@@ -83,6 +83,7 @@ export function WishlistView({ slug }: { slug: string }) {
         giftCount={data.gifts.length}
         view={view}
         hrefFor={hrefFor}
+        onSelect={switchTo}
       />
       <div className="container mt-6 flex flex-col gap-3 empty:hidden">
         {viewer === "anonymous" ? (

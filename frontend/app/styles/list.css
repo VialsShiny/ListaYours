@@ -20,8 +20,46 @@
     gap: var(--space-3);
   }
 
+  .navigator-viewport {
+    width: 100%;
+    overflow: hidden;
+    cursor: grab;
+    touch-action: pan-y pinch-zoom;
+  }
+
+  .navigator-viewport:active {
+    cursor: grabbing;
+  }
+
+  .navigator-track {
+    display: flex;
+    align-items: flex-end;
+    margin-left: -16px;
+  }
+
+  .navigator-slide {
+    flex: 0 0 min(100%, 400px);
+    min-width: 0;
+    padding-left: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    opacity: 0.5;
+    transform: scale(0.9);
+    transform-origin: bottom center;
+    transition:
+      opacity var(--dur-progress) var(--ease-out),
+      transform calc(var(--dur-progress) * var(--move) * var(--move-ui)) var(--ease-out);
+  }
+
+  .navigator-slide[data-active="true"] {
+    opacity: 1;
+    transform: none;
+  }
+
   .navigator-image {
-    width: min(100%, 400px);
+    width: 100%;
     aspect-ratio: 4 / 3;
     display: grid;
     place-items: center;
@@ -31,14 +69,12 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
+    user-select: none;
+    transition: opacity var(--dur-toggle) var(--ease-out);
   }
 
-  .navigator-image[data-motion="pointer"] img {
-    transition: opacity var(--dur-toggle) var(--ease-out);
-
-    @starting-style {
-      opacity: 0;
-    }
+  .navigator-image[data-muted="true"] img {
+    opacity: 0.45;
   }
 
   .navigator-ground {

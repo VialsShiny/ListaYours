@@ -15,7 +15,7 @@ type NavigatorBarProps = {
 
 /**
  * Counter "01 / 23" (polite live region), category shortcut, previous/next and the main action,
- * followed by a thin progress line with an accent segment.
+ * followed by a thin progress line whose accent segment scales over 220ms.
  */
 export function NavigatorBar({
   index,
@@ -27,7 +27,7 @@ export function NavigatorBar({
   onShowCategory,
   action,
 }: NavigatorBarProps) {
-  const progress = total > 0 ? ((index + 1) / total) * 100 : 0;
+  const progress = total > 0 ? (index + 1) / total : 0;
   return (
     <>
       <div className="navigator-bar">
@@ -63,10 +63,10 @@ export function NavigatorBar({
       </div>
       <div className="navigator-progress">
         <div className="progress-line" aria-hidden="true">
-          <span style={{ width: `${progress}%` }} />
+          <span style={{ transform: `scaleX(${progress})` }} />
         </div>
         <p className="text-small mt-3 text-soft max-lg:hidden">
-          Astuce : les flèches ← → du clavier changent de cadeau.
+          Astuce : les flèches ← → du clavier changent de cadeau, ou faites glisser l&apos;image.
         </p>
       </div>
     </>

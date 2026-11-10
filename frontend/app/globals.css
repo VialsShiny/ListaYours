@@ -5,6 +5,7 @@
 @import "./styles/grid.css";
 @import "./styles/list.css";
 @import "./styles/pages.css";
+@import "./styles/motion.css";
 
 :root {
   --font-display: "Against", var(--font-syne), "Syne", var(--font-inter), system-ui, sans-serif;
