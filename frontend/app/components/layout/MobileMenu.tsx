@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { voice } from "@/content/voice";
 import { Dialog } from "@base-ui/react/dialog";
 import { Menu, X } from "lucide-react";
 import { isActiveHref, type NavModel } from "@/lib/nav-links";
@@ -25,20 +26,20 @@ export function MobileMenu({ nav, pathname, onSignOut }: MobileMenuProps) {
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger className="btn btn-primary btn-sm md:hidden" aria-label="Ouvrir le menu">
-        Menu
+      <Dialog.Trigger className="btn btn-primary btn-sm md:hidden" aria-label={voice.nav.openMenu}>
+        {voice.nav.menu}
         <Menu className="size-4" aria-hidden="true" />
       </Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Popup className="ly-menu-popup md:hidden" aria-label="Menu principal">
+        <Dialog.Popup className="ly-menu-popup md:hidden" aria-label={voice.nav.menuLabel}>
           <div className="nav">
-            <span className="wordmark">ListaYours</span>
-            <Dialog.Close className="btn btn-sm" aria-label="Fermer le menu">
-              Fermer
+            <span className="wordmark">{voice.brand}</span>
+            <Dialog.Close className="btn btn-sm" aria-label={voice.nav.closeMenu}>
+              {voice.nav.close}
               <X className="size-4" aria-hidden="true" />
             </Dialog.Close>
           </div>
-          <nav aria-label="Navigation principale" className="flex flex-1 flex-col px-1 pt-6">
+          <nav aria-label={voice.nav.navLabel} className="flex flex-1 flex-col px-1 pt-6">
             <ul className="flex flex-col">
               {nav.links.map((item) => (
                 <li key={item.href} className="hairline">
@@ -81,7 +82,7 @@ export function MobileMenu({ nav, pathname, onSignOut }: MobileMenuProps) {
                   onSignOut();
                 }}
               >
-                Déconnexion
+                {voice.nav.signOut}
               </button>
             ) : null}
           </div>
