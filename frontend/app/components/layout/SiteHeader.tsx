@@ -3,13 +3,16 @@
 import Link from "next/link";
 import { voice } from "@/content/voice";
 import { usePathname } from "next/navigation";
+import { IdentityMenu } from "@/components/layout/IdentityMenu";
 import { MobileMenu } from "@/components/layout/MobileMenu";
 import { useAuth } from "@/hooks/use-auth";
+import { useAvatarUrl } from "@/hooks/use-avatar-url";
 import { usePublicWishlists } from "@/hooks/use-public-wishlist";
 import { buildNav, isActiveHref, type NavRole } from "@/lib/nav-links";
 
 export function SiteHeader() {
-  const { status, isOwner, signOut } = useAuth();
+  const { status, user, token, isOwner, signOut } = useAuth();
+  const avatarUrl = useAvatarUrl(user, token);
   const pathname = usePathname();
   const wishlists = usePublicWishlists();
   const firstSlug = wishlists.data?.[0]?.slug;
@@ -48,13 +51,17 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
-          {nav.showSignOut ? (
-            <button type="button" onClick={signOut} className="btn btn-primary btn-sm">
-              {voice.nav.signOut}
-            </button>
+          {nav.showSignOut && user ? (
+            <IdentityMenu user={user} avatarUrl={avatarUrl} onSignOut={signOut} />
           ) : null}
         </div>
-        <MobileMenu nav={nav} pathname={pathname} onSignOut={signOut} />
+        <MobileMenu
+          nav={nav}
+          pathname={pathname}
+          user={nav.showSignOut ? user : null}
+          avatarUrl={avatarUrl}
+          onSignOut={signOut}
+        />
       </header>
     </div>
   );

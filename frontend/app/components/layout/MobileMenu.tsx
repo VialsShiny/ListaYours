@@ -5,19 +5,24 @@ import Link from "next/link";
 import { voice } from "@/content/voice";
 import { Dialog } from "@base-ui/react/dialog";
 import { Menu, X } from "lucide-react";
+import { MobileIdentity } from "@/components/layout/MobileIdentity";
 import { isActiveHref, type NavModel } from "@/lib/nav-links";
+import type { User } from "@/lib/types";
 
 type MobileMenuProps = {
   nav: NavModel;
   pathname: string | null;
+  user: User | null;
+  avatarUrl: string | null;
   onSignOut: () => void;
 };
 
 /**
- * Full-screen menu under 768px: large links separated by hairlines, account actions at the bottom.
+ * Full-screen menu under 768px: the signed-in identity on top, large links separated by hairlines,
+ * sign-in actions at the bottom for anonymous readers.
  * Base UI's Dialog provides the focus trap, Escape and scroll lock; the menu closes on navigation.
  */
-export function MobileMenu({ nav, pathname, onSignOut }: MobileMenuProps) {
+export function MobileMenu({ nav, pathname, user, avatarUrl, onSignOut }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -39,6 +44,17 @@ export function MobileMenu({ nav, pathname, onSignOut }: MobileMenuProps) {
               <X className="size-4" aria-hidden="true" />
             </Dialog.Close>
           </div>
+          {user ? (
+            <MobileIdentity
+              user={user}
+              avatarUrl={avatarUrl}
+              onNavigate={() => setOpen(false)}
+              onSignOut={() => {
+                setOpen(false);
+                onSignOut();
+              }}
+            />
+          ) : null}
           <nav aria-label={voice.nav.navLabel} className="flex flex-1 flex-col px-1 pt-6">
             <ul className="flex flex-col">
               {nav.links.map((item) => (
@@ -46,10 +62,12 @@ export function MobileMenu({ nav, pathname, onSignOut }: MobileMenuProps) {
                   <Link
                     href={item.href}
                     aria-current={isActiveHref(item.href, pathname) ? "page" : undefined}
-                    className="display flex min-h-[84px] items-center justify-between gap-4 text-[clamp(1.75rem,8.5vw,2.75rem)] tracking-[-0.045em]"
+                    className="flex min-h-[84px] items-center justify-between gap-4"
                     onClick={() => setOpen(false)}
                   >
-                    <span className="min-w-0">{item.label}</span>
+                    <span className="display min-w-0 text-[clamp(1.75rem,8.5vw,2.75rem)] tracking-[-0.045em]">
+                      {item.label}
+                    </span>
                     <span aria-hidden="true" className="text-[22px] text-accent">
                       →
                     </span>
@@ -73,18 +91,6 @@ export function MobileMenu({ nav, pathname, onSignOut }: MobileMenuProps) {
                 {item.label}
               </Link>
             ))}
-            {nav.showSignOut ? (
-              <button
-                type="button"
-                className="btn btn-secondary btn-hero"
-                onClick={() => {
-                  setOpen(false);
-                  onSignOut();
-                }}
-              >
-                {voice.nav.signOut}
-              </button>
-            ) : null}
           </div>
         </Dialog.Popup>
       </Dialog.Portal>

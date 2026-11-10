@@ -85,13 +85,19 @@ async function parseBody(response: Response): Promise<unknown> {
  */
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = { Accept: "application/json" };
-  if (options.body !== undefined) headers["Content-Type"] = "application/json";
+  const binary = options.body instanceof Blob;
+  if (binary) headers["Content-Type"] = (options.body as Blob).type || "application/octet-stream";
+  else if (options.body !== undefined) headers["Content-Type"] = "application/json";
   if (options.token) headers.Authorization = `Bearer ${options.token}`;
 
   const response = await fetch(`${API_BASE}${path}`, {
     method: options.method ?? "GET",
     headers,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    body: binary
+      ? (options.body as Blob)
+      : options.body === undefined
+        ? undefined
+        : JSON.stringify(options.body),
     signal: options.signal,
   });
 
