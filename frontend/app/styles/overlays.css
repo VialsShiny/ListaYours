@@ -140,6 +140,10 @@
     opacity: 0;
   }
 
+  .ly-menu-popup[data-ending-style] {
+    transition-duration: 120ms;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .skeleton {
       animation: none;
@@ -158,6 +162,10 @@
     .ly-dialog-popup[data-starting-style],
     .ly-dialog-popup[data-ending-style] {
       opacity: 0;
+    }
+
+    .ly-drawer-popup[data-starting-style],
+    .ly-sheet-popup[data-starting-style] {
       transform: translate3d(0, 0, 0);
     }
 
