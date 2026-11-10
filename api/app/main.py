@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import get_settings
-from app.routers import auth, owner_categories, owner_gifts, owner_wishlist, public, reservations, scrape
+from app.routers import account, auth, owner_categories, owner_gifts, owner_wishlist, public, reservations, scrape
 from app.services.errors import ServiceError
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -30,6 +30,7 @@ async def service_error_handler(_request: Request, error: ServiceError) -> JSONR
 
 for router in (
     auth.router,
+    account.router,
     scrape.router,
     owner_wishlist.router,
     owner_categories.router,
