@@ -9,25 +9,34 @@ import type { User } from "@/lib/types";
 
 type AccountPageProps = { user: User; token: string };
 
-const SECTIONS = [
-  { id: "identite", index: "#01", title: voice.account.sections.profile },
-  { id: "photo", index: "#02", title: voice.account.sections.photo },
-  { id: "mot-de-passe", index: "#03", title: voice.account.sections.password },
-];
-
 /**
  * Three independent sections, each with its own save and feedback.
  */
 export function AccountPage({ user, token }: AccountPageProps) {
-  const forms = [
-    <ProfileForm key="profile" user={user} token={token} />,
-    <AvatarForm key="avatar" user={user} token={token} />,
-    <PasswordForm key="password" token={token} />,
+  const sections = [
+    {
+      id: "identite",
+      index: "#01",
+      title: voice.account.sections.profile,
+      form: <ProfileForm user={user} token={token} />,
+    },
+    {
+      id: "photo",
+      index: "#02",
+      title: voice.account.sections.photo,
+      form: <AvatarForm user={user} token={token} />,
+    },
+    {
+      id: "mot-de-passe",
+      index: "#03",
+      title: voice.account.sections.password,
+      form: <PasswordForm token={token} />,
+    },
   ];
 
   return (
     <div className="container flex flex-col gap-10 pt-10 md:gap-16 md:pt-14">
-      {SECTIONS.map((section, index) => (
+      {sections.map((section) => (
         <section
           key={section.id}
           id={section.id}
@@ -39,7 +48,7 @@ export function AccountPage({ user, token }: AccountPageProps) {
             index={section.index}
             title={section.title}
           />
-          {forms[index]}
+          {section.form}
         </section>
       ))}
     </div>

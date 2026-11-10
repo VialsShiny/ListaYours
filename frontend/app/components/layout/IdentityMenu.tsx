@@ -45,6 +45,7 @@ export function IdentityMenu({ user, avatarUrl, onSignOut }: IdentityMenuProps) 
               render={<Link href="/parametres/compte" />}
               className="identity-item"
               closeOnClick
+              onClick={() => setOpen(false)}
             >
               {voice.nav.account}
             </Menu.LinkItem>

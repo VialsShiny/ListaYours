@@ -20,7 +20,11 @@ export function PasswordForm({ token }: PasswordFormProps) {
   const [next, setNext] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const currentError = error && /actuel/i.test(error) ? error : null;
+  const bytesOver = (value: string) => new TextEncoder().encode(value).length > 72;
+  const currentError =
+    error && (/actuel/i.test(error) || (/octets/i.test(error) && bytesOver(current)))
+      ? error
+      : null;
   const nextError =
     error && !currentError && /mot de passe|caract|octets/i.test(error) ? error : null;
   const otherError = error && !currentError && !nextError ? error : null;

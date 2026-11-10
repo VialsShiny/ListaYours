@@ -41,7 +41,7 @@ def read_account(user: CurrentUser) -> UserOut:
     return UserOut.model_validate(user)
 
 
-@router.patch("", response_model=UserOut)
+@router.patch("", response_model=UserOut, dependencies=protected)
 def update_account(payload: ProfileUpdate, user: CurrentUser, db: DbSession) -> UserOut:
     return UserOut.model_validate(update_profile(db, user, payload))
 

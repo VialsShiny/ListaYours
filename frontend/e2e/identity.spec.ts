@@ -56,6 +56,7 @@ for (const item of CASES) {
         const trigger = header.locator(".identity-trigger");
         await expect(trigger).toBeVisible();
         await expect(trigger).toContainText(label);
+        await expect(header.getByRole("button", { name: `${name} ${label}` })).toBeVisible();
         await expect(trigger.locator(".identity-name")).toHaveText(name);
         const triggerBox = await trigger.boundingBox();
         expect(triggerBox!.width).toBeLessThanOrEqual(240);
