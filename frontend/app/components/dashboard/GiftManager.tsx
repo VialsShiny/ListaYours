@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { voice } from "@/content/voice";
 import dynamic from "next/dynamic";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Button } from "@/components/ui/button";
@@ -41,21 +42,21 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
     const rest = ordered.slice(visible.length).map((gift) => gift.id);
     void store.run(
       (token) => reorderGifts(token, [...visibleIds, ...rest]),
-      "Le réordonnancement a échoué.",
+      voice.dashboard.gifts.reorderFailed,
     );
   }
 
   function toggleVisibility(gift: OwnerGift) {
     void store.run(
       (token) => updateGift(token, gift.id, { is_visible: !gift.is_visible }),
-      "Le changement de visibilité a échoué.",
+      voice.dashboard.gifts.visibilityFailed,
     );
   }
 
   async function remove(gift: OwnerGift) {
     const { ok } = await store.run(
       (token) => deleteGift(token, gift.id),
-      "La suppression a échoué.",
+      voice.dashboard.gifts.deleteFailed,
     );
     if (ok) setToConfirm(null);
   }
@@ -67,25 +68,25 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
       <DashboardSectionTitle
         id="cadeaux-titre"
         index="#03"
-        title="Cadeaux"
+        title={voice.dashboard.sections.gifts}
         aside={
           <div className="flex items-center gap-4">
             <p className="text-secondary text-soft">
-              {gifts.length} {gifts.length > 1 ? "cadeaux" : "cadeau"}
+              {voice.dashboard.categories.count(gifts.length)}
             </p>
             <Button variant="primary" className="max-md:hidden" onClick={() => openForm(null)}>
-              Ajouter un cadeau
+              {voice.dashboard.gifts.add}
             </Button>
           </div>
         }
       />
       {ordered.length === 0 ? (
         <EmptyState
-          title="Aucun cadeau pour l'instant"
-          text="Ajoutez votre premier cadeau en collant un lien produit."
+          title={voice.dashboard.gifts.emptyTitle}
+          text={voice.dashboard.gifts.emptyText}
           action={
             <Button variant="primary" size="sm" onClick={() => openForm(null)}>
-              Ajouter un cadeau
+              {voice.dashboard.gifts.add}
             </Button>
           }
         />
@@ -115,7 +116,7 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
           {hidden > 0 ? (
             <div className="flex justify-center border-t border-line">
               <Button variant="text-accent" className="min-h-16" onClick={() => setExpanded(true)}>
-                Afficher les {hidden} autres cadeaux →
+                {voice.dashboard.gifts.showMore(hidden)}
               </Button>
             </div>
           ) : null}
@@ -123,7 +124,7 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
       )}
       <div className="sticky-bar -mx-4 md:hidden">
         <Button variant="primary" block onClick={() => openForm(null)}>
-          Ajouter un cadeau
+          {voice.dashboard.gifts.add}
         </Button>
       </div>
       <GiftFormDrawer
@@ -135,8 +136,8 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
       />
       <ConfirmDialog
         open={toConfirm !== null}
-        title={toConfirm ? `Supprimer « ${toConfirm.name} » ?` : ""}
-        description="Le cadeau disparaîtra de la liste publique et les réservations associées seront perdues."
+        title={toConfirm ? voice.dashboard.gifts.dialogTitle(toConfirm.name) : ""}
+        description={voice.dashboard.gifts.dialogText}
         busy={store.busy}
         onConfirm={() => toConfirm && void remove(toConfirm)}
         onCancel={() => setToConfirm(null)}

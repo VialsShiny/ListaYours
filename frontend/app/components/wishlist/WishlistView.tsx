@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { voice } from "@/content/voice";
 import { ErrorPanel } from "@/components/feedback/ErrorPanel";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Notice } from "@/components/feedback/Notice";
@@ -51,7 +52,7 @@ export function WishlistView({ slug }: { slug: string }) {
       <>
         <WishlistHeaderSkeleton />
         <section className="container pt-12" aria-busy="true">
-          <p className="eyebrow mb-6">Chargement de la liste…</p>
+          <p className="eyebrow mb-6">{voice.list.loading}</p>
           <GiftGridSkeleton />
         </section>
       </>
@@ -61,7 +62,7 @@ export function WishlistView({ slug }: { slug: string }) {
   if (error || !data) {
     return (
       <section className="container pt-8">
-        <ErrorPanel message={error ?? "Cette liste est introuvable."} onRetry={refetch} />
+        <ErrorPanel message={error ?? voice.list.notFound} onRetry={refetch} />
       </section>
     );
   }
@@ -78,10 +79,7 @@ export function WishlistView({ slug }: { slug: string }) {
     <>
       {viewer === "owner" ? (
         <div className="container pt-8 md:pt-10">
-          <Notice title="Aperçu propriétaire">
-            Vous voyez votre liste comme si chaque cadeau était disponible. Aucune réservation ne
-            vous est jamais montrée.
-          </Notice>
+          <Notice title={voice.list.ownerTitle}>{voice.list.ownerText}</Notice>
         </div>
       ) : null}
       <WishlistHeader
@@ -93,14 +91,14 @@ export function WishlistView({ slug }: { slug: string }) {
       />
       {viewer === "anonymous" ? (
         <div className="container mt-6">
-          <Notice href={loginHref} linkLabel="Se connecter">
-            Connectez-vous pour réserver un cadeau. Le propriétaire ne verra rien.
+          <Notice href={loginHref} linkLabel={voice.list.anonymousLink}>
+            {voice.list.anonymousText}
           </Notice>
         </div>
       ) : null}
       {groups.length === 0 ? (
         <section className="container pt-12">
-          <EmptyState title="Aucun cadeau pour le moment" text="La liste se remplit bientôt." />
+          <EmptyState title={voice.list.emptyTitle} text={voice.list.emptyText} />
         </section>
       ) : view === "naviguer" ? (
         <GiftNavigator groups={groups} {...giftProps} />

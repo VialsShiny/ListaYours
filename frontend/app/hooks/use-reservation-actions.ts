@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { voice } from "@/content/voice";
 import { useAuth } from "@/hooks/use-auth";
 import { ApiError, errorMessage } from "@/lib/api";
 import { cancelReservation, reserveGift } from "@/lib/api-public";
 
-export const TAKEN_MESSAGE = "Ce cadeau vient d'être réservé par quelqu'un d'autre.";
+export const TAKEN_MESSAGE = voice.list.toastTaken;
 
 type Id = number | string;
 
@@ -53,14 +54,14 @@ export function useReservationActions(handlers: ReservationHandlers): Reservatio
       try {
         await reserveGift(giftId, token);
         handlersRef.current.onReserved?.(giftId);
-        say("Réservation enregistrée. Merci !", "success");
+        say(voice.list.toastReserved, "success");
         return true;
       } catch (error) {
         if (error instanceof ApiError && error.status === 409) {
           say(TAKEN_MESSAGE, "error");
           handlersRef.current.onConflict?.();
         } else {
-          say(errorMessage(error, "La réservation a échoué."), "error");
+          say(errorMessage(error, voice.list.reserveFailed), "error");
         }
         return false;
       } finally {
@@ -77,10 +78,10 @@ export function useReservationActions(handlers: ReservationHandlers): Reservatio
       try {
         await cancelReservation(giftId, token);
         handlersRef.current.onCancelled?.(giftId);
-        say("Réservation annulée.", "success");
+        say(voice.list.toastCancelled, "success");
         return true;
       } catch (error) {
-        say(errorMessage(error, "L'annulation a échoué."), "error");
+        say(errorMessage(error, voice.list.cancelFailed), "error");
         return false;
       } finally {
         setPendingId(null);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { voice } from "@/content/voice";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -13,18 +14,7 @@ import { safeNextPath } from "@/lib/safe-next";
 
 type AuthFormProps = { mode: "login" | "register" };
 
-const COPY = {
-  login: {
-    submit: "Se connecter",
-    busy: "Connexion…",
-    other: { text: "Pas encore de compte ?", label: "Créer un compte →", href: "/inscription" },
-  },
-  register: {
-    submit: "Créer mon compte",
-    busy: "Création…",
-    other: { text: "Déjà inscrit ?", label: "Se connecter →", href: "/connexion" },
-  },
-};
+const OTHER_HREF = { login: "/inscription", register: "/connexion" };
 
 /**
  * Picks the field under which an API error is shown: e-mail errors under the e-mail field,
@@ -35,7 +25,7 @@ function errorField(message: string): "email" | "password" {
 }
 
 export function AuthForm({ mode }: AuthFormProps) {
-  const copy = COPY[mode];
+  const copy = voice.auth[mode];
   const router = useRouter();
   const searchParams = useSearchParams();
   const { signIn } = useAuth();
@@ -47,7 +37,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [errorSeq, setErrorSeq] = useState(0);
   const [busy, setBusy] = useState(false);
   const otherHref =
-    next === "/" ? copy.other.href : `${copy.other.href}?next=${encodeURIComponent(next)}`;
+    next === "/" ? OTHER_HREF[mode] : `${OTHER_HREF[mode]}?next=${encodeURIComponent(next)}`;
   const errorOn = error ? errorField(error) : null;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -62,7 +52,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       signIn(response.access_token, response.user);
       router.replace(next);
     } catch (caught) {
-      setError(errorMessage(caught, "La connexion a échoué."));
+      setError(errorMessage(caught, voice.auth.failed));
       setErrorSeq((current) => current + 1);
       setBusy(false);
     }
@@ -72,7 +62,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     <div className="flex flex-col gap-6">
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         {mode === "register" ? (
-          <Field id="display_name" label="Prénom ou pseudo" required>
+          <Field id="display_name" label={voice.auth.name} required>
             {(describedBy) => (
               <Input
                 id="display_name"
@@ -91,7 +81,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           id="email"
           key={errorOn === "email" ? `email-${errorSeq}` : "email"}
           className={errorOn === "email" ? "shake" : undefined}
-          label="Adresse e-mail"
+          label={voice.auth.email}
           required
           error={errorOn === "email" ? error : null}
         >
@@ -113,8 +103,8 @@ export function AuthForm({ mode }: AuthFormProps) {
           id="password"
           key={errorOn === "password" ? `password-${errorSeq}` : "password"}
           className={errorOn === "password" ? "shake" : undefined}
-          label="Mot de passe"
-          hint={mode === "register" ? "Utilisez au moins 8 caractères." : undefined}
+          label={voice.auth.password}
+          hint={mode === "register" ? voice.auth.passwordHint : undefined}
           error={errorOn === "password" ? error : null}
           required
         >
@@ -139,14 +129,14 @@ export function AuthForm({ mode }: AuthFormProps) {
         </Button>
       </form>
       <p className="text-secondary flex min-h-11 flex-wrap items-center justify-center gap-x-1.5 text-center text-soft">
-        {copy.other.text}
+        {copy.otherText}
         <Link href={otherHref} className="text-link">
-          {copy.other.label}
+          {copy.otherLabel}
         </Link>
       </p>
       {next !== "/" ? (
         <p className="text-small border-t border-line pt-4 leading-[1.5] text-soft">
-          Après la connexion, vous reviendrez sur la page d&apos;où vous venez.
+          {voice.auth.nextNotice}
         </p>
       ) : null}
     </div>

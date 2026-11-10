@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import { voice } from "@/content/voice";
 import { Drawer, DrawerClose, DrawerContent } from "@/components/ui/drawer";
 import { DisplayTitle } from "@/components/layout/DisplayTitle";
 import { CategoryAccordion } from "@/components/wishlist/CategoryAccordion";
@@ -32,12 +33,12 @@ export function CategorySheet({
 }: CategorySheetProps) {
   return (
     <Drawer placement="bottom" open={open} onOpenChange={onOpenChange}>
-      <DrawerContent aria-label="Catégories">
+      <DrawerContent aria-label={voice.list.categories}>
         <div className="flex items-center justify-between gap-3 px-4 pb-2">
           <DisplayTitle as="h2" size="sub">
-            Catégories
+            {voice.list.categories}
           </DisplayTitle>
-          <DrawerClose className="btn btn-icon" aria-label="Fermer les catégories">
+          <DrawerClose className="btn btn-icon" aria-label={voice.list.closeCategories}>
             <X aria-hidden="true" />
           </DrawerClose>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { GiftPhoto } from "@/components/wishlist/GiftPhoto";
+import { voice } from "@/content/voice";
 import { GiftPrice } from "@/components/wishlist/GiftPrice";
 import { ReservationControl, type ViewerRole } from "@/components/wishlist/ReservationControl";
 import { hasDiscount } from "@/lib/format";
@@ -49,7 +50,7 @@ export function GiftCard({ gift, viewer, loginHref, pending, onReserve, onCancel
             <p className="line-clamp-2 min-w-0 text-soft">{gift.description}</p>
           ) : null}
           {hasDiscount(gift.price, gift.old_price) && !reservedByOther ? (
-            <span className="font-semibold text-accent">Prix réduit</span>
+            <span className="font-semibold text-accent">{voice.list.reduced}</span>
           ) : null}
           {gift.purchase_url ? (
             <a
@@ -58,7 +59,7 @@ export function GiftCard({ gift, viewer, loginHref, pending, onReserve, onCancel
               rel="noopener noreferrer"
               className="text-link inline-flex min-h-11 items-center"
             >
-              Voir le produit →
+              {voice.list.product}
             </a>
           ) : null}
         </div>

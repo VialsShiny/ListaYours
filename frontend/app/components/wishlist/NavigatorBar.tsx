@@ -1,4 +1,5 @@
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { voice } from "@/content/voice";
 import { Button } from "@/components/ui/button";
 import { formatPosition } from "@/lib/wishlist-navigation";
 
@@ -34,7 +35,7 @@ export function NavigatorBar({
         <Button
           variant="icon"
           className="btn-icon-lg lg:btn-icon"
-          aria-label="Cadeau précédent"
+          aria-label={voice.list.previous}
           disabled={isFirst}
           onClick={onPrevious}
         >
@@ -47,7 +48,7 @@ export function NavigatorBar({
         <Button
           variant="icon"
           className="btn-icon-lg lg:btn-icon"
-          aria-label="Cadeau suivant"
+          aria-label={voice.list.next}
           disabled={isLast}
           onClick={onNext}
         >
@@ -55,7 +56,7 @@ export function NavigatorBar({
         </Button>
         {onShowCategory ? (
           <Button variant="secondary" size="sm" className="max-lg:hidden" onClick={onShowCategory}>
-            Voir la catégorie
+            {voice.list.showCategory}
           </Button>
         ) : null}
         <span className="flex-1 max-lg:hidden" />
@@ -65,9 +66,7 @@ export function NavigatorBar({
         <div className="progress-line" aria-hidden="true">
           <span style={{ transform: `scaleX(${progress})` }} />
         </div>
-        <p className="text-small mt-3 text-soft max-lg:hidden">
-          Astuce : les flèches ← → du clavier changent de cadeau, ou faites glisser l&apos;image.
-        </p>
+        <p className="text-small mt-3 text-soft max-lg:hidden">{voice.list.tip}</p>
       </div>
     </>
   );

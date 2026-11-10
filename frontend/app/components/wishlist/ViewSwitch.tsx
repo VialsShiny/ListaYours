@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { voice } from "@/content/voice";
 import { Segmented } from "@/components/ui/segmented";
 import type { ViewMode } from "@/hooks/use-view-mode";
 
@@ -22,7 +23,7 @@ export function ViewSwitch({ view, hrefFor, onSelect, className }: ViewSwitchPro
   const activeIndex = OPTIONS.findIndex((option) => option.mode === view);
   return (
     <Segmented
-      aria-label="Affichage de la liste"
+      aria-label={voice.list.viewLabel}
       count={OPTIONS.length}
       activeIndex={activeIndex}
       className={className}

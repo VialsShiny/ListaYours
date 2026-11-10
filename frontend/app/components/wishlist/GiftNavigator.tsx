@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { voice } from "@/content/voice";
 import { ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MicroLabel } from "@/components/layout/MicroLabel";
@@ -92,8 +93,11 @@ export function GiftNavigator({
             action={control(false, "w-auto min-w-44")}
           />
         </div>
-        <aside className="navigator-panel material max-lg:hidden" aria-label="Catégories">
-          <MicroLabel className="px-2 py-1">Catégories</MicroLabel>
+        <aside
+          className="navigator-panel material max-lg:hidden"
+          aria-label={voice.list.categories}
+        >
+          <MicroLabel className="px-2 py-1">{voice.list.categories}</MicroLabel>
           <CategoryAccordion
             groups={groups}
             currentGiftId={gift.id}
@@ -105,7 +109,7 @@ export function GiftNavigator({
       </div>
       <div className="sticky-bar -mx-4 mt-6 flex gap-3 lg:hidden">
         <Button variant="secondary" className="flex-1" onClick={() => setSheetOpen(true)}>
-          Catégories
+          {voice.list.categories}
           <ChevronUp className="size-4" aria-hidden="true" />
         </Button>
         {control(true, "flex-[1.4]")}

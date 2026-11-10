@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { voice } from "@/content/voice";
 import { useAuth } from "@/hooks/use-auth";
 import { errorMessage } from "@/lib/api";
 import { scrapeProduct } from "@/lib/api-owner";
 import type { ProductData, ScrapeStrategy } from "@/lib/types";
 
-export const SCRAPE_PROGRESS_MESSAGE = "Analyse en cours, cela peut prendre une minute…";
+export const SCRAPE_PROGRESS_MESSAGE = voice.dashboard.gifts.scraping;
 const SCRAPE_TIMEOUT_MS = 95_000;
 
 export type ScrapeState =
@@ -25,7 +26,7 @@ export function useScrape() {
   const analyse = useCallback(
     async (url: string, strategy: ScrapeStrategy) => {
       if (!token) {
-        setState({ phase: "error", message: "Connectez-vous en tant que propriétaire." });
+        setState({ phase: "error", message: voice.errors.ownerOnly });
         return null;
       }
       controllerRef.current?.abort();
@@ -41,15 +42,18 @@ export function useScrape() {
         }
         setState({
           phase: "error",
-          message: response.error ?? "L'analyse n'a renvoyé aucune donnée.",
+          message: response.error ?? voice.dashboard.gifts.scrapeEmpty,
         });
         return null;
       } catch (error) {
         if (controllerRef.current !== controller) return null;
         if (controller.signal.aborted) {
-          setState({ phase: "error", message: "L'analyse a dépassé le délai imparti." });
+          setState({ phase: "error", message: voice.dashboard.gifts.scrapeTimeout });
         } else {
-          setState({ phase: "error", message: errorMessage(error, "L'analyse a échoué.") });
+          setState({
+            phase: "error",
+            message: errorMessage(error, voice.dashboard.gifts.scrapeFailed),
+          });
         }
         return null;
       } finally {

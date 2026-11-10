@@ -1,4 +1,5 @@
 import { DisplayTitle } from "@/components/layout/DisplayTitle";
+import { voice } from "@/content/voice";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -14,7 +15,7 @@ type ErrorPanelProps = {
  */
 export function ErrorPanel({
   message,
-  title = "Quelque chose n'a pas fonctionné",
+  title = voice.errors.title,
   onRetry,
   className,
 }: ErrorPanelProps) {
@@ -29,7 +30,7 @@ export function ErrorPanel({
       <p className="text-secondary max-w-prose text-soft">{message}</p>
       {onRetry ? (
         <Button variant="secondary" size="sm" className="mt-1" onClick={onRetry}>
-          Réessayer
+          {voice.errors.retry}
         </Button>
       ) : null}
     </div>

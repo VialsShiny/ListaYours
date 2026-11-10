@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertDialog } from "@base-ui/react/alert-dialog";
+import { voice } from "@/content/voice";
 import { Button } from "@/components/ui/button";
 
 type ConfirmDialogProps = {
@@ -51,7 +52,7 @@ export function ConfirmDialog({
               onClick={onConfirm}
               disabled={busy}
             >
-              {busy ? "Un instant…" : confirmLabel}
+              {busy ? voice.errors.wait : confirmLabel}
             </Button>
           </div>
         </AlertDialog.Popup>

@@ -1,4 +1,5 @@
 import { GiftPrice } from "@/components/wishlist/GiftPrice";
+import { voice } from "@/content/voice";
 import type { PublicGift } from "@/lib/types";
 import { formatIndex } from "@/lib/wishlist-navigation";
 
@@ -38,7 +39,7 @@ export function NavigatorStage({ gift, groupIndex, groupName, muted }: Navigator
           rel="noopener noreferrer"
           className="text-link inline-flex min-h-11 items-center text-secondary"
         >
-          Voir le produit →
+          {voice.list.product}
         </a>
       ) : null}
     </div>

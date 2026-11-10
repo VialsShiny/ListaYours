@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { voice } from "@/content/voice";
 import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HoldButton } from "@/components/ui/hold-button";
@@ -46,14 +47,14 @@ export function CategoryRow({
   return (
     <SortableRow
       id={category.id}
-      handleLabel={`Réordonner ${category.name}`}
+      handleLabel={voice.dashboard.categories.reorder(category.name)}
       className="list-row flex-wrap md:flex-nowrap"
     >
       <span className="index-tag w-9 shrink-0 text-[14px]">{formatIndex(index)}</span>
       {editing ? (
         <form onSubmit={submitRename} className="flex min-w-0 flex-1 items-center gap-2">
           <label htmlFor={inputId} className="sr-only">
-            Nouveau nom de la catégorie
+            {voice.dashboard.categories.renameLabel}
           </label>
           <Input
             id={inputId}
@@ -63,12 +64,17 @@ export function CategoryRow({
             onChange={(event) => setDraft(event.target.value)}
             className="min-h-11"
           />
-          <Button type="submit" variant="icon" aria-label="Valider le nom" disabled={busy}>
+          <Button
+            type="submit"
+            variant="icon"
+            aria-label={voice.dashboard.categories.validate}
+            disabled={busy}
+          >
             <Check aria-hidden="true" />
           </Button>
           <Button
             variant="icon"
-            aria-label="Annuler le renommage"
+            aria-label={voice.dashboard.categories.cancelRename}
             onClick={() => {
               setDraft(category.name);
               setEditing(false);
@@ -83,17 +89,17 @@ export function CategoryRow({
         </p>
       )}
       <span className="text-small shrink-0 text-soft md:text-[14px]">
-        {count} {count > 1 ? "cadeaux" : "cadeau"}
+        {voice.dashboard.categories.count(count)}
       </span>
       <div className="flex w-full shrink-0 items-center gap-1 md:w-auto">
         {!editing ? (
           <Button variant="text" onClick={() => setEditing(true)}>
-            Renommer
+            {voice.dashboard.categories.rename}
           </Button>
         ) : null}
         <HoldButton
-          label="Supprimer"
-          holdLabel={`Maintenir 1 seconde pour supprimer ${category.name} ; ses cadeaux iront dans Autres`}
+          label={voice.dashboard.categories.remove}
+          holdLabel={voice.dashboard.categories.hold(category.name)}
           disabled={busy}
           onConfirm={onDelete}
           onFallback={onConfirmDelete}

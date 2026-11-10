@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { voice } from "@/content/voice";
 import { Accordion } from "@base-ui/react/accordion";
 import { ChevronRight } from "lucide-react";
 import type { ViewerRole } from "@/components/wishlist/ReservationControl";
@@ -79,8 +80,8 @@ export function CategoryAccordion({
                       </span>
                       <span className="shrink-0">
                         {reserved
-                          ? "Réservé"
-                          : (formatPrice(gift.price, gift.currency) ?? "Prix non renseigné")}
+                          ? voice.list.reservedShort
+                          : (formatPrice(gift.price, gift.currency) ?? voice.list.noPrice)}
                       </span>
                     </button>
                   </li>

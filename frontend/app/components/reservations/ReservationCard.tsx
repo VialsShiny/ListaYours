@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { voice } from "@/content/voice";
 import { Button } from "@/components/ui/button";
 import { GiftPhoto } from "@/components/wishlist/GiftPhoto";
 import { formatDate, formatPrice } from "@/lib/format";
@@ -39,8 +40,8 @@ export function ReservationCard({ item, pending, onCancel }: ReservationCardProp
             {gift.name}
           </h2>
           <p className="text-secondary text-soft">
-            {price ?? "Prix non renseigné"}
-            {date ? ` · Réservé le ${date}` : ""}
+            {price ?? voice.list.noPrice}
+            {date ? ` · ${voice.reservations.reservedOn(date)}` : ""}
           </p>
         </div>
       </div>
@@ -52,7 +53,7 @@ export function ReservationCard({ item, pending, onCancel }: ReservationCardProp
             rel="noopener noreferrer"
             className="text-link text-secondary inline-flex min-h-12 flex-1 items-center justify-center md:flex-none md:pr-3"
           >
-            Voir le produit →
+            {voice.reservations.product}
           </a>
         ) : null}
         <Button
@@ -62,7 +63,7 @@ export function ReservationCard({ item, pending, onCancel }: ReservationCardProp
           disabled={pending}
           onClick={() => onCancel(item)}
         >
-          {pending ? "Annulation…" : "Annuler"}
+          {pending ? voice.list.working : voice.reservations.cancel}
         </Button>
       </div>
     </article>
