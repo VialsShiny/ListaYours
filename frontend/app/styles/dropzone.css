@@ -1,0 +1,43 @@
+@layer components {
+  .dropzone {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    min-height: 160px;
+    padding: var(--space-5);
+    border: 1.5px dashed var(--field-border);
+    border-radius: var(--radius-card);
+    background: var(--card);
+    text-align: center;
+    transition:
+      border-color var(--dur-toggle) var(--ease-out),
+      background-color var(--dur-toggle) var(--ease-out);
+  }
+
+  .dropzone[data-dragging="true"] {
+    border-color: var(--ink);
+    background: var(--tile);
+  }
+
+  .dropzone:focus-within {
+    outline: 3px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  .dropzone-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .dropzone-input:disabled {
+    cursor: not-allowed;
+  }
+}

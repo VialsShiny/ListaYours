@@ -39,6 +39,7 @@ def test_png_and_webp_are_accepted_and_transparency_is_flattened(client, visitor
     served = client.get("/api/account/avatar", headers=headers(visitor))
     with Image.open(BytesIO(served.content)) as image:
         pixel = image.convert("RGB").getpixel((128, 128))
+        assert isinstance(pixel, tuple)
         assert all(abs(channel - 237) <= 2 for channel in pixel), pixel
     webp = upload(client, visitor, image_bytes(120, 80, "WEBP"), "image/webp")
     assert webp.status_code == 200, webp.text

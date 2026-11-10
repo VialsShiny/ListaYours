@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu } from "@base-ui/react/menu";
 import { ChevronDown } from "lucide-react";
 import { UserAvatar } from "@/components/layout/UserAvatar";
@@ -16,10 +18,18 @@ type IdentityMenuProps = {
 
 /**
  * Desktop header identity: avatar, pseudo and role in a pill that opens a two-entry menu.
+ * The menu closes on navigation, since the account link is a client-side route change.
  */
 export function IdentityMenu({ user, avatarUrl, onSignOut }: IdentityMenuProps) {
+  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
   return (
-    <Menu.Root modal={false}>
+    <Menu.Root modal={false} open={open} onOpenChange={setOpen}>
       <Menu.Trigger className="identity-trigger">
         <UserAvatar name={user.display_name} src={avatarUrl} size="sm" />
         <span className="identity-text">

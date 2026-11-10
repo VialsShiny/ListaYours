@@ -65,7 +65,7 @@ export function MobileMenu({ nav, pathname, user, avatarUrl, onSignOut }: Mobile
                     className="flex min-h-[84px] items-center justify-between gap-4"
                     onClick={() => setOpen(false)}
                   >
-                    <span className="display min-w-0 text-[clamp(1.75rem,8.5vw,2.75rem)] tracking-[-0.045em]">
+                    <span className="display min-w-0 text-[clamp(1.25rem,8vw,2.75rem)] tracking-[-0.045em]">
                       {item.label}
                     </span>
                     <span aria-hidden="true" className="text-[22px] text-accent">
