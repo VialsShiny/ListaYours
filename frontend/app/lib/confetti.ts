@@ -1,13 +1,15 @@
-import { prefersReducedMotion } from "@/lib/motion";
+import { getInputModality } from "@/hooks/use-input-modality";
+import { prefersReducedMotion, shouldMove } from "@/lib/motion";
 
 const COLORS = ["#0d0d0d", "#cf3328", "#9a9a9a"];
 
 /**
  * One burst of black, red and grey confetti for the visitor who just reserved a gift.
- * The library is loaded on demand and nothing fires under reduced motion.
+ * The library is loaded on demand; nothing fires under reduced motion or after a keyboard action.
  */
 export async function fireReservationConfetti(): Promise<boolean> {
-  if (typeof window === "undefined" || prefersReducedMotion()) return false;
+  if (typeof window === "undefined") return false;
+  if (!shouldMove(prefersReducedMotion(), getInputModality())) return false;
   const { default: confetti } = await import("canvas-confetti");
   void confetti({
     particleCount: 90,

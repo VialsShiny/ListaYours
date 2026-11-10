@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireReservationConfetti } from "@/lib/confetti";
+import { shouldMove } from "@/lib/motion";
 import { sumReservations } from "@/lib/reservations-total";
 import type { MyReservation } from "@/lib/types";
 
@@ -38,6 +39,12 @@ describe("fireReservationConfetti", () => {
     } finally {
       vi.unstubAllGlobals();
     }
+  });
+});
+
+describe("keyboard gating", () => {
+  it("blocks confetti and other movement after a keyboard action", () => {
+    expect(shouldMove(false, "keyboard")).toBe(false);
   });
 });
 

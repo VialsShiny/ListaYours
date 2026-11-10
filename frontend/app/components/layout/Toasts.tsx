@@ -3,7 +3,7 @@
 import { Toaster } from "sonner";
 
 /**
- * Sonner toaster: short enter/exit, stackable, bottom centre on phones, bottom right elsewhere.
+ * Sonner toaster: short enter/exit, stackable, bottom centre, above the mobile sticky bar.
  * Movement is dropped by Sonner itself under reduced motion.
  */
 export function Toasts() {

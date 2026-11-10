@@ -12,11 +12,11 @@
   }
 
   .btn-state {
-    min-width: 11.5rem;
+    min-width: min(11.5rem, 100%);
   }
 
   .shake {
-    animation: shake calc(320ms * var(--move)) var(--ease-out) 1;
+    animation: shake calc(320ms * var(--move) * var(--move-ui)) var(--ease-out) 1;
   }
 
   @keyframes shake {

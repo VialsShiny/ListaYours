@@ -44,6 +44,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [errorSeq, setErrorSeq] = useState(0);
   const [busy, setBusy] = useState(false);
   const otherHref =
     next === "/" ? copy.other.href : `${copy.other.href}?next=${encodeURIComponent(next)}`;
@@ -62,6 +63,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       router.replace(next);
     } catch (caught) {
       setError(errorMessage(caught, "La connexion a échoué."));
+      setErrorSeq((current) => current + 1);
       setBusy(false);
     }
   }
@@ -87,7 +89,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         ) : null}
         <Field
           id="email"
-          key={errorOn === "email" ? error : "email"}
+          key={errorOn === "email" ? `email-${errorSeq}` : "email"}
           className={errorOn === "email" ? "shake" : undefined}
           label="Adresse e-mail"
           required
@@ -109,7 +111,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         </Field>
         <Field
           id="password"
-          key={errorOn === "password" ? error : "password"}
+          key={errorOn === "password" ? `password-${errorSeq}` : "password"}
           className={errorOn === "password" ? "shake" : undefined}
           label="Mot de passe"
           hint={mode === "register" ? "Utilisez au moins 8 caractères." : undefined}

@@ -11,23 +11,29 @@ import { MOTION, prefersReducedMotion } from "@/lib/motion";
 export function useSwapLabel(label: string) {
   const [shown, setShown] = useState(label);
   const [swapping, setSwapping] = useState(false);
-  const timers = useRef<number[]>([]);
+  const shownRef = useRef(label);
 
   useEffect(() => {
-    if (label === shown) return;
+    if (label === shownRef.current) return;
     if (prefersReducedMotion()) {
+      shownRef.current = label;
       setShown(label);
       return;
     }
     setSwapping(true);
-    const half = MOTION.swap / 2;
-    timers.current.push(window.setTimeout(() => setShown(label), half));
-    timers.current.push(window.setTimeout(() => setSwapping(false), MOTION.swap));
+    const half = window.setTimeout(() => {
+      shownRef.current = label;
+      setShown(label);
+    }, MOTION.swap / 2);
+    const end = window.setTimeout(() => setSwapping(false), MOTION.swap);
     return () => {
-      timers.current.forEach((timer) => window.clearTimeout(timer));
-      timers.current = [];
+      window.clearTimeout(half);
+      window.clearTimeout(end);
+      shownRef.current = label;
+      setShown(label);
+      setSwapping(false);
     };
-  }, [label, shown]);
+  }, [label]);
 
   return { shown, swapping };
 }
