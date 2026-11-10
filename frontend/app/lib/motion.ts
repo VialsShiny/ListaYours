@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 export type InputModality = "pointer" | "keyboard";
 
 export const MOTION = {
@@ -58,8 +60,8 @@ export function shouldMove(reduced: boolean, modality: InputModality = "pointer"
 /**
  * Inline style for the n-th item of a cascade (50ms steps, capped so long lists stay snappy).
  */
-export function cascadeStyle(index: number): React.CSSProperties {
-  return { "--i": Math.min(Math.max(index, 0), MOTION.cascadeMax) } as React.CSSProperties;
+export function cascadeStyle(index: number): CSSProperties {
+  return { "--i": Math.min(Math.max(index, 0), MOTION.cascadeMax) } as CSSProperties;
 }
 
 /**
