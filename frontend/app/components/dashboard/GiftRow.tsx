@@ -15,6 +15,7 @@ type GiftRowProps = {
   onEdit: () => void;
   onToggleVisibility: () => void;
   onDelete: () => void;
+  onConfirmDelete: () => void;
 };
 
 export function GiftRow({
@@ -24,6 +25,7 @@ export function GiftRow({
   onEdit,
   onToggleVisibility,
   onDelete,
+  onConfirmDelete,
 }: GiftRowProps) {
   const price = formatPrice(gift.price, gift.currency) ?? "Prix non renseigné";
   return (
@@ -68,9 +70,10 @@ export function GiftRow({
         </Button>
         <HoldButton
           label="Supprimer"
-          holdLabel={`Maintenir pour supprimer ${gift.name}`}
+          holdLabel={`Maintenir 1 seconde pour supprimer ${gift.name} ; les réservations associées seront perdues`}
           disabled={busy}
           onConfirm={onDelete}
+          onFallback={onConfirmDelete}
         />
       </div>
     </SortableRow>

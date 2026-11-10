@@ -11,24 +11,24 @@
   .hold-fill {
     position: absolute;
     inset: 0;
-    z-index: -1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: inherit;
     background: var(--accent);
+    color: var(--card);
     clip-path: inset(0 100% 0 0);
-    transition: clip-path 200ms var(--ease-out);
+    transition: clip-path var(--hold-release-ms, 200ms) var(--ease-out);
   }
 
   .hold[data-holding="true"] .hold-fill {
     clip-path: inset(0 0 0 0);
-    transition: clip-path 1200ms linear;
+    transition: clip-path var(--hold-ms, 1200ms) linear;
   }
 
-  .hold-label {
-    position: relative;
-    transition: color var(--dur-toggle) var(--ease-out);
-  }
-
-  .hold[data-holding="true"] .hold-label {
-    color: #fff;
+  .hold-label,
+  .hold-fill-label {
+    white-space: nowrap;
   }
 
   .sortable-row {
@@ -59,11 +59,5 @@
 
   .sortable-handle:active {
     cursor: grabbing;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .hold[data-holding="true"] .hold-fill {
-      transition-duration: 1200ms;
-    }
   }
 }

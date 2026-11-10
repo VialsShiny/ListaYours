@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DashboardSectionTitle } from "@/components/dashboard/DashboardSectionTitle";
 import { GiftFormDrawer } from "@/components/dashboard/GiftFormDrawer";
 import { GiftRow } from "@/components/dashboard/GiftRow";
@@ -25,8 +26,10 @@ type DrawerState = { open: false } | { open: true; gift: OwnerGift | null };
 
 export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
   const [drawer, setDrawer] = useState<DrawerState>({ open: false });
+  const [toConfirm, setToConfirm] = useState<OwnerGift | null>(null);
   const [expanded, setExpanded] = useState(false);
   const ordered = useMemo(() => sortByPosition(gifts), [gifts]);
+  const byId = useMemo(() => new Map(ordered.map((gift) => [gift.id, gift])), [ordered]);
   const names = useMemo(
     () => new Map(categories.map((category) => [String(category.id), category.name])),
     [categories],
@@ -49,8 +52,12 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
     );
   }
 
-  function remove(gift: OwnerGift) {
-    void store.run((token) => deleteGift(token, gift.id), "La suppression a échoué.");
+  async function remove(gift: OwnerGift) {
+    const { ok } = await store.run(
+      (token) => deleteGift(token, gift.id),
+      "La suppression a échoué.",
+    );
+    if (ok) setToConfirm(null);
   }
 
   const openForm = (gift: OwnerGift | null) => setDrawer({ open: true, gift });
@@ -86,21 +93,25 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
         <div className="panel flex flex-col overflow-hidden">
           <SortableList
             ids={visible.map((gift) => gift.id)}
-            labelOf={(id) => visible.find((gift) => gift.id === id)?.name ?? ""}
+            labelOf={(id) => byId.get(id)?.name ?? ""}
             onReorder={reorder}
-          >
-            {visible.map((gift) => (
-              <GiftRow
-                key={gift.id}
-                gift={gift}
-                categoryName={names.get(String(gift.category_id)) ?? "Autres"}
-                busy={store.busy}
-                onEdit={() => openForm(gift)}
-                onToggleVisibility={() => toggleVisibility(gift)}
-                onDelete={() => remove(gift)}
-              />
-            ))}
-          </SortableList>
+            renderRow={(id) => {
+              const gift = byId.get(id);
+              if (!gift) return null;
+              return (
+                <GiftRow
+                  key={gift.id}
+                  gift={gift}
+                  categoryName={names.get(String(gift.category_id)) ?? "Autres"}
+                  busy={store.busy}
+                  onEdit={() => openForm(gift)}
+                  onToggleVisibility={() => toggleVisibility(gift)}
+                  onDelete={() => void remove(gift)}
+                  onConfirmDelete={() => setToConfirm(gift)}
+                />
+              );
+            }}
+          />
           {hidden > 0 ? (
             <div className="flex justify-center border-t border-line">
               <Button variant="text-accent" className="min-h-16" onClick={() => setExpanded(true)}>
@@ -121,6 +132,14 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
         categories={categories}
         store={store}
         onClose={() => setDrawer({ open: false })}
+      />
+      <ConfirmDialog
+        open={toConfirm !== null}
+        title={toConfirm ? `Supprimer « ${toConfirm.name} » ?` : ""}
+        description="Le cadeau disparaîtra de la liste publique et les réservations associées seront perdues."
+        busy={store.busy}
+        onConfirm={() => toConfirm && void remove(toConfirm)}
+        onCancel={() => setToConfirm(null)}
       />
     </div>
   );

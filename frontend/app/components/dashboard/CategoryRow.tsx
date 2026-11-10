@@ -16,6 +16,7 @@ type CategoryRowProps = {
   busy: boolean;
   onRename: (name: string) => Promise<boolean>;
   onDelete: () => void;
+  onConfirmDelete: () => void;
 };
 
 export function CategoryRow({
@@ -25,6 +26,7 @@ export function CategoryRow({
   busy,
   onRename,
   onDelete,
+  onConfirmDelete,
 }: CategoryRowProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(category.name);
@@ -91,9 +93,10 @@ export function CategoryRow({
         ) : null}
         <HoldButton
           label="Supprimer"
-          holdLabel={`Maintenir pour supprimer ${category.name}`}
+          holdLabel={`Maintenir 1 seconde pour supprimer ${category.name} ; ses cadeaux iront dans Autres`}
           disabled={busy}
           onConfirm={onDelete}
+          onFallback={onConfirmDelete}
         />
       </div>
     </SortableRow>
