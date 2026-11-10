@@ -1,27 +1,15 @@
 import { Suspense } from "react";
+import { voice } from "@/content/voice";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { DisplayTitle } from "@/components/layout/DisplayTitle";
 import { MicroLabel } from "@/components/layout/MicroLabel";
-
-const COPY = {
-  login: {
-    eyebrow: "Bon retour",
-    title: "Connexion",
-    text: "Connectez-vous pour réserver un cadeau ou retrouver vos réservations.",
-  },
-  register: {
-    eyebrow: "Un compte pour réserver",
-    title: "Inscription",
-    text: "Créez un compte en une minute. Le propriétaire ne verra jamais vos réservations.",
-  },
-};
 
 /**
  * Two columns on desktop (title left, white card right), one column on phones.
  * `useSearchParams` in the form needs the Suspense boundary.
  */
 export function AuthPage({ mode }: { mode: "login" | "register" }) {
-  const copy = COPY[mode];
+  const copy = voice.auth[mode];
   return (
     <section className="container grid flex-1 gap-8 pt-10 md:pt-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)] lg:items-start lg:gap-12 lg:pt-20">
       <div className="flex min-w-0 flex-col gap-5 md:gap-7">

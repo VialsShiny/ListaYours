@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { voice } from "@/content/voice";
 import dynamic from "next/dynamic";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -28,13 +29,16 @@ export function CategoryManager({ store, categories, gifts }: CategoryManagerPro
   }
 
   function reorder(ids: Array<Category["id"]>) {
-    void store.run((token) => reorderCategories(token, ids), "Le réordonnancement a échoué.");
+    void store.run(
+      (token) => reorderCategories(token, ids),
+      voice.dashboard.categories.reorderFailed,
+    );
   }
 
   async function remove(category: Category) {
     const { ok } = await store.run(
       (token) => deleteCategory(token, category.id),
-      "La suppression de la catégorie a échoué.",
+      voice.dashboard.categories.deleteFailed,
     );
     if (ok) setToConfirm(null);
   }
@@ -44,8 +48,8 @@ export function CategoryManager({ store, categories, gifts }: CategoryManagerPro
       <CategoryAddForm store={store} />
       {ordered.length === 0 ? (
         <EmptyState
-          title="Aucune catégorie"
-          text="Créez une première catégorie pour ranger vos cadeaux."
+          title={voice.dashboard.categories.emptyTitle}
+          text={voice.dashboard.categories.emptyText}
         />
       ) : (
         <SortableList
@@ -66,7 +70,7 @@ export function CategoryManager({ store, categories, gifts }: CategoryManagerPro
                 onRename={async (name) => {
                   const result = await store.run(
                     (token) => renameCategory(token, category.id, name),
-                    "Le renommage a échoué.",
+                    voice.dashboard.categories.renameFailed,
                   );
                   return result.ok;
                 }}
@@ -79,8 +83,8 @@ export function CategoryManager({ store, categories, gifts }: CategoryManagerPro
       )}
       <ConfirmDialog
         open={toConfirm !== null}
-        title={toConfirm ? `Supprimer « ${toConfirm.name} » ?` : ""}
-        description="Les cadeaux de cette catégorie seront déplacés dans « Autres »."
+        title={toConfirm ? voice.dashboard.categories.dialogTitle(toConfirm.name) : ""}
+        description={voice.dashboard.categories.dialogText}
         busy={store.busy}
         onConfirm={() => toConfirm && void remove(toConfirm)}
         onCancel={() => setToConfirm(null)}

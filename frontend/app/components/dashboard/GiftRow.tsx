@@ -1,6 +1,7 @@
 "use client";
 
 import { Gift } from "lucide-react";
+import { voice } from "@/content/voice";
 import { Button } from "@/components/ui/button";
 import { HoldButton } from "@/components/ui/hold-button";
 import { Toggle } from "@/components/ui/toggle";
@@ -27,11 +28,11 @@ export function GiftRow({
   onDelete,
   onConfirmDelete,
 }: GiftRowProps) {
-  const price = formatPrice(gift.price, gift.currency) ?? "Prix non renseigné";
+  const price = formatPrice(gift.price, gift.currency) ?? voice.list.noPrice;
   return (
     <SortableRow
       id={gift.id}
-      handleLabel={`Réordonner ${gift.name}`}
+      handleLabel={voice.dashboard.categories.reorder(gift.name)}
       className="list-row min-h-24 flex-wrap md:flex-nowrap"
     >
       <div className="thumb">
@@ -55,7 +56,8 @@ export function GiftRow({
         id={`gift-${gift.id}-visible`}
         label={
           <>
-            Visible<span className="sr-only"> : {gift.name}</span>
+            {voice.dashboard.gifts.visible}
+            <span className="sr-only"> : {gift.name}</span>
           </>
         }
         size="sm"
@@ -66,11 +68,11 @@ export function GiftRow({
       />
       <div className="flex w-full shrink-0 items-center gap-1 md:w-auto">
         <Button variant="secondary" size="sm" disabled={busy} onClick={onEdit}>
-          Modifier
+          {voice.dashboard.gifts.modify}
         </Button>
         <HoldButton
-          label="Supprimer"
-          holdLabel={`Maintenir 1 seconde pour supprimer ${gift.name} ; les réservations associées seront perdues`}
+          label={voice.dashboard.gifts.remove}
+          holdLabel={voice.dashboard.gifts.hold(gift.name)}
           disabled={busy}
           onConfirm={onDelete}
           onFallback={onConfirmDelete}

@@ -1,6 +1,7 @@
 "use client";
 
 import { Field } from "@/components/ui/field";
+import { voice } from "@/content/voice";
 import { Input, Select, Textarea } from "@/components/ui/input";
 import { Toggle } from "@/components/ui/toggle";
 import type { GiftFormValues } from "@/lib/gift-form";
@@ -31,11 +32,7 @@ export function GiftFormFields({ values, categories, onChange }: GiftFormFieldsP
           />
         )}
       </Field>
-      <Field
-        id="gift-description"
-        label="Description"
-        hint="Indiquez ici la taille ou une alternative"
-      >
+      <Field id="gift-description" label="Description" hint={voice.dashboard.gifts.descriptionHint}>
         {(describedBy) => (
           <Textarea
             id="gift-description"
@@ -129,8 +126,8 @@ export function GiftFormFields({ values, categories, onChange }: GiftFormFieldsP
       </Field>
       <Toggle
         id="gift-visible"
-        label="Visible"
-        hint="Un cadeau masqué n'apparaît pas sur la liste publique."
+        label={voice.dashboard.gifts.visible}
+        hint={voice.dashboard.gifts.visibleHint}
         checked={values.is_visible}
         onChange={(checked) => set("is_visible", checked)}
       />

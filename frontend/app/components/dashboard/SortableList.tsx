@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { voice } from "@/content/voice";
 import {
   DndContext,
   KeyboardSensor,
@@ -28,9 +29,6 @@ type SortableListProps = {
   renderRow: (id: Id, index: number) => React.ReactNode;
   className?: string;
 };
-
-const INSTRUCTIONS =
-  "Pour réordonner, appuyez sur Espace sur la poignée, déplacez avec les flèches, puis Espace pour déposer ou Échap pour annuler.";
 
 /**
  * Vertical drag-and-drop sorting with a pointer or the keyboard (dnd-kit). The order is kept
@@ -83,7 +81,10 @@ export function SortableList({ ids, labelOf, onReorder, renderRow, className }: 
       collisionDetection={closestCenter}
       modifiers={[restrictToVerticalAxis]}
       onDragEnd={handleDragEnd}
-      accessibility={{ screenReaderInstructions: { draggable: INSTRUCTIONS }, announcements }}
+      accessibility={{
+        screenReaderInstructions: { draggable: voice.dashboard.sort.instructions },
+        announcements,
+      }}
     >
       <SortableContext items={order} strategy={verticalListSortingStrategy}>
         <ol className={className}>{order.map((id, index) => renderRow(id, index))}</ol>

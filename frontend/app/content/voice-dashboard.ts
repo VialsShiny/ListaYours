@@ -74,6 +74,10 @@ export const dashboard = {
     prefillDone: "Nom, prix et image trouvés. Vérifie avant d'enregistrer.",
     fill: "Remplir",
     filling: "Je regarde…",
+    scraping: "Je regarde la page, ça peut prendre une minute…",
+    scrapeEmpty: "La page n'a rien donné.",
+    scrapeTimeout: "La page met trop de temps, réessaie.",
+    scrapeFailed: "L'analyse a raté.",
   },
   sort: {
     instructions:

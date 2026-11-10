@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { voice } from "@/content/voice";
 import { Button } from "@/components/ui/button";
 import { SwapLabel } from "@/components/ui/swap-label";
 import { Field } from "@/components/ui/field";
@@ -48,15 +49,16 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
           slug: slug.trim(),
           is_published: published,
         }),
-      "L'enregistrement des réglages a échoué.",
+      voice.dashboard.settings.saveFailed,
     );
-    if (ok) notifySuccess("Réglages enregistrés.");
+    if (ok) notifySuccess(voice.dashboard.settings.saved);
   }
 
-  const copyLabel = clipboard.status === "copied" ? "Lien copié" : "Copier le lien";
+  const copyLabel =
+    clipboard.status === "copied" ? voice.dashboard.settings.copied : voice.dashboard.settings.copy;
 
   useEffect(() => {
-    if (clipboard.status === "error") notifyError("Copie impossible.");
+    if (clipboard.status === "error") notifyError(voice.dashboard.settings.copyFailed);
   }, [clipboard.status]);
 
   return (
@@ -65,7 +67,7 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
       className="grid gap-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] md:gap-6"
     >
       <div className="panel flex flex-col gap-5 p-5 md:p-8">
-        <Field id="wishlist-title" label="Titre de la liste" required>
+        <Field id="wishlist-title" label={voice.dashboard.settings.title} required>
           {(describedBy) => (
             <Input
               id="wishlist-title"
@@ -77,7 +79,7 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
             />
           )}
         </Field>
-        <Field id="wishlist-description" label="Description">
+        <Field id="wishlist-description" label={voice.dashboard.settings.description}>
           {(describedBy) => (
             <Textarea
               id="wishlist-description"
@@ -87,7 +89,7 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
             />
           )}
         </Field>
-        <Field id="wishlist-slug" label="Adresse publique" hint={publicUrl} required>
+        <Field id="wishlist-slug" label={voice.dashboard.settings.slug} hint={publicUrl} required>
           {(describedBy) => (
             <div className="flex flex-col gap-2 sm:flex-row">
               <div className="field flex min-w-0 flex-1 items-center gap-1 focus-within:border-ink">
@@ -98,7 +100,7 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
                   id="wishlist-slug"
                   required
                   pattern="[a-z0-9]+(-[a-z0-9]+)*"
-                  title="Lettres minuscules, chiffres et tirets"
+                  title={voice.dashboard.settings.slugHint}
                   value={slug}
                   onChange={(event) => setSlug(event.target.value.toLowerCase())}
                   aria-describedby={describedBy}
@@ -120,16 +122,14 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
       <div className="panel flex flex-col justify-between gap-5 p-5 md:p-8">
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 flex-col gap-1">
-            <p className="text-[16px] font-semibold">Liste publique</p>
+            <p className="text-[16px] font-semibold">{voice.dashboard.settings.publicLabel}</p>
             <p className="text-[14px] leading-[1.5] text-soft">
-              {published
-                ? "Toute personne ayant le lien peut la consulter."
-                : "La liste est privée : seul vous la voyez."}
+              {published ? voice.dashboard.settings.publicOn : voice.dashboard.settings.publicOff}
             </p>
           </div>
           <Toggle
             id="wishlist-published"
-            label="Liste publique"
+            label={voice.dashboard.settings.publicLabel}
             labelHidden
             checked={published}
             onChange={setPublished}
@@ -137,7 +137,7 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
         </div>
         <div className="flex flex-col gap-3">
           <Button type="submit" variant="primary" block disabled={store.busy}>
-            {store.busy ? "Enregistrement…" : "Enregistrer"}
+            {store.busy ? voice.errors.wait : voice.dashboard.settings.save}
           </Button>
         </div>
       </div>

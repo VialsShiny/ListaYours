@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { voice } from "@/content/voice";
 import { Button } from "@/components/ui/button";
 import { SwapLabel } from "@/components/ui/swap-label";
 import type { PublicGift } from "@/lib/types";
@@ -38,7 +39,7 @@ export function ReservationControl({
   if (viewer === "anonymous" && !gift.is_reserved) {
     return (
       <Link href={loginHref} className={cn("btn btn-primary btn-state w-full", className)}>
-        Réserver
+        {voice.list.reserve}
       </Link>
     );
   }
@@ -54,11 +55,13 @@ export function ReservationControl({
           onClick={() => onCancel(gift.id)}
         >
           <SwapLabel
-            label={pending ? "Annulation…" : compact ? "Annuler" : "Annuler ma réservation"}
+            label={
+              pending ? voice.list.working : compact ? voice.list.cancel : voice.list.cancelLong
+            }
           />
         </Button>
         <p className="text-small font-semibold text-accent" role="status">
-          Réservé par vous
+          {voice.list.mine}
         </p>
       </div>
     );
@@ -67,7 +70,7 @@ export function ReservationControl({
   if (gift.is_reserved) {
     return (
       <p className={cn("btn btn-muted btn-state w-full", className)} role="status">
-        Déjà réservé
+        {voice.list.taken}
       </p>
     );
   }
@@ -80,7 +83,7 @@ export function ReservationControl({
       onClick={() => onReserve(gift.id)}
       className={cn("btn-state", className)}
     >
-      <SwapLabel label={pending ? "Réservation…" : "Réserver"} />
+      <SwapLabel label={pending ? voice.list.working : voice.list.reserve} />
     </Button>
   );
 }

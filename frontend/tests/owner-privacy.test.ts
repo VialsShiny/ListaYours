@@ -6,6 +6,7 @@ import { GiftCard } from "@/components/wishlist/GiftCard";
 import { GiftGrid } from "@/components/wishlist/GiftGrid";
 import { GiftNavigator } from "@/components/wishlist/GiftNavigator";
 import type { ViewerRole } from "@/components/wishlist/ReservationControl";
+import { voice } from "@/content/voice";
 import type { PublicGift } from "@/lib/types";
 import { groupGiftsByCategory } from "@/lib/wishlist-groups";
 
@@ -43,7 +44,7 @@ const gifts: PublicGift[] = [
 const categories = [{ id: 10, name: "Les essentiels", position: 0 }];
 const groups = groupGiftsByCategory(categories, gifts, { dropEmpty: true });
 const noop = () => undefined;
-const RESERVATION_WORDS = /r[ée]serv/i;
+const RESERVATION_WORDS = /r[ée]serv|d[ée]j[àa] pris|pris|offres/i;
 
 function render(viewer: ViewerRole) {
   const common = {
@@ -95,11 +96,11 @@ describe("visitor view shows the reservation states", () => {
 
   it("marks the gift reserved by someone else and the one reserved by me", () => {
     expect(visitor.card).toContain('data-reserved="true"');
-    expect(visitor.card).toContain("Déjà réservé");
-    expect(visitor.grid).toContain("Réservé par vous");
-    expect(visitor.grid).toContain("Annuler");
-    expect(visitor.accordion).toContain("Réservé");
-    expect(visitor.navigator).toContain("Déjà réservé");
+    expect(visitor.card).toContain(voice.list.taken);
+    expect(visitor.grid).toContain(voice.list.mine.replaceAll("'", "&#x27;"));
+    expect(visitor.grid).toContain(voice.list.cancel);
+    expect(visitor.accordion).toContain(voice.list.reservedShort);
+    expect(visitor.navigator).toContain(voice.list.taken);
     expect(visitor.navigator).toContain('data-muted="true"');
   });
 });

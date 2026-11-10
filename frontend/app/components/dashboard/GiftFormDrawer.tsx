@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { voice } from "@/content/voice";
 import { StatusMessage } from "@/components/feedback/StatusMessage";
 import { Button } from "@/components/ui/button";
 import {
@@ -62,7 +63,7 @@ export function GiftFormDrawer({ open, gift, categories, store, onClose }: GiftF
     const payload = giftFormToPayload(values);
     const result = await store.run(
       (token) => (gift ? updateGift(token, gift.id, payload) : createGift(token, payload)),
-      "L'enregistrement du cadeau a échoué.",
+      voice.dashboard.gifts.saveFailed,
     );
     setSaving(false);
     if (result.ok) onClose();
@@ -80,7 +81,7 @@ export function GiftFormDrawer({ open, gift, categories, store, onClose }: GiftF
       <DrawerContent aria-describedby={undefined} className={phone ? "h-[calc(100dvh-64px)]" : ""}>
         <DrawerHeader>
           <DrawerTitle>
-            {gift ? "Modifier le cadeau" : "Ajouter un cadeau"}
+            {gift ? voice.dashboard.gifts.edit : voice.dashboard.gifts.add}
             <span className="period" aria-hidden="true">
               .
             </span>
@@ -97,7 +98,9 @@ export function GiftFormDrawer({ open, gift, categories, store, onClose }: GiftF
           </form>
         </DrawerBody>
         <DrawerFooter>
-          <DrawerClose className="btn btn-secondary flex-1">Annuler</DrawerClose>
+          <DrawerClose className="btn btn-secondary flex-1">
+            {voice.dashboard.gifts.cancel}
+          </DrawerClose>
           <Button
             type="submit"
             form={formId}
@@ -105,7 +108,11 @@ export function GiftFormDrawer({ open, gift, categories, store, onClose }: GiftF
             className="flex-[1.6]"
             disabled={saving || store.busy}
           >
-            {saving ? "Enregistrement…" : gift ? "Enregistrer" : "Enregistrer le cadeau"}
+            {saving
+              ? voice.errors.wait
+              : gift
+                ? voice.dashboard.gifts.save
+                : voice.dashboard.gifts.saveNew}
           </Button>
         </DrawerFooter>
       </DrawerContent>
