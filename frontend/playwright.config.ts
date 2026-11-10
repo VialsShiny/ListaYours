@@ -19,6 +19,7 @@ export default defineConfig({
     baseURL: `http://127.0.0.1:${PORT}`,
     ...devices["Desktop Chrome"],
     locale: "fr-FR",
+    reducedMotion: "reduce",
     trace: "off",
   },
   webServer: {

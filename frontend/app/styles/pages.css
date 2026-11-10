@@ -1,8 +1,10 @@
 @layer components {
   .title-column {
     container-type: inline-size;
-    flex: 1 1 0;
-    min-width: min(100%, 24rem);
+  }
+
+  .display-user {
+    overflow-wrap: break-word;
   }
 
   .auth-card {
@@ -38,11 +40,6 @@
   }
 
   @media (min-width: 1024px) {
-    .title-column {
-      container-type: inline-size;
-      flex: 1 1 0;
-    }
-
     .auth-card {
       padding: 40px;
       background: var(--card);

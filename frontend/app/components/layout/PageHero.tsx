@@ -7,6 +7,7 @@ type PageHeroProps = {
   title: string;
   titleId?: string;
   period?: boolean;
+  userContent?: boolean;
   aside?: React.ReactNode;
   className?: string;
   children?: React.ReactNode;
@@ -20,16 +21,22 @@ export function PageHero({
   title,
   titleId,
   period = true,
+  userContent = false,
   aside,
   className,
   children,
 }: PageHeroProps) {
   return (
-    <header className={cn("container pt-8 md:pt-14", className)}>
+    <header className={cn("title-column container pt-8 md:pt-14", className)}>
       <div className="flex flex-wrap items-end justify-between gap-6">
-        <div className="title-column flex flex-col gap-5">
+        <div className="flex min-w-0 flex-col gap-5">
           <MicroLabel>{eyebrow}</MicroLabel>
-          <DisplayTitle size="hero" id={titleId} period={period}>
+          <DisplayTitle
+            size="hero"
+            id={titleId}
+            period={period}
+            className={userContent ? "display-user" : undefined}
+          >
             {title}
           </DisplayTitle>
         </div>

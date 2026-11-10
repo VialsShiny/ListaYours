@@ -10,7 +10,7 @@ const WISHLIST = { title: "Mes envies", slug: "noel", description: "Pour Noël, 
 
 const CATEGORIES = [
   { id: 1, name: "Maison et cuisine", position: 0 },
-  { id: 2, name: "Informatique", position: 1 },
+  { id: 2, name: "Électroménager", position: 1 },
   { id: 3, name: "Vêtements", position: 2 },
 ];
 
@@ -81,7 +81,7 @@ export async function mockApi(page: Page, role: Role): Promise<void> {
         wishlist: WISHLIST,
         categories: CATEGORIES,
         gifts,
-        reservations_visible: false,
+        reservations_visible: true,
       });
     }
     if (path === "/api/auth/me") {
@@ -89,7 +89,8 @@ export async function mockApi(page: Page, role: Role): Promise<void> {
     }
     if (path === "/api/me/reservations") return json(role === "visitor" ? RESERVATIONS : []);
     if (path === "/api/owner/wishlist") {
-      return json({ wishlist: OWNER_WISHLIST, categories: CATEGORIES, gifts: GIFTS });
+      const gifts = GIFTS.map(({ is_reserved: _r, reserved_by_me: _m, ...gift }) => gift);
+      return json({ wishlist: OWNER_WISHLIST, categories: CATEGORIES, gifts });
     }
     return json({ detail: "Mock sans réponse pour cette route" }, 404);
   });

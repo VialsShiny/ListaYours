@@ -43,7 +43,7 @@ export function auditLayout(options: AuditOptions): Failure[] {
   }
 
   for (const el of Array.from(document.querySelectorAll("body *"))) {
-    if (!visible(el) || el.closest("[data-overflow-ok]")) continue;
+    if (!visible(el) || el.hasAttribute("data-overflow-ok")) continue;
     const style = getComputedStyle(el);
     const clips = /hidden|clip/.test(style.overflowX);
     const ellipsis = style.textOverflow === "ellipsis" || style.webkitLineClamp !== "none";
@@ -59,12 +59,14 @@ export function auditLayout(options: AuditOptions): Failure[] {
   const probe = document.createElement("span");
   probe.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap;top:0;left:0";
   document.body.appendChild(probe);
-  for (const el of Array.from(
-    document.querySelectorAll("h1, h2:not(.navigator-title), .display"),
-  )) {
-    if (!visible(el) || el.closest("[aria-hidden='true']")) continue;
+  for (const el of Array.from(document.querySelectorAll("h1, h2, .display"))) {
+    if (!visible(el) || el.closest("[aria-hidden='true'], .display-user, .navigator-title"))
+      continue;
     const style = getComputedStyle(el);
-    probe.style.font = style.font;
+    probe.style.fontFamily = style.fontFamily;
+    probe.style.fontSize = style.fontSize;
+    probe.style.fontWeight = style.fontWeight;
+    probe.style.fontStyle = style.fontStyle;
     probe.style.letterSpacing = style.letterSpacing;
     probe.style.textTransform = style.textTransform;
     const box = el.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
@@ -95,7 +97,7 @@ export function auditLayout(options: AuditOptions): Failure[] {
       failures.push({ rule: "text-too-small", target: describe(el), detail: `${size}px` });
     } else if (
       size < options.minBody &&
-      el.tagName === "P" &&
+      /^(P|LI|DD)$/.test(el.tagName) &&
       !el.closest(SECONDARY) &&
       !el.closest("button, a, label, .notice, .navigator-bar, .btn")
     ) {

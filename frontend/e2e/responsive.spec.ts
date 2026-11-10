@@ -61,10 +61,14 @@ async function openScreen(page: Page, screen: Screen, width: number, fontSize?: 
   await page.goto(screen.path);
   await settle(page);
   if (fontSize) {
-    await page.evaluate((size) => {
-      document.documentElement.style.fontSize = size;
-    }, fontSize);
-    await page.waitForTimeout(100);
+    await page.evaluate(
+      (size) =>
+        new Promise<void>((resolve) => {
+          document.documentElement.style.fontSize = size;
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+        }),
+      fontSize,
+    );
   }
 }
 
@@ -84,8 +88,8 @@ for (const screen of SCREENS) {
   }
 }
 
-for (const screen of SCREENS.slice(0, 6)) {
-  for (const width of [390, 1280]) {
+for (const screen of SCREENS) {
+  for (const width of [320, 390, 1280]) {
     test(`${screen.name} at ${width}px with larger text`, async ({ page }) => {
       await openScreen(page, screen, width, "125%");
       const failures = await page.evaluate(auditLayout, OPTIONS);
@@ -100,7 +104,7 @@ for (const overlay of OVERLAYS) {
     test(`${overlay.name} at ${width}px`, async ({ page }) => {
       await openScreen(page, overlay, width);
       await overlay.open(page);
-      await page.waitForTimeout(500);
+      await expect(page.locator('[role="dialog"], [role="alertdialog"]').first()).toBeVisible();
       if (SHOTS.has(width)) {
         await page.screenshot({ path: `e2e/screenshots/${overlay.name}-${width}.png` });
       }
