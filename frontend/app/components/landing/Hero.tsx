@@ -1,17 +1,21 @@
 "use client";
 
+import { useRef } from "react";
 import Link from "next/link";
 import { DisplayTitle } from "@/components/layout/DisplayTitle";
 import { MicroLabel } from "@/components/layout/MicroLabel";
 import { SampleCard } from "@/components/landing/SampleCard";
+import { useGhostParallax } from "@/hooks/use-ghost-parallax";
 import { usePublicWishlists } from "@/hooks/use-public-wishlist";
 
 export function Hero() {
   const { data, loading, error } = usePublicWishlists();
   const first = data?.[0];
+  const sectionRef = useRef<HTMLElement | null>(null);
+  useGhostParallax(sectionRef);
 
   return (
-    <section className="relative overflow-hidden" aria-labelledby="hero-title">
+    <section ref={sectionRef} className="relative overflow-hidden" aria-labelledby="hero-title">
       <p aria-hidden="true" className="ghost-word -top-4 right-[-6%] hidden lg:block">
         LISTE
       </p>

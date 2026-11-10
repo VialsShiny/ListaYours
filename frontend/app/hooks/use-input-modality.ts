@@ -12,6 +12,11 @@ const KEYBOARD_KEYS = new Set([
   "ArrowRight",
   "ArrowUp",
   "ArrowDown",
+  "Escape",
+  "Home",
+  "End",
+  "PageUp",
+  "PageDown",
 ]);
 
 let current: InputModality = "pointer";

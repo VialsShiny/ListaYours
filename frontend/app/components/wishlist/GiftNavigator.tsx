@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MicroLabel } from "@/components/layout/MicroLabel";
 import { CategoryAccordion } from "@/components/wishlist/CategoryAccordion";
 import { CategorySheet } from "@/components/wishlist/CategorySheet";
 import { NavigatorBar } from "@/components/wishlist/NavigatorBar";
+import { NavigatorCarousel } from "@/components/wishlist/NavigatorCarousel";
 import { NavigatorStage } from "@/components/wishlist/NavigatorStage";
 import { ReservationControl, type ViewerRole } from "@/components/wishlist/ReservationControl";
+import { useGhostParallax } from "@/hooks/use-ghost-parallax";
 import { useGiftNavigator } from "@/hooks/use-gift-navigator";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import type { PublicGift } from "@/lib/types";
@@ -24,7 +26,8 @@ type GiftNavigatorProps = {
 };
 
 /**
- * "Naviguer" view: one gift at a time with a desktop accordion panel or a mobile bottom sheet.
+ * "Naviguer" view: Embla carousel (one gift centred), text column, bottom bar, and the
+ * desktop accordion panel or the mobile bottom sheet. The ghost word drifts with the mouse.
  */
 export function GiftNavigator({
   groups,
@@ -37,6 +40,8 @@ export function GiftNavigator({
   const nav = useGiftNavigator(groups);
   const [sheetOpen, setSheetOpen] = useState(false);
   const desktop = useMediaQuery("(min-width: 1024px)");
+  const sectionRef = useRef<HTMLElement | null>(null);
+  useGhostParallax(sectionRef);
 
   useEffect(() => {
     if (desktop) setSheetOpen(false);
@@ -45,28 +50,36 @@ export function GiftNavigator({
   if (!nav.current) return null;
   const { gift, groupIndex, groupKey, groupName } = nav.current;
   const muted = viewer !== "owner" && gift.is_reserved && !gift.reserved_by_me;
-  const action = (
-    <ReservationControl
-      gift={gift}
-      viewer={viewer}
-      loginHref={loginHref}
-      pending={pendingId === gift.id}
-      onReserve={onReserve}
-      onCancel={onCancel}
-      className="w-auto min-w-44"
-    />
-  );
+  const control = (compact: boolean, className: string) =>
+    viewer === "owner" ? null : (
+      <ReservationControl
+        gift={gift}
+        viewer={viewer}
+        loginHref={loginHref}
+        pending={pendingId === gift.id}
+        onReserve={onReserve}
+        onCancel={onCancel}
+        compact={compact}
+        className={className}
+      />
+    );
 
   return (
-    <section aria-labelledby="navigator-titre" className="container pt-6 md:pt-8">
+    <section ref={sectionRef} aria-labelledby="navigator-titre" className="container pt-6 md:pt-8">
       <div className="navigator">
+        <p aria-hidden="true" className="ghost-word navigator-ghost">
+          {gift.name}
+        </p>
         <div className="navigator-main">
-          <NavigatorStage
-            gift={gift}
-            groupIndex={groupIndex}
-            groupName={groupName}
+          <NavigatorStage gift={gift} groupIndex={groupIndex} groupName={groupName} muted={muted} />
+          <NavigatorCarousel
+            items={nav.flat}
+            index={nav.index}
             motion={nav.motion}
-            muted={muted}
+            viewer={viewer}
+            onSelect={(index) => {
+              if (index !== nav.index) nav.goToIndex(index, "pointer");
+            }}
           />
           <NavigatorBar
             index={nav.index}
@@ -76,7 +89,7 @@ export function GiftNavigator({
             onPrevious={() => nav.previous()}
             onNext={() => nav.next()}
             onShowCategory={() => nav.goToGroup(groupKey)}
-            action={viewer === "owner" ? null : action}
+            action={control(false, "w-auto min-w-44")}
           />
         </div>
         <aside className="navigator-panel material max-lg:hidden" aria-label="Catégories">
@@ -95,18 +108,7 @@ export function GiftNavigator({
           Catégories
           <ChevronUp className="size-4" aria-hidden="true" />
         </Button>
-        {viewer === "owner" ? null : (
-          <ReservationControl
-            gift={gift}
-            viewer={viewer}
-            loginHref={loginHref}
-            pending={pendingId === gift.id}
-            onReserve={onReserve}
-            onCancel={onCancel}
-            compact
-            className="flex-[1.4]"
-          />
-        )}
+        {control(true, "flex-[1.4]")}
       </div>
       <CategorySheet
         open={sheetOpen}

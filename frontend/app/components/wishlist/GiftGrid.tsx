@@ -2,6 +2,7 @@
 
 import { GiftCard } from "@/components/wishlist/GiftCard";
 import type { ViewerRole } from "@/components/wishlist/ReservationControl";
+import { cascadeStyle } from "@/lib/motion";
 import type { PublicGift } from "@/lib/types";
 
 type GiftGridProps = {
@@ -15,7 +16,7 @@ type GiftGridProps = {
 };
 
 /**
- * Responsive grid of gift cards: 2 columns on phones, 3 from 1024px, 4 from 1280px.
+ * Responsive grid of gift cards (2 / 3 / 4 columns) entering in a 50ms cascade.
  */
 export function GiftGrid({
   label,
@@ -27,9 +28,9 @@ export function GiftGrid({
   onCancel,
 }: GiftGridProps) {
   return (
-    <ul className="gift-grid" aria-label={label}>
-      {gifts.map((gift) => (
-        <li key={gift.id} className="flex min-w-0">
+    <ul className="gift-grid cascade" aria-label={label}>
+      {gifts.map((gift, index) => (
+        <li key={gift.id} className="flex min-w-0" style={cascadeStyle(index)}>
           <GiftCard
             gift={gift}
             viewer={viewer}

@@ -5,6 +5,7 @@ import { ErrorPanel } from "@/components/feedback/ErrorPanel";
 import { Notice } from "@/components/feedback/Notice";
 import { StatusMessage } from "@/components/feedback/StatusMessage";
 import { PageHero } from "@/components/layout/PageHero";
+import { SectionSwitch } from "@/components/dashboard/SectionSwitch";
 import { CategoryManager } from "@/components/dashboard/CategoryManager";
 import { DashboardSectionTitle } from "@/components/dashboard/DashboardSectionTitle";
 import { GiftManager } from "@/components/dashboard/GiftManager";
@@ -39,13 +40,7 @@ export function OwnerDashboard() {
             L&apos;état des réservations n&apos;est jamais affiché ici. C&apos;est voulu : la
             surprise reste entière.
           </Notice>
-          <nav aria-label="Sections du tableau de bord" className="segmented section-switch">
-            {SECTIONS.map((section) => (
-              <a key={section.id} href={`#${section.id}`}>
-                {section.label}
-              </a>
-            ))}
-          </nav>
+          <SectionSwitch sections={SECTIONS} ready={Boolean(store.data)} />
           <StatusMessage message={store.actionError} tone="error" />
         </div>
       </PageHero>

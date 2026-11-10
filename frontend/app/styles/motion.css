@@ -1,0 +1,114 @@
+@layer components {
+  .segmented-sliding {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .segmented-sliding > a,
+  .segmented-sliding > button {
+    position: relative;
+    z-index: 1;
+    flex: 1 1 0;
+  }
+
+  .segmented-sliding > [aria-current] {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .segmented-indicator {
+    position: absolute;
+    z-index: 0;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc((100% - 8px) / var(--n, 1));
+    border-radius: var(--radius-pill);
+    background: var(--card);
+    box-shadow: var(--shadow-segment);
+    transform: translateX(calc(var(--active, 0) * 100%));
+    transition: transform calc(var(--dur-switch) * var(--move) * var(--move-ui)) var(--ease-drawer);
+  }
+
+  .accordion-panel {
+    box-sizing: border-box;
+    height: var(--accordion-panel-height);
+    overflow: hidden;
+    transition: height calc(240ms * var(--move)) var(--ease-out);
+  }
+
+  .accordion-panel[data-starting-style],
+  .accordion-panel[data-ending-style] {
+    height: 0;
+  }
+
+  .accordion-chevron {
+    transition: transform calc(var(--dur-toggle) * var(--move)) var(--ease-out);
+  }
+
+  .accordion-row[aria-expanded="true"] .accordion-chevron {
+    transform: rotate(90deg);
+  }
+
+  .cascade > * {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity calc(var(--dur-cascade) * var(--move)) var(--ease-out),
+      transform calc(var(--dur-cascade) * var(--move)) var(--ease-out);
+    transition-delay: calc(var(--i, 0) * 50ms * var(--move));
+
+    @starting-style {
+      opacity: 0;
+      transform: translateY(calc(10px * var(--move)));
+    }
+  }
+
+  @media (scripting: enabled) {
+    .reveal {
+      clip-path: inset(0 0 100% 0);
+      transition: clip-path calc(560ms * var(--move)) var(--ease-out);
+      transition-delay: calc(var(--i, 0) * 80ms * var(--move));
+    }
+
+    .reveal[data-visible="true"] {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  .ghost-word {
+    transform: translate(var(--gx, 0px), var(--gy, 0px));
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 200ms;
+    animation-timing-function: var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .card {
+      transition: transform calc(var(--dur-lift) * var(--move)) var(--ease-out);
+    }
+
+    .card:hover {
+      transform: translateY(calc(-4px * var(--move)));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      clip-path: none;
+    }
+
+    .ghost-word {
+      transform: none;
+    }
+
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation: none !important;
+    }
+  }
+}

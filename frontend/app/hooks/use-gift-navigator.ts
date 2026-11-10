@@ -15,8 +15,8 @@ export type NavigatorMotion = "pointer" | "keyboard";
 /**
  * One-gift-at-a-time navigation over the grouped list. The current gift is tracked by id, so a
  * refetch that reorders gifts keeps the viewer on the same gift. Previous/next never wrap around,
- * and Left/Right arrow keys on the document move too.
- * Keyboard moves are flagged so the view can skip animation for them.
+ * and Left/Right arrow keys on the document move too. Keyboard moves are flagged so the carousel
+ * jumps instead of animating.
  */
 export function useGiftNavigator(groups: GiftGroup<PublicGift>[]) {
   const flat = useMemo(() => flattenGroups(groups), [groups]);
@@ -27,7 +27,7 @@ export function useGiftNavigator(groups: GiftGroup<PublicGift>[]) {
   const safeIndex = found >= 0 ? found : 0;
   const current = flat[safeIndex] ?? null;
 
-  const go = useCallback(
+  const goToIndex = useCallback(
     (next: number, source: NavigatorMotion = "pointer") => {
       const target = flat[next];
       if (!target) return;
@@ -38,29 +38,29 @@ export function useGiftNavigator(groups: GiftGroup<PublicGift>[]) {
   );
 
   const previous = useCallback(
-    (source: NavigatorMotion = "pointer") => go(stepIndex(safeIndex, -1, total), source),
-    [go, safeIndex, total],
+    (source: NavigatorMotion = "pointer") => goToIndex(stepIndex(safeIndex, -1, total), source),
+    [goToIndex, safeIndex, total],
   );
 
   const next = useCallback(
-    (source: NavigatorMotion = "pointer") => go(stepIndex(safeIndex, 1, total), source),
-    [go, safeIndex, total],
+    (source: NavigatorMotion = "pointer") => goToIndex(stepIndex(safeIndex, 1, total), source),
+    [goToIndex, safeIndex, total],
   );
 
   const goToGift = useCallback(
     (giftId: PublicGift["id"]) => {
       const position = flat.findIndex((item) => item.gift.id === giftId);
-      if (position >= 0) go(position);
+      if (position >= 0) goToIndex(position);
     },
-    [flat, go],
+    [flat, goToIndex],
   );
 
   const goToGroup = useCallback(
     (groupKey: string) => {
       const position = firstIndexOfGroup(flat, groupKey);
-      if (position >= 0) go(position);
+      if (position >= 0) goToIndex(position);
     },
-    [flat, go],
+    [flat, goToIndex],
   );
 
   useEffect(() => {
@@ -86,6 +86,7 @@ export function useGiftNavigator(groups: GiftGroup<PublicGift>[]) {
     isLast: safeIndex >= total - 1,
     previous,
     next,
+    goToIndex,
     goToGift,
     goToGroup,
   };

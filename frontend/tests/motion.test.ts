@@ -36,4 +36,14 @@ describe("reduced motion in the stylesheets", () => {
   it("drops UI movement for keyboard-driven changes", () => {
     expect(tokens).toMatch(/\[data-modality="keyboard"\]\s*\{\s*--move-ui: 0;/);
   });
+
+  it("multiplies every transform transition of the theme by --move", () => {
+    for (const file of ["buttons", "navigation", "forms"]) {
+      const css = read(`theme/${file}.css`);
+      const transforms = css.match(/transform [^,;]*?(?=[,;])/g) ?? [];
+      const transitions = transforms.filter((rule) => /ms|var\(--dur/.test(rule));
+      expect(transitions.length).toBeGreaterThan(0);
+      for (const rule of transitions) expect(rule).toContain("var(--move)");
+    }
+  });
 });
