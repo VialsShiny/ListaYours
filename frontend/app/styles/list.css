@@ -107,7 +107,7 @@
     line-height: 1.05;
     letter-spacing: -0.03em;
     overflow-wrap: break-word;
-    hyphens: auto;
+    hyphens: none;
   }
 
   .navigator-price {

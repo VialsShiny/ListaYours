@@ -122,7 +122,7 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
           ) : null}
         </div>
       )}
-      <div className="sticky-bar -mx-4 md:hidden">
+      <div className="sticky-bar -mx-[16px] md:hidden">
         <Button variant="primary" block onClick={() => openForm(null)}>
           {voice.dashboard.gifts.add}
         </Button>

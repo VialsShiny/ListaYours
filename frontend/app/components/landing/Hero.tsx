@@ -18,17 +18,28 @@ export function Hero() {
   useGhostParallax(sectionRef);
 
   return (
-    <section ref={sectionRef} className="relative overflow-hidden" aria-labelledby="hero-title">
+    <section
+      ref={sectionRef}
+      className="relative overflow-hidden"
+      data-overflow-ok=""
+      aria-labelledby="hero-title"
+    >
       <p aria-hidden="true" className="ghost-word -top-4 right-[-6%] hidden lg:block">
         {copy.ghost}
       </p>
       <div className="container relative grid grid-cols-[minmax(0,1fr)] gap-10 pt-8 md:pt-14 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start lg:gap-12 xl:gap-16">
-        <div className="flex min-w-0 flex-col gap-6 md:gap-9">
+        <div className="title-column flex flex-col gap-6 md:gap-9">
           <MicroLabel>{copy.eyebrow}</MicroLabel>
-          <DisplayTitle size="hero" id="hero-title" className="tracking-[-0.05em]">
+          <DisplayTitle
+            size="hero"
+            id="hero-title"
+            className="text-[clamp(2.5rem,15cqw,8.5rem)] tracking-[-0.05em]"
+          >
             {copy.title}
           </DisplayTitle>
-          <p className="text-body max-w-[46ch] text-soft md:text-lead">{copy.lead}</p>
+          <p className="text-body max-w-[46ch] text-soft [text-wrap:pretty] md:text-lead">
+            {copy.lead}
+          </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             {first ? (
               <Link href={`/l/${first.slug}`} className="btn btn-primary btn-hero">

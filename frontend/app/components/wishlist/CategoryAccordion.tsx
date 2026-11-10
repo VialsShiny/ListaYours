@@ -20,7 +20,7 @@ type CategoryAccordionProps = {
 
 /**
  * Base UI accordion with one open category at a time; the panel height animates over 240ms
- * and the chevron rotates. Visitors see "Réservé" instead of a reserved gift's price; the
+ * and the chevron rotates. Visitors see « Pris » instead of a reserved gift's price; the
  * owner never does.
  */
 export function CategoryAccordion({

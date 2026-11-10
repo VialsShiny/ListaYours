@@ -18,7 +18,7 @@ type ScrapePrefillProps = {
 };
 
 /**
- * "Pré-remplir depuis un lien produit": calls the scraper, previews the product, fills the form.
+ * « Remplir depuis un lien » : calls the scraper, previews the product, fills the form.
  */
 export function ScrapePrefill({ initialUrl, onPrefill }: ScrapePrefillProps) {
   const [url, setUrl] = useState(initialUrl);

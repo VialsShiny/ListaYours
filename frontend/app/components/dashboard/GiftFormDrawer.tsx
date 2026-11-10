@@ -108,11 +108,7 @@ export function GiftFormDrawer({ open, gift, categories, store, onClose }: GiftF
             className="flex-[1.6]"
             disabled={saving || store.busy}
           >
-            {saving
-              ? voice.errors.wait
-              : gift
-                ? voice.dashboard.gifts.save
-                : voice.dashboard.gifts.saveNew}
+            {saving ? voice.errors.wait : voice.dashboard.gifts.save}
           </Button>
         </DrawerFooter>
       </DrawerContent>

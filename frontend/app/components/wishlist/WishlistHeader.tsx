@@ -27,6 +27,7 @@ export function WishlistHeader({
       eyebrow={voice.list.eyebrow(giftCount)}
       title={wishlist.title}
       titleId="liste-titre"
+      userContent
       aside={
         <>
           <ViewSwitch

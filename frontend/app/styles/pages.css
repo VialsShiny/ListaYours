@@ -1,4 +1,12 @@
 @layer components {
+  .title-column {
+    container-type: inline-size;
+  }
+
+  .display-user {
+    overflow-wrap: break-word;
+  }
+
   .auth-card {
     display: flex;
     flex-direction: column;
@@ -11,7 +19,7 @@
   }
 
   .section-switch a {
-    min-height: 40px;
+    min-height: var(--target);
     padding-inline: 22px;
     font-size: 14px;
   }

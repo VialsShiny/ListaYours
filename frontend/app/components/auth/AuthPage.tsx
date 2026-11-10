@@ -12,11 +12,11 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
   const copy = voice.auth[mode];
   return (
     <section className="container grid flex-1 gap-8 pt-10 md:pt-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)] lg:items-start lg:gap-12 lg:pt-20">
-      <div className="flex min-w-0 flex-col gap-5 md:gap-7">
+      <div className="title-column flex flex-col gap-5 md:gap-7">
         <MicroLabel>{copy.eyebrow}</MicroLabel>
         <DisplayTitle
           size="hero"
-          className="text-[clamp(2.5rem,0.25rem+6vw,6.5rem)] tracking-[-0.05em]"
+          className="text-[clamp(1.625rem,9.4cqw,6.5rem)] tracking-[-0.05em]"
         >
           {copy.title}
         </DisplayTitle>

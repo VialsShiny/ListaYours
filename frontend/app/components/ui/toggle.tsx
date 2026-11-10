@@ -31,7 +31,7 @@ export function Toggle({
   const hintId = hint ? `${id}-hint` : undefined;
   return (
     <div className={cn("flex min-h-11 items-center gap-3", className)}>
-      <span className="relative inline-flex shrink-0">
+      <span className="relative inline-flex min-h-11 shrink-0 items-center">
         <input
           id={id}
           type="checkbox"

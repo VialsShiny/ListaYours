@@ -35,7 +35,7 @@ export function CategorySection({
       <div className="hairline mb-5 flex flex-wrap items-baseline justify-between gap-3 pt-5 md:mb-7 md:pt-6">
         <div className="flex min-w-0 items-baseline gap-2.5 md:gap-4">
           <span className="index-tag">{formatIndex(index)}</span>
-          <h2 id={headingId} className="display display-section min-w-0">
+          <h2 id={headingId} className="display display-section display-user min-w-0">
             {group.name}
           </h2>
         </div>

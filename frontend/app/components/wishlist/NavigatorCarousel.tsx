@@ -56,6 +56,7 @@ export function NavigatorCarousel({
     <div
       ref={viewportRef}
       className="navigator-viewport"
+      data-overflow-ok=""
       role="group"
       aria-roledescription="carrousel"
       aria-label="Cadeaux"

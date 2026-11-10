@@ -19,7 +19,7 @@ export function SiteHeader() {
   return (
     <div className="nav-wrap">
       <header className="nav container">
-        <Link href="/" className="wordmark shrink-0">
+        <Link href="/" className="wordmark inline-flex min-h-11 shrink-0 items-center">
           {voice.brand}
         </Link>
         <nav aria-label={voice.nav.navLabel} className="hidden min-w-0 md:block">

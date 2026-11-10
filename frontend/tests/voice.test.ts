@@ -36,8 +36,8 @@ const PITCH =
   /cr[ée]ez votre liste|rejoignez|gratuit|fonctionnalit|commencer maintenant|propuls[ée] par|font confiance|inscrivez-vous|cr[ée]er (ma|votre) liste/i;
 
 describe("voice", () => {
-  it("collects a few hundred lines", () => {
-    expect(lines.length).toBeGreaterThan(150);
+  it("collects every screen", () => {
+    expect(new Set(lines.map((line) => line.path)).size).toBeGreaterThan(120);
   });
 
   it("speaks to one person with « tu », never « vous »", () => {

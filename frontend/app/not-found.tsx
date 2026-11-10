@@ -5,11 +5,11 @@ import { MicroLabel } from "@/components/layout/MicroLabel";
 
 export default function NotFound() {
   return (
-    <section className="container flex flex-1 flex-col gap-7 pt-10 md:pt-16">
+    <section className="title-column container flex flex-1 flex-col gap-7 pt-10 md:pt-16">
       <MicroLabel>{voice.notFound.eyebrow}</MicroLabel>
       <DisplayTitle
         size="hero"
-        className="text-[clamp(7rem,30vw,18.75rem)] leading-[0.85] tracking-[-0.06em]"
+        className="text-[clamp(4rem,23cqw,18.75rem)] leading-[0.85] tracking-[-0.06em]"
       >
         {voice.notFound.title}
       </DisplayTitle>
