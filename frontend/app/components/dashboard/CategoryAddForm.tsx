@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import type { OwnerStore } from "@/hooks/use-owner-data";
 import { createCategory } from "@/lib/api-owner";
@@ -22,25 +21,25 @@ export function CategoryAddForm({ store }: { store: OwnerStore }) {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col gap-4 self-start bg-white p-5 shadow-soft"
-    >
-      <p className="micro text-ink-soft">Nouvelle catégorie</p>
-      <Field id="new-category" label="Nom" required>
-        {(describedBy) => (
-          <Input
-            id="new-category"
-            required
-            maxLength={80}
-            placeholder="Maison, Lecture, Voyage…"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            aria-describedby={describedBy}
-          />
-        )}
-      </Field>
-      <Button type="submit" variant="primary" disabled={store.busy || name.trim() === ""}>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2 sm:flex-row">
+      <label htmlFor="new-category" className="sr-only">
+        Nouvelle catégorie
+      </label>
+      <Input
+        id="new-category"
+        required
+        maxLength={80}
+        placeholder="Nouvelle catégorie"
+        value={name}
+        onChange={(event) => setName(event.target.value)}
+        className="flex-1"
+      />
+      <Button
+        type="submit"
+        variant="primary"
+        className="shrink-0"
+        disabled={store.busy || name.trim() === ""}
+      >
         Ajouter
       </Button>
     </form>

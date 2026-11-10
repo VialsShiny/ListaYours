@@ -1,17 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus } from "lucide-react";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { DashboardSectionTitle } from "@/components/dashboard/DashboardSectionTitle";
 import { GiftFormDrawer } from "@/components/dashboard/GiftFormDrawer";
 import { GiftRow } from "@/components/dashboard/GiftRow";
 import type { OwnerStore } from "@/hooks/use-owner-data";
 import { deleteGift, reorderGifts, updateGift } from "@/lib/api-owner";
 import { sortByPosition, swapIds } from "@/lib/reorder";
 import type { Category, OwnerGift } from "@/lib/types";
-import { groupGiftsByCategory } from "@/lib/wishlist-groups";
+
+const INITIAL_ROWS = 6;
 
 type GiftManagerProps = { store: OwnerStore; categories: Category[]; gifts: OwnerGift[] };
 
@@ -20,13 +21,19 @@ type DrawerState = { open: false } | { open: true; gift: OwnerGift | null };
 export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
   const [drawer, setDrawer] = useState<DrawerState>({ open: false });
   const [toDelete, setToDelete] = useState<OwnerGift | null>(null);
+  const [expanded, setExpanded] = useState(false);
   const ordered = useMemo(() => sortByPosition(gifts), [gifts]);
-  const groups = useMemo(() => groupGiftsByCategory(categories, ordered), [categories, ordered]);
+  const names = useMemo(
+    () => new Map(categories.map((category) => [String(category.id), category.name])),
+    [categories],
+  );
+  const visible = expanded ? ordered : ordered.slice(0, INITIAL_ROWS);
+  const hidden = ordered.length - visible.length;
 
-  function move(groupGifts: OwnerGift[], index: number, direction: -1 | 1) {
-    const neighbour = groupGifts[index + direction];
+  function move(index: number, direction: -1 | 1) {
+    const neighbour = ordered[index + direction];
     if (!neighbour) return;
-    const ids = swapIds(ordered, groupGifts[index].id, neighbour.id);
+    const ids = swapIds(ordered, ordered[index].id, neighbour.id);
     void store.run((token) => reorderGifts(token, ids), "Le réordonnancement a échoué.");
   }
 
@@ -47,56 +54,71 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
   }
 
   return (
-    <div className="flex flex-col gap-10">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <p className="text-sm text-ink-soft">
-          {gifts.length} {gifts.length > 1 ? "cadeaux" : "cadeau"} ·{" "}
-          {gifts.filter((gift) => !gift.is_visible).length} masqué(s)
-        </p>
-        <Button variant="primary" onClick={() => setDrawer({ open: true, gift: null })}>
-          <Plus className="size-4" aria-hidden="true" />
+    <div className="flex flex-col gap-4 md:gap-6">
+      <DashboardSectionTitle
+        id="cadeaux-titre"
+        index="#03"
+        title="Cadeaux"
+        aside={
+          <div className="flex items-center gap-4">
+            <p className="text-secondary text-soft">
+              {gifts.length} {gifts.length > 1 ? "cadeaux" : "cadeau"}
+            </p>
+            <Button
+              variant="primary"
+              className="max-md:hidden"
+              onClick={() => setDrawer({ open: true, gift: null })}
+            >
+              Ajouter un cadeau
+            </Button>
+          </div>
+        }
+      />
+      {ordered.length === 0 ? (
+        <EmptyState
+          title="Aucun cadeau pour l'instant"
+          text="Ajoutez votre premier cadeau en collant un lien produit."
+          action={
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setDrawer({ open: true, gift: null })}
+            >
+              Ajouter un cadeau
+            </Button>
+          }
+        />
+      ) : (
+        <ol className="panel flex flex-col overflow-hidden">
+          {visible.map((gift, index) => (
+            <GiftRow
+              key={gift.id}
+              gift={gift}
+              categoryName={names.get(String(gift.category_id)) ?? "Autres"}
+              isFirst={index === 0}
+              isLast={index === ordered.length - 1}
+              busy={store.busy}
+              onEdit={() => setDrawer({ open: true, gift })}
+              onToggleVisibility={() => toggleVisibility(gift)}
+              onMoveUp={() => move(index, -1)}
+              onMoveDown={() => move(index, 1)}
+              onDelete={() => setToDelete(gift)}
+            />
+          ))}
+          {hidden > 0 ? (
+            <li className="flex justify-center border-t border-line">
+              <Button variant="text-accent" className="min-h-16" onClick={() => setExpanded(true)}>
+                Afficher les {hidden} autres cadeaux →
+              </Button>
+            </li>
+          ) : null}
+        </ol>
+      )}
+      <div className="sticky-bar -mx-4 md:hidden">
+        <Button variant="primary" block onClick={() => setDrawer({ open: true, gift: null })}>
           Ajouter un cadeau
         </Button>
       </div>
-
-      {gifts.length === 0 ? (
-        <EmptyState
-          title="Aucun cadeau"
-          text="Ajoutez votre premier cadeau, à la main ou en collant l'adresse d'un produit."
-        />
-      ) : (
-        groups
-          .filter((group) => group.gifts.length > 0)
-          .map((group) => (
-            <section
-              key={group.key}
-              aria-labelledby={`gifts-${group.key}`}
-              className="flex flex-col gap-4"
-            >
-              <h3 id={`gifts-${group.key}`} className="display text-2xl leading-tight">
-                {group.name}.
-              </h3>
-              <ol className="flex flex-col divide-y divide-line border-y border-line bg-white">
-                {group.gifts.map((gift, index) => (
-                  <GiftRow
-                    key={gift.id}
-                    gift={gift}
-                    categoryName={group.name}
-                    isFirst={index === 0}
-                    isLast={index === group.gifts.length - 1}
-                    busy={store.busy}
-                    onEdit={() => setDrawer({ open: true, gift })}
-                    onToggleVisibility={() => toggleVisibility(gift)}
-                    onMoveUp={() => move(group.gifts, index, -1)}
-                    onMoveDown={() => move(group.gifts, index, 1)}
-                    onDelete={() => setToDelete(gift)}
-                  />
-                ))}
-              </ol>
-            </section>
-          ))
-      )}
-
       <GiftFormDrawer
         open={drawer.open}
         gift={drawer.open ? drawer.gift : null}

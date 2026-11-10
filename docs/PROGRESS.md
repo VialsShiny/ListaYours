@@ -58,3 +58,17 @@ GitHub pull requests merged into `feat/wishlist-platform`.
 - Passed: all; no factual contradiction found.
 - Failed: nothing.
 - Remains: every `[MANUAL]` step (accounts, card, DNS, secrets) belongs to the owner; nothing is deployed.
+
+## 9. Restyle with the cherry/jet/water theme — PR #28 (2026-11-09)
+- Changed: `frontend/app/theme/*.css` (copied verbatim), `globals.css` token mapping, Inter via `next/font/google`, every page and component restyled (pill nav, gradient hero, `.index-tag` sections, `.card` gifts, panels), `docs/FONTS.md`, decisions 14–15.
+- Ran: lint, typecheck, vitest (29), `next build`, docker compose build of the frontend image, browser checks at 375/768/1440 in light and dark (landing, public list, registration, reservation, second visitor, "Mes réservations", owner dashboard and drawer), WCAG contrast script (34 pairs).
+- Passed: all; lowest contrast 4.65:1 (hero eyebrow on the lightest gradient stop); no horizontal scroll at any width; owner view shows no reservation data.
+- Failed: first pass had Tailwind's own `container` utility overriding the theme's `.container` (overflow at 375) and a two-line "LISTAYOURS" at 375 → `@utility container` override and a mobile `display-wide` size.
+- Remains: the brand fonts Against and QuickSans are not in the repository (see `docs/FONTS.md`); the 409 conflict path was exercised through the API only.
+
+## 10. Monochrome restyle from the design mockups — PRs #29–#33 (2026-11-09)
+- Changed: `frontend/app/theme/*` rewritten (tokens, base, typography, navigation, buttons, surfaces, forms), `styles/{components,overlays,grid,list,pages}.css`, Syne/Inter/Unbounded via `next/font/google`, shell (pill header, full-screen mobile menu, footer, display titles with the accent period), the two list views (`GiftNavigator` + `CategoryAccordion` + mobile `CategorySheet`, `GiftGrid` replacing the carousel, `ViewSwitch` in the URL and localStorage), landing, auth, reservations (total, confirm dialog), dashboard (section switch, panels, rows, drawer / bottom sheet), 404, feedback components; `docs/FONTS.md`, decisions 16–19.
+- Ran: lint, format, typecheck, vitest (42, including `owner-privacy.test.ts`), browser checks on the dev server against the local API at 390/768/1024/1280/1440 (landing, both list views as anonymous, visitor and owner, registration, reservation and cancellation, « Mes réservations », dashboard with drawer and sheet, 404), keyboard navigation of the Naviguer view, contrast script (20 pairs), one reviewer pass per stage PR.
+- Passed: all; no horizontal scroll at any width; every text pair ≥ 4.84:1; owner view of both views contains no reservation text, attribute or control.
+- Failed: stage 1 review found accent-on-tile hovers at 4.31:1 and a `.hero` class left behind → fixed; stage 3 review found duplicate accordion ids and an active « Réserver » link for anonymous visitors on reserved gifts → fixed; a local `next build` run while `next dev` was running corrupted `.next` (cleared).
+- Remains: Against/QuickSans still absent (`docs/FONTS.md`); toggle-off and field-border non-text contrast below 3:1 by design (decision 18); the 409 conflict path was not exercised in the browser.

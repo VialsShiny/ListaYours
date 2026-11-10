@@ -1,25 +1,26 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
+import { Inter, Syne, Unbounded } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/hooks/use-auth";
 import { SiteShell } from "@/components/layout/SiteShell";
-import { cn } from "@/lib/utils";
 
-const manrope = localFont({
-  src: [
-    { path: "./fonts/manrope-variable-latin.woff2", weight: "400 700", style: "normal" },
-    { path: "./fonts/manrope-variable-latin-ext.woff2", weight: "400 700", style: "normal" },
-  ],
-  variable: "--font-manrope",
+const inter = Inter({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-inter",
   display: "swap",
 });
 
-const playfair = localFont({
-  src: [
-    { path: "./fonts/playfair-display-900-latin.woff2", weight: "900", style: "normal" },
-    { path: "./fonts/playfair-display-900-latin-ext.woff2", weight: "900", style: "normal" },
-  ],
-  variable: "--font-playfair",
+const syne = Syne({
+  subsets: ["latin", "latin-ext"],
+  weight: ["600", "800"],
+  variable: "--font-syne",
+  display: "swap",
+});
+
+const unbounded = Unbounded({
+  subsets: ["latin"],
+  weight: ["800"],
+  variable: "--font-unbounded",
   display: "swap",
 });
 
@@ -34,12 +35,13 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#D9D9DB",
+  viewportFit: "cover",
+  themeColor: "#fafafa",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="fr" className={cn(manrope.variable, playfair.variable)}>
+    <html lang="fr" className={`${inter.variable} ${syne.variable} ${unbounded.variable}`}>
       <body>
         <AuthProvider>
           <SiteShell>{children}</SiteShell>

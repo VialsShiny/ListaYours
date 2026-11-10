@@ -1,23 +1,25 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ErrorPanel } from "@/components/feedback/ErrorPanel";
 import { Notice } from "@/components/feedback/Notice";
 import { StatusMessage } from "@/components/feedback/StatusMessage";
-import { DisplayTitle } from "@/components/layout/DisplayTitle";
-import { MicroLabel } from "@/components/layout/MicroLabel";
-import { Section } from "@/components/layout/Section";
+import { PageHero } from "@/components/layout/PageHero";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ReservationCard } from "@/components/reservations/ReservationCard";
 import { useAsync } from "@/hooks/use-async";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { useReservationActions } from "@/hooks/use-reservation-actions";
 import { fetchMyReservations } from "@/lib/api-public";
+import { formatReservationsTotal } from "@/lib/reservations-total";
 import type { MyReservation } from "@/lib/types";
 
 export function ReservationsView() {
   const { status, token, isOwner } = useRequireAuth();
   const enabled = status === "authenticated" && !isOwner && Boolean(token);
+  const [toCancel, setToCancel] = useState<MyReservation | null>(null);
   const list = useAsync<MyReservation[]>(
     (signal) => fetchMyReservations(token ?? "", signal),
     token ?? "no-token",
@@ -27,19 +29,35 @@ export function ReservationsView() {
     onCancelled: (giftId) =>
       list.setData((current) => current?.filter((item) => item.gift.id !== giftId) ?? current),
   });
+  const items = list.data ?? [];
+  const total = formatReservationsTotal(items);
+
+  async function confirmCancel() {
+    if (!toCancel) return;
+    const ok = await actions.cancel(toCancel.gift.id);
+    if (ok) setToCancel(null);
+  }
 
   return (
     <>
-      <header className="bg-surface px-4 pt-12 pb-12 md:px-12 md:pt-20 lg:px-16">
-        <MicroLabel className="mb-6">Espace visiteur</MicroLabel>
-        <DisplayTitle size="section">Mes réservations</DisplayTitle>
-      </header>
-      <Section tone="white" className="flex-1">
+      <PageHero
+        eyebrow="Mon compte"
+        title="Mes réservations"
+        aside={
+          total ? (
+            <p className="flex flex-col items-end gap-1">
+              <span className="text-small text-soft">Total estimé</span>
+              <span className="display text-[26px] tracking-[-0.03em] md:text-[40px]">{total}</span>
+            </p>
+          ) : null
+        }
+      />
+      <section className="container flex flex-1 flex-col gap-4 pt-10 md:pt-14">
         {status === "loading" ? (
-          <p className="text-sm text-ink-soft">Vérification de la session…</p>
+          <p className="text-secondary text-soft">Vérification de la session…</p>
         ) : null}
         {status === "anonymous" ? (
-          <p className="text-sm text-ink-soft">Redirection vers la connexion…</p>
+          <p className="text-secondary text-soft">Redirection vers la connexion…</p>
         ) : null}
         {isOwner ? (
           <Notice href="/tableau-de-bord" linkLabel="Tableau de bord">
@@ -49,38 +67,54 @@ export function ReservationsView() {
         ) : null}
         {enabled ? (
           <>
-            <StatusMessage message={actions.message} className="mb-4" />
+            <StatusMessage message={actions.message} />
             {list.loading ? (
-              <p className="text-sm text-ink-soft">Chargement de vos réservations…</p>
+              <p className="text-secondary text-soft">Chargement de vos réservations…</p>
             ) : null}
             {list.error ? <ErrorPanel message={list.error} onRetry={list.refetch} /> : null}
-            {!list.loading && list.data?.length === 0 ? (
+            {!list.loading && items.length === 0 && !list.error ? (
               <EmptyState
                 title="Aucune réservation"
                 text="Réservez un cadeau depuis une liste pour le retrouver ici."
                 action={
-                  <Link href="/" className="link-arrow micro text-ink">
+                  <Link href="/" className="btn btn-secondary btn-sm">
                     Voir les listes
                   </Link>
                 }
               />
             ) : null}
-            {list.data && list.data.length > 0 ? (
-              <ul className="grid gap-6 lg:grid-cols-2">
-                {list.data.map((item) => (
-                  <li key={item.reservation.id} className="flex">
-                    <ReservationCard
-                      item={item}
-                      pending={actions.pendingId === item.gift.id}
-                      onCancel={actions.cancel}
-                    />
-                  </li>
-                ))}
-              </ul>
+            {items.length > 0 ? (
+              <>
+                <p className="text-[16px] text-soft">
+                  {items.length} {items.length > 1 ? "cadeaux réservés" : "cadeau réservé"}. Le
+                  propriétaire ne le voit pas.
+                </p>
+                <ul className="flex flex-col gap-3.5 md:gap-4">
+                  {items.map((item) => (
+                    <li key={item.reservation.id} className="flex">
+                      <ReservationCard
+                        item={item}
+                        pending={actions.pendingId === item.gift.id}
+                        onCancel={setToCancel}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </>
             ) : null}
           </>
         ) : null}
-      </Section>
+      </section>
+      <ConfirmDialog
+        open={toCancel !== null}
+        title="Annuler cette réservation ?"
+        description="Le cadeau redeviendra disponible pour les autres."
+        confirmLabel="Annuler"
+        cancelLabel="Garder"
+        busy={actions.pendingId !== null}
+        onConfirm={confirmCancel}
+        onCancel={() => setToCancel(null)}
+      />
     </>
   );
 }

@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowRight } from "lucide-react";
 import { StatusMessage } from "@/components/feedback/StatusMessage";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input, Textarea } from "@/components/ui/input";
 import { Toggle } from "@/components/ui/toggle";
@@ -12,7 +10,6 @@ import { useClipboard } from "@/hooks/use-clipboard";
 import type { OwnerStore } from "@/hooks/use-owner-data";
 import { patchWishlist } from "@/lib/api-owner";
 import type { OwnerWishlist } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 type SettingsFormProps = { store: OwnerStore; wishlist: OwnerWishlist };
 
@@ -65,9 +62,12 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
         : null;
 
   return (
-    <Card tone="white" className="max-w-3xl">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-        <Field id="wishlist-title" label="Titre" required>
+    <form
+      onSubmit={handleSubmit}
+      className="grid gap-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] md:gap-6"
+    >
+      <div className="panel flex flex-col gap-5 p-5 md:p-8">
+        <Field id="wishlist-title" label="Titre de la liste" required>
           {(describedBy) => (
             <Input
               id="wishlist-title"
@@ -89,45 +89,61 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
             />
           )}
         </Field>
-        <Field id="wishlist-slug" label="Slug" hint={`Adresse publique : ${publicUrl}`} required>
+        <Field id="wishlist-slug" label="Adresse publique" hint={publicUrl} required>
           {(describedBy) => (
-            <Input
-              id="wishlist-slug"
-              required
-              pattern="[a-z0-9]+(-[a-z0-9]+)*"
-              title="Lettres minuscules, chiffres et tirets"
-              value={slug}
-              onChange={(event) => setSlug(event.target.value.toLowerCase())}
-              aria-describedby={describedBy}
-            />
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="field flex min-w-0 flex-1 items-center gap-1 focus-within:border-ink">
+                <span className="text-soft" aria-hidden="true">
+                  /l/
+                </span>
+                <input
+                  id="wishlist-slug"
+                  required
+                  pattern="[a-z0-9]+(-[a-z0-9]+)*"
+                  title="Lettres minuscules, chiffres et tirets"
+                  value={slug}
+                  onChange={(event) => setSlug(event.target.value.toLowerCase())}
+                  aria-describedby={describedBy}
+                  className="min-w-0 flex-1 border-0 bg-transparent p-0 outline-none"
+                />
+              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                className="shrink-0"
+                onClick={() => clipboard.copy(publicUrl)}
+              >
+                Copier le lien
+              </Button>
+            </div>
           )}
         </Field>
-        <Toggle
-          id="wishlist-published"
-          label="Publiée"
-          hint={published ? "La liste est visible à son adresse publique." : "La liste est privée."}
-          checked={published}
-          onChange={setPublished}
-        />
-        <div className="hairline flex flex-wrap items-center gap-3 pt-5">
-          <Button type="submit" variant="primary" disabled={store.busy}>
+      </div>
+      <div className="panel flex flex-col justify-between gap-5 p-5 md:p-8">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex min-w-0 flex-col gap-1">
+            <p className="text-[16px] font-semibold">Liste publique</p>
+            <p className="text-[14px] leading-[1.5] text-soft">
+              {published
+                ? "Toute personne ayant le lien peut la consulter."
+                : "La liste est privée : seul vous la voyez."}
+            </p>
+          </div>
+          <Toggle
+            id="wishlist-published"
+            label="Liste publique"
+            labelHidden
+            checked={published}
+            onChange={setPublished}
+          />
+        </div>
+        <div className="flex flex-col gap-3">
+          <Button type="submit" variant="primary" block disabled={store.busy}>
             {store.busy ? "Enregistrement…" : "Enregistrer"}
           </Button>
-          <Button type="button" variant="outline" onClick={() => clipboard.copy(publicUrl)}>
-            Copier le lien
-          </Button>
-          <a
-            href={publicPath}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(buttonVariants({ variant: "ghost" }))}
-          >
-            Aperçu public
-            <ArrowRight className="size-4" aria-hidden="true" />
-          </a>
+          <StatusMessage message={clipboardMessage ?? saved} />
         </div>
-        <StatusMessage message={clipboardMessage ?? saved} />
-      </form>
-    </Card>
+      </div>
+    </form>
   );
 }

@@ -7,15 +7,19 @@ import { CategoryAddForm } from "@/components/dashboard/CategoryAddForm";
 import { CategoryRow } from "@/components/dashboard/CategoryRow";
 import type { OwnerStore } from "@/hooks/use-owner-data";
 import { deleteCategory, renameCategory, reorderCategories } from "@/lib/api-owner";
-import type { Category } from "@/lib/types";
+import type { Category, OwnerGift } from "@/lib/types";
 import { moveId } from "@/lib/wishlist-groups";
 import { sortByPosition } from "@/lib/reorder";
 
-type CategoryManagerProps = { store: OwnerStore; categories: Category[] };
+type CategoryManagerProps = { store: OwnerStore; categories: Category[]; gifts: OwnerGift[] };
 
-export function CategoryManager({ store, categories }: CategoryManagerProps) {
+export function CategoryManager({ store, categories, gifts }: CategoryManagerProps) {
   const ordered = sortByPosition(categories);
   const [toDelete, setToDelete] = useState<Category | null>(null);
+
+  function countFor(category: Category) {
+    return gifts.filter((gift) => String(gift.category_id) === String(category.id)).length;
+  }
 
   function move(index: number, direction: -1 | 1) {
     const ids = moveId(ordered, index, direction);
@@ -33,20 +37,22 @@ export function CategoryManager({ store, categories }: CategoryManagerProps) {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_minmax(16rem,20rem)]">
+    <div className="flex flex-col gap-4 md:gap-6">
+      <CategoryAddForm store={store} />
       {ordered.length === 0 ? (
         <EmptyState
           title="Aucune catégorie"
           text="Créez une première catégorie pour ranger vos cadeaux."
         />
       ) : (
-        <ol className="flex flex-col divide-y divide-line border-y border-line bg-white">
+        <ol className="panel flex flex-col overflow-hidden">
           {ordered.map((category, index) => (
             <CategoryRow
               key={category.id}
               category={category}
               index={index}
               total={ordered.length}
+              count={countFor(category)}
               busy={store.busy}
               onRename={async (name) => {
                 const result = await store.run(
@@ -62,7 +68,6 @@ export function CategoryManager({ store, categories }: CategoryManagerProps) {
           ))}
         </ol>
       )}
-      <CategoryAddForm store={store} />
       <ConfirmDialog
         open={toDelete !== null}
         title={toDelete ? `Supprimer « ${toDelete.name} » ?` : ""}

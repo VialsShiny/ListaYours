@@ -15,7 +15,7 @@ qui pré‑remplit la fiche d'un cadeau à partir de son URL.
 
 ```
 api/        FastAPI + Playwright (scraper, authentification, listes, réservations)
-frontend/   Next.js 14 (App Router), Tailwind 4, design éditorial monochrome
+frontend/   Next.js 14 (App Router), Tailwind 4, thème monochrome encre/accent (voir docs/FONTS.md)
 docs/       AUDIT.md, DECISIONS.md, DEPLOY.md
 ```
 

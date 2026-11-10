@@ -1,10 +1,10 @@
 "use client";
 
-import { GiftCarousel } from "@/components/wishlist/GiftCarousel";
+import { GiftGrid } from "@/components/wishlist/GiftGrid";
 import type { ViewerRole } from "@/components/wishlist/ReservationControl";
+import { formatIndex } from "@/lib/wishlist-navigation";
 import type { GiftGroup } from "@/lib/wishlist-groups";
 import type { PublicGift } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 type CategorySectionProps = {
   group: GiftGroup<PublicGift>;
@@ -17,7 +17,7 @@ type CategorySectionProps = {
 };
 
 /**
- * One category = one section alternating white / light-grey bands, with its carousel.
+ * One category of the grid view: accent index tag, display title and count above a hairline.
  */
 export function CategorySection({
   group,
@@ -29,30 +29,23 @@ export function CategorySection({
   onCancel,
 }: CategorySectionProps) {
   const headingId = `${group.anchor}-titre`;
+  const count = group.gifts.length;
   return (
-    <section
-      id={group.anchor}
-      aria-labelledby={headingId}
-      className={cn(
-        "scroll-mt-6 px-4 py-12 md:px-12 md:py-16 lg:px-16",
-        index % 2 === 0 ? "bg-white" : "bg-surface-alt",
-      )}
-    >
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="micro mb-3 text-ink-soft">
-            {String(index + 1).padStart(2, "0")} — {group.gifts.length}{" "}
-            {group.gifts.length > 1 ? "cadeaux" : "cadeau"}
-          </p>
-          <h2 id={headingId} className="display display-section">
-            {group.name}.
+    <section id={group.anchor} aria-labelledby={headingId} className="scroll-mt-28 pt-10 md:pt-14">
+      <div className="hairline mb-5 flex flex-wrap items-baseline justify-between gap-3 pt-5 md:mb-7 md:pt-6">
+        <div className="flex min-w-0 items-baseline gap-2.5 md:gap-4">
+          <span className="index-tag">{formatIndex(index)}</span>
+          <h2 id={headingId} className="display display-section min-w-0">
+            {group.name}
           </h2>
         </div>
+        <p className="text-secondary text-soft">
+          {count} {count > 1 ? "cadeaux" : "cadeau"}
+        </p>
       </div>
-      <GiftCarousel
+      <GiftGrid
         label={`Cadeaux de la catégorie ${group.name}`}
         gifts={group.gifts}
-        categoryName={group.name}
         viewer={viewer}
         loginHref={loginHref}
         pendingId={pendingId}

@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowDown, ArrowUp, Check, Pencil, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Category } from "@/lib/types";
+import { formatIndex } from "@/lib/wishlist-navigation";
 
 type CategoryRowProps = {
   category: Category;
   index: number;
   total: number;
+  count: number;
   busy: boolean;
   onRename: (name: string) => Promise<boolean>;
   onMoveUp: () => void;
@@ -21,6 +23,7 @@ export function CategoryRow({
   category,
   index,
   total,
+  count,
   busy,
   onRename,
   onMoveUp,
@@ -43,8 +46,11 @@ export function CategoryRow({
   }
 
   return (
-    <li className="flex flex-wrap items-center gap-3 px-4 py-3 md:flex-nowrap">
-      <span className="micro w-8 shrink-0 text-ink-soft">{String(index + 1).padStart(2, "0")}</span>
+    <li className="list-row flex-wrap md:flex-nowrap">
+      <span className="drag-handle max-md:hidden" aria-hidden="true">
+        ⋮⋮
+      </span>
+      <span className="index-tag w-9 shrink-0 text-[14px]">{formatIndex(index)}</span>
       {editing ? (
         <form onSubmit={submitRename} className="flex min-w-0 flex-1 items-center gap-2">
           <label htmlFor={inputId} className="sr-only">
@@ -56,7 +62,7 @@ export function CategoryRow({
             value={draft}
             maxLength={80}
             onChange={(event) => setDraft(event.target.value)}
-            className="py-2"
+            className="min-h-11"
           />
           <Button type="submit" variant="icon" aria-label="Valider le nom" disabled={busy}>
             <Check aria-hidden="true" />
@@ -73,18 +79,14 @@ export function CategoryRow({
           </Button>
         </form>
       ) : (
-        <p className="display min-w-0 flex-1 truncate text-xl leading-tight">{category.name}</p>
+        <p className="display-card min-w-0 flex-1 truncate text-[17px] md:text-lead">
+          {category.name}
+        </p>
       )}
-      <div className="flex shrink-0 items-center gap-1">
-        {!editing ? (
-          <Button
-            variant="icon"
-            aria-label={`Renommer ${category.name}`}
-            onClick={() => setEditing(true)}
-          >
-            <Pencil aria-hidden="true" />
-          </Button>
-        ) : null}
+      <span className="text-small shrink-0 text-soft md:text-[14px]">
+        {count} {count > 1 ? "cadeaux" : "cadeau"}
+      </span>
+      <div className="flex w-full shrink-0 items-center gap-1 md:w-auto">
         <Button
           variant="icon"
           aria-label={`Monter ${category.name}`}
@@ -101,13 +103,13 @@ export function CategoryRow({
         >
           <ArrowDown aria-hidden="true" />
         </Button>
-        <Button
-          variant="icon"
-          aria-label={`Supprimer ${category.name}`}
-          disabled={busy}
-          onClick={onDelete}
-        >
-          <Trash2 aria-hidden="true" />
+        {!editing ? (
+          <Button variant="text" onClick={() => setEditing(true)}>
+            Renommer
+          </Button>
+        ) : null}
+        <Button variant="text-accent" disabled={busy} onClick={onDelete}>
+          Supprimer
         </Button>
       </div>
     </li>

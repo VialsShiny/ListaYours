@@ -5,7 +5,6 @@ import ProductCard from "@/components/ProductCard";
 import ResultRawViewer from "@/components/ResultRawViewer";
 import { StatusMessage } from "@/components/feedback/StatusMessage";
 import { Button } from "@/components/ui/button";
-import { Field } from "@/components/ui/field";
 import { Input, Select } from "@/components/ui/input";
 import { SCRAPE_PROGRESS_MESSAGE, useScrape } from "@/hooks/use-scrape";
 import type { GiftFormValues } from "@/lib/gift-form";
@@ -18,7 +17,7 @@ type ScrapePrefillProps = {
 };
 
 /**
- * "Pré-remplir depuis une URL" row: calls the scraper, previews the product and fills the form.
+ * "Pré-remplir depuis un lien produit": calls the scraper, previews the product, fills the form.
  */
 export function ScrapePrefill({ initialUrl, onPrefill }: ScrapePrefillProps) {
   const [url, setUrl] = useState(initialUrl);
@@ -33,61 +32,70 @@ export function ScrapePrefill({ initialUrl, onPrefill }: ScrapePrefillProps) {
     if (data) onPrefill((current) => prefillGiftFromProduct(data, trimmed, current));
   }
 
+  const message =
+    state.phase === "loading"
+      ? SCRAPE_PROGRESS_MESSAGE
+      : state.phase === "error"
+        ? state.message
+        : state.phase === "success"
+          ? "Nom, prix et image trouvés. Vérifiez avant d'enregistrer."
+          : null;
+
   return (
-    <section aria-labelledby="prefill-title" className="flex flex-col gap-4 bg-surface-alt p-4">
-      <h3 id="prefill-title" className="micro text-ink-soft">
-        Pré-remplir depuis une URL
+    <section
+      aria-labelledby="prefill-title"
+      className="flex flex-col gap-2.5 rounded-[20px] border border-line bg-bg p-4 md:p-5"
+    >
+      <h3 id="prefill-title" className="field-label">
+        Pré-remplir depuis un lien produit
       </h3>
-      <div className="grid gap-4 sm:grid-cols-[1fr_auto_auto] sm:items-end">
-        <Field id="scrape-url" label="Adresse du produit">
-          {(describedBy) => (
-            <Input
-              id="scrape-url"
-              type="url"
-              inputMode="url"
-              placeholder="https://www.exemple.fr/produit"
-              value={url}
-              disabled={loading}
-              onChange={(event) => setUrl(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  void handleAnalyse();
-                }
-              }}
-              aria-describedby={describedBy}
-            />
-          )}
-        </Field>
-        <Field id="scrape-strategy" label="Stratégie">
-          {(describedBy) => (
-            <Select
-              id="scrape-strategy"
-              value={strategy}
-              disabled={loading}
-              onChange={(event) => setStrategy(event.target.value as ScrapeStrategy)}
-              aria-describedby={describedBy}
-            >
-              <option value="HTTPX">HTTPX</option>
-              <option value="PLAYWRIGHT">PLAYWRIGHT</option>
-            </Select>
-          )}
-        </Field>
-        <Button variant="primary" disabled={loading || url.trim() === ""} onClick={handleAnalyse}>
-          {loading ? "Analyse…" : "Analyser"}
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <label htmlFor="scrape-url" className="sr-only">
+          Adresse du produit
+        </label>
+        <Input
+          id="scrape-url"
+          type="url"
+          inputMode="url"
+          placeholder="https://www.exemple.fr/produit"
+          value={url}
+          disabled={loading}
+          onChange={(event) => setUrl(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              void handleAnalyse();
+            }
+          }}
+          className="min-h-12 flex-1 text-[14px]"
+        />
+        <label htmlFor="scrape-strategy" className="sr-only">
+          Stratégie d&apos;analyse
+        </label>
+        <Select
+          id="scrape-strategy"
+          value={strategy}
+          disabled={loading}
+          onChange={(event) => setStrategy(event.target.value as ScrapeStrategy)}
+          className="min-h-12 w-auto text-[14px]"
+        >
+          <option value="HTTPX">HTTPX</option>
+          <option value="PLAYWRIGHT">Playwright</option>
+        </Select>
+        <Button
+          variant="primary"
+          size="sm"
+          className="min-h-12 shrink-0"
+          disabled={loading || url.trim() === ""}
+          onClick={handleAnalyse}
+        >
+          {loading ? "Analyse…" : "Remplir"}
         </Button>
       </div>
       <StatusMessage
-        message={
-          state.phase === "loading"
-            ? SCRAPE_PROGRESS_MESSAGE
-            : state.phase === "error"
-              ? state.message
-              : state.phase === "success"
-                ? "Produit analysé : le formulaire a été pré-rempli."
-                : null
-        }
+        message={message}
         tone={state.phase === "error" ? "error" : "info"}
+        className="text-[14px]"
       />
       {state.phase === "success" ? (
         <div className="flex flex-col gap-3">

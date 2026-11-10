@@ -1,3 +1,5 @@
+import { DisplayTitle } from "@/components/layout/DisplayTitle";
+
 type EmptyStateProps = {
   title: string;
   text?: string;
@@ -6,10 +8,11 @@ type EmptyStateProps = {
 
 export function EmptyState({ title, text, action }: EmptyStateProps) {
   return (
-    <div className="hairline-frame flex flex-col items-start gap-3 border-dashed p-6">
-      <p className="micro text-ink-soft">Rien à afficher</p>
-      <p className="display display-card">{title}</p>
-      {text ? <p className="max-w-prose text-sm text-ink-soft">{text}</p> : null}
+    <div className="panel panel-dashed flex flex-col items-start gap-3 p-7">
+      <DisplayTitle as="p" size="sub">
+        {title}
+      </DisplayTitle>
+      {text ? <p className="text-secondary max-w-prose text-soft">{text}</p> : null}
       {action}
     </div>
   );

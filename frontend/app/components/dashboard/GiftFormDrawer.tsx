@@ -8,13 +8,13 @@ import {
   DrawerBody,
   DrawerClose,
   DrawerContent,
-  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { GiftFormFields } from "@/components/dashboard/GiftFormFields";
 import { ScrapePrefill } from "@/components/dashboard/ScrapePrefill";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import type { OwnerStore } from "@/hooks/use-owner-data";
 import { createGift, updateGift } from "@/lib/api-owner";
 import {
@@ -34,10 +34,14 @@ type GiftFormDrawerProps = {
   onClose: () => void;
 };
 
+/**
+ * Add / edit gift form: a 560px right-hand drawer on desktop, a bottom sheet on phones.
+ */
 export function GiftFormDrawer({ open, gift, categories, store, onClose }: GiftFormDrawerProps) {
   const [values, setValues] = useState<GiftFormValues>(EMPTY_GIFT_FORM);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const phone = useMediaQuery("(max-width: 767px)");
   const formId = "gift-form";
 
   useEffect(() => {
@@ -67,20 +71,22 @@ export function GiftFormDrawer({ open, gift, categories, store, onClose }: GiftF
 
   return (
     <Drawer
+      placement={phone ? "bottom" : "right"}
       open={open}
       onOpenChange={(nextOpen) => {
         if (!nextOpen) onClose();
       }}
     >
-      <DrawerContent aria-describedby={undefined}>
+      <DrawerContent aria-describedby={undefined} className={phone ? "h-[calc(100dvh-64px)]" : ""}>
         <DrawerHeader>
-          <p className="micro text-ink-soft">{gift ? "Modification" : "Nouveau cadeau"}</p>
-          <DrawerTitle>{gift ? `${gift.name}.` : "Ajouter un cadeau."}</DrawerTitle>
-          <DrawerDescription>
-            Pré-remplissez depuis une adresse produit, puis ajustez les champs.
-          </DrawerDescription>
+          <DrawerTitle>
+            {gift ? "Modifier le cadeau" : "Ajouter un cadeau"}
+            <span className="period" aria-hidden="true">
+              .
+            </span>
+          </DrawerTitle>
         </DrawerHeader>
-        <DrawerBody className="flex flex-col gap-8">
+        <DrawerBody className="flex flex-col gap-6">
           <ScrapePrefill
             initialUrl={values.purchase_url}
             onPrefill={(next) => setValues((current) => next(current))}
@@ -91,12 +97,16 @@ export function GiftFormDrawer({ open, gift, categories, store, onClose }: GiftF
           </form>
         </DrawerBody>
         <DrawerFooter>
-          <Button type="submit" form={formId} variant="primary" disabled={saving || store.busy}>
-            {saving ? "Enregistrement…" : gift ? "Enregistrer" : "Ajouter le cadeau"}
+          <DrawerClose className="btn btn-secondary flex-1">Annuler</DrawerClose>
+          <Button
+            type="submit"
+            form={formId}
+            variant="primary"
+            className="flex-[1.6]"
+            disabled={saving || store.busy}
+          >
+            {saving ? "Enregistrement…" : gift ? "Enregistrer" : "Enregistrer le cadeau"}
           </Button>
-          <DrawerClose className="micro cursor-pointer px-2 py-2 text-ink underline decoration-1 underline-offset-4 hover:text-ink-soft">
-            Annuler
-          </DrawerClose>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>

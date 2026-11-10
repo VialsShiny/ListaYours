@@ -5,19 +5,23 @@ import { ErrorPanel } from "@/components/feedback/ErrorPanel";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Notice } from "@/components/feedback/Notice";
 import { StatusMessage } from "@/components/feedback/StatusMessage";
+import { CategoryBar } from "@/components/wishlist/CategoryBar";
 import { CategorySection } from "@/components/wishlist/CategorySection";
-import { GiftCarouselSkeleton } from "@/components/wishlist/GiftCarousel";
+import { GiftGridSkeleton } from "@/components/wishlist/GiftCardSkeleton";
+import { GiftNavigator } from "@/components/wishlist/GiftNavigator";
 import type { ViewerRole } from "@/components/wishlist/ReservationControl";
 import { WishlistHeader } from "@/components/wishlist/WishlistHeader";
 import { WishlistHeaderSkeleton } from "@/components/wishlist/WishlistHeaderSkeleton";
 import { useAuth } from "@/hooks/use-auth";
 import { usePublicWishlist } from "@/hooks/use-public-wishlist";
 import { useReservationActions } from "@/hooks/use-reservation-actions";
+import { useViewMode } from "@/hooks/use-view-mode";
 import { groupGiftsByCategory } from "@/lib/wishlist-groups";
 
 export function WishlistView({ slug }: { slug: string }) {
   const { status, isOwner } = useAuth();
   const { data, error, loading, refetch, patchGift } = usePublicWishlist(slug);
+  const { view, hrefFor } = useViewMode();
   const loginHref = `/connexion?next=${encodeURIComponent(`/l/${slug}`)}`;
   const viewer: ViewerRole = isOwner
     ? "owner"
@@ -40,9 +44,9 @@ export function WishlistView({ slug }: { slug: string }) {
     return (
       <>
         <WishlistHeaderSkeleton />
-        <section className="bg-white px-4 py-12 md:px-12 lg:px-16" aria-busy="true">
-          <p className="micro mb-8 text-ink-soft">Chargement de la liste…</p>
-          <GiftCarouselSkeleton />
+        <section className="container pt-12" aria-busy="true">
+          <p className="eyebrow mb-6">Chargement de la liste…</p>
+          <GiftGridSkeleton />
         </section>
       </>
     );
@@ -50,46 +54,57 @@ export function WishlistView({ slug }: { slug: string }) {
 
   if (error || !data) {
     return (
-      <section className="px-4 py-12 md:px-12 lg:px-16">
+      <section className="container pt-8">
         <ErrorPanel message={error ?? "Cette liste est introuvable."} onRetry={refetch} />
       </section>
     );
   }
 
+  const giftProps = {
+    viewer,
+    loginHref,
+    pendingId: actions.pendingId,
+    onReserve: actions.reserve,
+    onCancel: actions.cancel,
+  };
+
   return (
     <>
-      <WishlistHeader wishlist={data.wishlist} anchors={groups} giftCount={data.gifts.length} />
-      <div className="px-4 md:px-12 lg:px-16">
-        {viewer === "anonymous" && !data.reservations_visible ? (
+      {viewer === "owner" ? (
+        <div className="container pt-8 md:pt-10">
+          <Notice title="Aperçu propriétaire">
+            Vous voyez votre liste comme si chaque cadeau était disponible. Aucune réservation ne
+            vous est jamais montrée.
+          </Notice>
+        </div>
+      ) : null}
+      <WishlistHeader
+        wishlist={data.wishlist}
+        giftCount={data.gifts.length}
+        view={view}
+        hrefFor={hrefFor}
+      />
+      <div className="container mt-6 flex flex-col gap-3 empty:hidden">
+        {viewer === "anonymous" ? (
           <Notice href={loginHref} linkLabel="Se connecter">
-            Connectez-vous pour voir les disponibilités et réserver.
+            Connectez-vous pour réserver un cadeau. Le propriétaire ne verra rien.
           </Notice>
         ) : null}
-        {viewer === "owner" ? (
-          <Notice>
-            Aperçu propriétaire : vous voyez la liste comme un visiteur, sans aucune information de
-            réservation.
-          </Notice>
-        ) : null}
-        <StatusMessage message={actions.message} className="py-3" />
+        <StatusMessage message={actions.message} />
       </div>
       {groups.length === 0 ? (
-        <section className="bg-white px-4 py-12 md:px-12 lg:px-16">
+        <section className="container pt-12">
           <EmptyState title="Aucun cadeau pour le moment" text="La liste se remplit bientôt." />
         </section>
+      ) : view === "naviguer" ? (
+        <GiftNavigator groups={groups} {...giftProps} />
       ) : (
-        groups.map((group, index) => (
-          <CategorySection
-            key={group.key}
-            group={group}
-            index={index}
-            viewer={viewer}
-            loginHref={loginHref}
-            pendingId={actions.pendingId}
-            onReserve={actions.reserve}
-            onCancel={actions.cancel}
-          />
-        ))
+        <div className="container flex flex-col gap-4 pt-10 md:pt-12">
+          <CategoryBar groups={groups} />
+          {groups.map((group, index) => (
+            <CategorySection key={group.key} group={group} index={index} {...giftProps} />
+          ))}
+        </div>
       )}
     </>
   );

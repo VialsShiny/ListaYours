@@ -1,96 +1,60 @@
 @import "tailwindcss";
+@import "./theme/index.css" layer(components);
 @import "./styles/components.css";
+@import "./styles/overlays.css";
+@import "./styles/grid.css";
+@import "./styles/list.css";
+@import "./styles/pages.css";
 
 :root {
-  color-scheme: light;
-
-  --bg: #d9d9db;
-  --surface: #f2f2f2;
-  --surface-alt: #f5f5f5;
-  --white: #ffffff;
-  --ink: #0a0a0a;
-  --ink-soft: #6b6b6b;
-  --block: #8a8a8a;
-  --line: #0a0a0a;
-  --sale: #d9480f;
-
-  --shadow-card: 0 30px 80px rgba(10, 10, 10, 0.14);
-  --shadow-soft: 0 12px 40px rgba(10, 10, 10, 0.08);
+  --font-display: "Against", var(--font-syne), "Syne", var(--font-inter), system-ui, sans-serif;
+  --font-text:
+    "QuickSans", var(--font-inter), "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-wordmark: var(--font-unbounded), "Unbounded", var(--font-syne), "Syne", sans-serif;
 }
 
 @theme inline {
   --color-*: initial;
   --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-surface-alt: var(--surface-alt);
-  --color-white: var(--white);
   --color-ink: var(--ink);
-  --color-ink-soft: var(--ink-soft);
-  --color-block: var(--block);
+  --color-soft: var(--soft);
+  --color-accent: var(--accent);
+  --color-accent-on-dark: var(--accent-on-dark);
+  --color-tile: var(--tile);
+  --color-card: var(--card);
+  --color-on-ink: var(--on-ink);
+  --color-on-ink-soft: var(--on-ink-soft);
+  --color-device: var(--device);
   --color-line: var(--line);
-  --color-sale: var(--sale);
+  --color-line-strong: var(--line-strong);
+  --color-field-border: var(--field-border);
+  --color-ghost: var(--ghost);
+  --color-scrim: var(--scrim);
 
-  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
+  --font-display: var(--font-display);
+  --font-text: var(--font-text);
+  --font-wordmark: var(--font-wordmark);
 
-  --shadow-card: var(--shadow-card);
-  --shadow-soft: var(--shadow-soft);
+  --text-micro: var(--text-micro);
+  --text-small: var(--text-small);
+  --text-secondary: var(--text-secondary);
+  --text-body: var(--text-body);
+  --text-lead: var(--text-lead);
+
+  --radius-field: var(--radius-field);
+  --radius-card: var(--radius-card);
+  --radius-card-l: var(--radius-card-l);
+  --radius-panel: var(--radius-panel);
+  --radius-pill: var(--radius-pill);
+
+  --shadow-1: var(--shadow-1);
+  --shadow-2: var(--shadow-2);
+
+  --ease-out: var(--ease-out);
+  --ease-drawer: var(--ease-drawer);
 }
 
-@layer base {
-  * {
-    box-sizing: border-box;
-  }
-
-  html {
-    scroll-behavior: smooth;
-    -webkit-text-size-adjust: 100%;
-  }
-
-  body {
-    margin: 0;
-    min-height: 100vh;
-    background-color: var(--bg);
-    color: var(--ink);
-    font-family: var(--font-sans);
-    font-size: 1rem;
-    line-height: 1.6;
-    overflow-x: hidden;
-  }
-
-  button,
-  input,
-  select,
-  textarea {
-    font: inherit;
-    color: inherit;
-  }
-
-  img {
-    display: block;
-    max-width: 100%;
-  }
-
-  ::selection {
-    background-color: var(--ink);
-    color: var(--white);
-  }
-
-  :focus-visible {
-    outline: 2px solid var(--ink);
-    outline-offset: 2px;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    html {
-      scroll-behavior: auto;
-    }
-
-    *,
-    *::before,
-    *::after {
-      animation: none !important;
-      transition: none !important;
-    }
-  }
+@utility container {
+  width: min(100% - 2 * var(--space-4), 1152px);
+  margin-inline: auto;
 }

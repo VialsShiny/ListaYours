@@ -1,14 +1,22 @@
 export function GiftCardSkeleton() {
   return (
-    <div aria-hidden="true" className="flex w-[280px] flex-col gap-3 bg-white p-4 shadow-soft">
-      <div className="skeleton h-3 w-20" />
-      <div className="skeleton aspect-[3/4] w-full" />
-      <div className="skeleton h-6 w-3/4" />
-      <div className="skeleton h-4 w-24" />
-      <div className="hairline" />
-      <div className="skeleton h-3 w-full" />
-      <div className="skeleton h-3 w-5/6" />
-      <div className="skeleton mt-2 h-11 w-full" />
+    <div aria-hidden="true" className="card">
+      <div className="skeleton aspect-square w-full rounded-[20px]" />
+      <div className="skeleton h-4 w-4/5 rounded-md" />
+      <div className="skeleton h-4 w-2/5 rounded-md" />
+      <div className="skeleton h-11 w-full rounded-full" />
     </div>
+  );
+}
+
+export function GiftGridSkeleton({ count = 4 }: { count?: number }) {
+  return (
+    <ul className="gift-grid" aria-busy="true" aria-label="Chargement des cadeaux">
+      {Array.from({ length: count }, (_, index) => (
+        <li key={index}>
+          <GiftCardSkeleton />
+        </li>
+      ))}
+    </ul>
   );
 }

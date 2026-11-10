@@ -1,8 +1,9 @@
 "use client";
 
-import { ArrowDown, ArrowUp, Eye, EyeOff, Gift, Pencil, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { GiftPrice } from "@/components/wishlist/GiftPrice";
+import { Toggle } from "@/components/ui/toggle";
+import { formatPrice } from "@/lib/format";
 import type { OwnerGift } from "@/lib/types";
 
 type GiftRowProps = {
@@ -30,58 +31,43 @@ export function GiftRow({
   onMoveDown,
   onDelete,
 }: GiftRowProps) {
+  const price = formatPrice(gift.price, gift.currency) ?? "Prix non renseigné";
   return (
-    <li className="flex flex-wrap items-center gap-4 px-4 py-3 md:flex-nowrap">
-      <div className="size-14 shrink-0 overflow-hidden bg-surface-alt">
+    <li className="list-row min-h-24 flex-wrap md:flex-nowrap">
+      <span className="drag-handle max-md:hidden" aria-hidden="true">
+        ⋮⋮
+      </span>
+      <div className="thumb">
         {gift.image_url ? (
-          <img
-            src={gift.image_url}
-            alt=""
-            loading="lazy"
-            referrerPolicy="no-referrer"
-            className="size-full object-cover"
-          />
+          <img src={gift.image_url} alt="" loading="lazy" referrerPolicy="no-referrer" />
         ) : (
-          <div className="flex size-full items-center justify-center text-block" aria-hidden="true">
+          <div className="flex size-full items-center justify-center text-soft" aria-hidden="true">
             <Gift className="size-5" strokeWidth={1.5} />
           </div>
         )}
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="display truncate text-lg leading-tight">{gift.name}</p>
-          {!gift.is_visible ? (
-            <span className="micro border border-ink px-2 py-0.5 text-ink">Masqué</span>
-          ) : null}
-        </div>
-        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <GiftPrice
-            price={gift.price}
-            oldPrice={gift.old_price}
-            currency={gift.currency}
-            className="text-xs"
-          />
-          <span className="micro text-ink-soft">{categoryName}</span>
-        </div>
+        <p className="display-card line-clamp-2 text-[16px] md:text-lead">{gift.name}</p>
+        <p className="text-small text-soft">
+          {categoryName}
+          <span className="md:hidden"> · {price}</span>
+        </p>
       </div>
-      <div className="flex shrink-0 items-center gap-1">
-        <Button
-          variant="icon"
-          aria-label={`Modifier ${gift.name}`}
-          disabled={busy}
-          onClick={onEdit}
-        >
-          <Pencil aria-hidden="true" />
-        </Button>
-        <Button
-          variant="icon"
-          aria-label={gift.is_visible ? `Masquer ${gift.name}` : `Afficher ${gift.name}`}
-          aria-pressed={!gift.is_visible}
-          disabled={busy}
-          onClick={onToggleVisibility}
-        >
-          {gift.is_visible ? <Eye aria-hidden="true" /> : <EyeOff aria-hidden="true" />}
-        </Button>
+      <p className="price w-[90px] shrink-0 text-[16px] max-md:hidden">{price}</p>
+      <Toggle
+        id={`gift-${gift.id}-visible`}
+        label={
+          <>
+            Visible<span className="sr-only"> : {gift.name}</span>
+          </>
+        }
+        size="sm"
+        checked={gift.is_visible}
+        disabled={busy}
+        onChange={onToggleVisibility}
+        className="shrink-0 max-md:[&_label]:sr-only"
+      />
+      <div className="flex w-full shrink-0 items-center gap-1 md:w-auto">
         <Button
           variant="icon"
           aria-label={`Monter ${gift.name}`}
@@ -98,13 +84,11 @@ export function GiftRow({
         >
           <ArrowDown aria-hidden="true" />
         </Button>
-        <Button
-          variant="icon"
-          aria-label={`Supprimer ${gift.name}`}
-          disabled={busy}
-          onClick={onDelete}
-        >
-          <Trash2 aria-hidden="true" />
+        <Button variant="secondary" size="sm" disabled={busy} onClick={onEdit}>
+          Modifier
+        </Button>
+        <Button variant="text-accent" disabled={busy} onClick={onDelete}>
+          Supprimer
         </Button>
       </div>
     </li>

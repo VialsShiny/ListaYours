@@ -30,17 +30,17 @@ export default function ResultRawViewer({ json, className }: ResultRawViewerProp
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader>
-          <p className="micro text-ink-soft">Scraper</p>
-          <DrawerTitle>Résultat brut.</DrawerTitle>
+          <p className="eyebrow">Scraper</p>
+          <DrawerTitle>Résultat brut</DrawerTitle>
           <DrawerDescription>Données renvoyées par l&apos;API, telles quelles.</DrawerDescription>
         </DrawerHeader>
-        <DrawerBody className="bg-surface-alt">
+        <DrawerBody className="bg-tile">
           {json ? (
-            <pre className="overflow-auto text-[11px] leading-6 text-ink">
+            <pre className="text-micro overflow-auto leading-6 text-ink">
               {JSON.stringify(json, null, 2)}
             </pre>
           ) : (
-            <p className="text-sm text-ink-soft">Aucune donnée disponible.</p>
+            <p className="text-secondary text-soft">Aucune donnée disponible.</p>
           )}
         </DrawerBody>
         <DrawerFooter>

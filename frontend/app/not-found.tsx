@@ -1,19 +1,25 @@
 import Link from "next/link";
 import { DisplayTitle } from "@/components/layout/DisplayTitle";
 import { MicroLabel } from "@/components/layout/MicroLabel";
-import { Section } from "@/components/layout/Section";
 
 export default function NotFound() {
   return (
-    <Section tone="white" className="flex-1">
-      <MicroLabel className="mb-6">Erreur 404</MicroLabel>
-      <DisplayTitle size="section">Page introuvable</DisplayTitle>
-      <p className="mt-6 max-w-prose text-sm text-ink-soft">
-        Cette adresse ne mène à aucune liste ni à aucune page connue.
-      </p>
-      <Link href="/" className="link-arrow micro mt-8 inline-block text-ink">
-        Retour à l&apos;accueil
-      </Link>
-    </Section>
+    <section className="container flex flex-1 flex-col gap-7 pt-10 md:pt-16">
+      <MicroLabel>Page introuvable</MicroLabel>
+      <DisplayTitle
+        size="hero"
+        className="text-[clamp(7rem,30vw,18.75rem)] leading-[0.85] tracking-[-0.06em]"
+      >
+        404
+      </DisplayTitle>
+      <div className="flex flex-col gap-6 md:flex-row md:items-center md:gap-8">
+        <p className="text-body max-w-[34ch] text-soft md:text-lead">
+          Cette page n&apos;existe pas, ou le lien a changé.
+        </p>
+        <Link href="/" className="btn btn-primary btn-hero self-start">
+          Retour à l&apos;accueil
+        </Link>
+      </div>
+    </section>
   );
 }
