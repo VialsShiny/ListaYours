@@ -1,10 +1,15 @@
 import { getInputModality } from "@/hooks/use-input-modality";
 import { prefersReducedMotion, shouldMove } from "@/lib/motion";
 
-const COLORS = ["#0d0d0d", "#cf3328", "#9a9a9a"];
+const COLOR_TOKENS = ["--ink", "--accent", "--soft"];
+
+function themeColors(): string[] {
+  const style = getComputedStyle(document.documentElement);
+  return COLOR_TOKENS.map((token) => style.getPropertyValue(token).trim()).filter(Boolean);
+}
 
 /**
- * One burst of black, red and grey confetti for the visitor who just reserved a gift.
+ * One burst of ink, accent and grey confetti (read from the current theme tokens) for the visitor who just reserved a gift.
  * The library is loaded on demand; nothing fires under reduced motion or after a keyboard action.
  */
 export async function fireReservationConfetti(): Promise<boolean> {
@@ -18,7 +23,7 @@ export async function fireReservationConfetti(): Promise<boolean> {
     gravity: 1.1,
     ticks: 180,
     origin: { x: 0.5, y: 0.7 },
-    colors: COLORS,
+    colors: themeColors(),
     disableForReducedMotion: true,
   });
   return true;

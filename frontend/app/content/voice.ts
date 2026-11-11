@@ -166,6 +166,7 @@ export const voice = {
     text: "Cette page n'existe pas, mes envies si.",
     back: "Retour à l'accueil",
   },
+  theme: { label: "Thème", system: "Système", light: "Clair", dark: "Sombre" },
   account,
   dashboard,
 } as const;

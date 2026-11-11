@@ -87,7 +87,7 @@
     width: min(80%, 320px);
     height: 22px;
     border-radius: 50%;
-    background: rgba(13, 13, 13, 0.14);
+    background: var(--ground);
     filter: blur(6px);
   }
 

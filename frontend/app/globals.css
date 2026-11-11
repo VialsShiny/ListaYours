@@ -36,6 +36,7 @@
   --color-field-border: var(--field-border);
   --color-ghost: var(--ghost);
   --color-scrim: var(--scrim);
+  --color-on-accent: var(--on-accent);
 
   --font-display: var(--font-display);
   --font-text: var(--font-text);
