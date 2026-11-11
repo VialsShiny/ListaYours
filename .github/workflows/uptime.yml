@@ -1,0 +1,25 @@
+name: Uptime
+
+# Free availability check: calls the production API health endpoint every 15 minutes and fails
+# loudly (GitHub e-mails the owner) when it is down. The request also counts as inbound traffic
+# for Oracle's idle-instance rule. Set the repository variable API_HEALTH_URL
+# (Settings > Secrets and variables > Actions > Variables), e.g. https://api.example.com/health.
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  health:
+    name: API health
+    runs-on: ubuntu-latest
+    if: vars.API_HEALTH_URL != ''
+    steps:
+      - name: GET /health
+        run: |
+          curl -fsS --max-time 20 --retry 2 --retry-delay 10 "$API_HEALTH_URL"
+        env:
+          API_HEALTH_URL: ${{ vars.API_HEALTH_URL }}
