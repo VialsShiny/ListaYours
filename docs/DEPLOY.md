@@ -71,6 +71,10 @@ Navigateur ──HTTPS──▶ Vercel (Next.js, frontend/)          NEXT_PUBLIC
 | `deploy/oracle/docker-compose.prod.yml` | API + Caddy (+ Postgres optionnel via `--profile local-db`) |
 | `deploy/oracle/Caddyfile` | Reverse proxy, TLS automatique, en‑têtes de sécurité |
 | `deploy/oracle/listayours.env.example` | Noms des variables de production (à copier en `.env`, mode 600) |
+| `deploy/oracle/pull-deploy.sh`, `listayours-deploy.{service,timer}` | Déploiement continu côté VM : toutes les 5 min, `docker compose pull` et recréation du conteneur si l'image a changé |
+| `.github/workflows/deploy-api.yml` | Construit l'image `linux/arm64` à chaque push vert sur `main` et la publie sur GHCR (`ghcr.io/vialsshiny/listayours-api:main` et `:sha-<commit>`) |
+| `.github/workflows/uptime.yml` | Appelle `/health` toutes les 15 min (variable de dépôt `API_HEALTH_URL`) |
+| `.github/dependabot.yml` | Mises à jour hebdomadaires npm, pip, actions et images Docker |
 | `deploy/keepalive/*` | Timer systemd contre la règle d'inactivité Oracle |
 | `deploy/northflank/README.md` | Réglages à reproduire dans l'interface Northflank |
 | `frontend/vercel.json` | Fige le preset `nextjs` sur Vercel |
@@ -348,15 +352,24 @@ stat -c '%a %U %n' .env        # attendu : 600 ubuntu .env
 grep -c '^JWT_SECRET=.\{32,\}' .env   # attendu : 1
 ```
 
-### 4.11 Déployer (construction de l'image en linux/arm64)
+### 4.11 Déployer (image publiée par GitHub Actions, déploiement continu en mode « pull »)
 
-La VM est ARM64 : l'image **doit** être construite pour `linux/arm64`. Le plus simple est de la
-construire sur la VM elle‑même, ce que fait la commande ci‑dessous (`platforms: [linux/arm64]` dans le
-compose). Comptez 5 à 10 minutes la première fois (téléchargement de Chromium).
+L'image de l'API n'est plus construite sur la VM : à chaque push sur `main` dont la CI est verte,
+`.github/workflows/deploy-api.yml` construit l'image `linux/arm64` sur un runner ARM GitHub et la
+publie sur GHCR sous `ghcr.io/vialsshiny/listayours-api:main` (et `:sha-<commit>` pour revenir en
+arrière). La VM ne reçoit aucune connexion entrante de GitHub et GitHub ne détient aucun secret de
+la VM : c'est la VM qui interroge le registre.
+
+1. **[MANUAL]** Après la première exécution du workflow, rendez le paquet public : GitHub › votre
+   profil › **Packages** › `listayours-api` › **Package settings** › **Change visibility** › Public.
+   Sans cela, `docker pull` sur la VM exige un `docker login ghcr.io` avec un jeton personnel en
+   lecture seule (`read:packages`), à stocker dans `~/.docker/config.json` en mode 600.
+2. Premier démarrage :
 
 ```bash
 cd ~/listayours/deploy/oracle
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
 docker compose -f docker-compose.prod.yml ps
 docker compose -f docker-compose.prod.yml logs -f api      # Ctrl-C pour quitter
 ```
@@ -364,26 +377,33 @@ docker compose -f docker-compose.prod.yml logs -f api      # Ctrl-C pour quitter
 Avec Postgres auto‑hébergé :
 
 ```bash
-docker compose -f docker-compose.prod.yml --profile local-db up -d --build
+docker compose -f docker-compose.prod.yml --profile local-db up -d
 ```
 
-Construction sur un autre poste (amd64) si la VM est trop lente :
+3. Déploiement continu : installez le timer qui vérifie le registre toutes les 5 minutes et recrée
+   le conteneur `api` uniquement quand l'image a changé (le conteneur relance `alembic upgrade head`
+   au démarrage) :
 
 ```bash
-cd ~/Code/ListaYours
-docker buildx create --use --name arm 2>/dev/null || true
-docker buildx build --platform linux/arm64 -t ghcr.io/VOTRE_COMPTE/listayours-api:prod --push ./api
+cd ~/listayours
+sudo install -m 0755 deploy/oracle/pull-deploy.sh /usr/local/bin/listayours-pull-deploy.sh
+sudo install -m 0644 deploy/oracle/listayours-deploy.service deploy/oracle/listayours-deploy.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now listayours-deploy.timer
+systemctl list-timers listayours-deploy.timer
+sudo journalctl -u listayours-deploy.service -n 20 --no-pager
 ```
 
-puis dans `docker-compose.prod.yml` remplacez la section `build:` du service `api` par
-`image: ghcr.io/VOTRE_COMPTE/listayours-api:prod`, puis sur la VM :
+Le script journalise « up to date », « new image… healthy after update » ou « health check FAILED ».
+Pour geler une version ou revenir en arrière, mettez `API_IMAGE=ghcr.io/vialsshiny/listayours-api:sha-<commit>`
+dans `.env` et lancez `sudo systemctl start listayours-deploy.service` (ou `docker compose … up -d`).
+
+Construction locale de secours (si GHCR est indisponible) :
 
 ```bash
-cd ~/listayours/deploy/oracle
-docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d
+cd ~/listayours && docker build -t ghcr.io/vialsshiny/listayours-api:main ./api
+cd deploy/oracle && docker compose -f docker-compose.prod.yml up -d --pull never
 ```
-
-(l'authentification au registre est à votre charge, **[MANUAL]**).
 
 ### 4.12 Reverse proxy et TLS automatique
 
@@ -617,12 +637,16 @@ Puis, dans un navigateur :
 
 ### 9.1 Déployer une nouvelle version (Oracle)
 
+Rien à faire : fusionnez dans `main`. La CI construit et publie l'image, le timer de la VM la
+récupère dans les 5 minutes (§ 4.11). Pour forcer tout de suite :
+
 ```bash
-ssh -i ~/.ssh/listayours_oci ubuntu@IP_PUBLIQUE_VM
-cd ~/listayours && git pull --ff-only
-cd deploy/oracle && docker compose -f docker-compose.prod.yml up -d --build
-docker image prune -f
+ssh -i ~/.ssh/listayours_oci ubuntu@IP_PUBLIQUE_VM sudo systemctl start listayours-deploy.service
 ```
+
+Les fichiers de `deploy/oracle/` (Caddyfile, compose, unités systemd) ne sont pas dans l'image :
+après les avoir modifiés dans le dépôt, `cd ~/listayours && git pull --ff-only` sur la VM puis
+`docker compose -f docker-compose.prod.yml up -d` (et `sudo install …` pour les unités).
 
 La migration s'exécute au redémarrage du conteneur. Le frontend se redéploie seul à chaque push sur
 `main` (Vercel), de même que l'API sur Northflank.
@@ -630,11 +654,15 @@ La migration s'exécute au redémarrage du conteneur. Le frontend se redéploie 
 ### 9.2 Retour arrière
 
 ```bash
-cd ~/listayours && git log --oneline -5
-git checkout <sha_precedent> && cd deploy/oracle && docker compose -f docker-compose.prod.yml up -d --build
+cd ~/listayours/deploy/oracle
+git -C ~/listayours log --oneline -5                 # choisir le commit précédent
+sed -i 's#^API_IMAGE=.*#API_IMAGE=ghcr.io/vialsshiny/listayours-api:sha-<SHA_COMPLET>#' .env
+docker compose -f docker-compose.prod.yml up -d
 ```
 
-Une migration Alembic n'est pas annulée automatiquement ; si la version précédente l'exige :
+Le timer continue de tourner mais ne change plus rien tant que `API_IMAGE` pointe sur un tag `sha-`.
+Remettez `:main` pour reprendre le déploiement continu. Une migration Alembic n'est pas annulée
+automatiquement ; si la version précédente l'exige :
 `docker compose -f docker-compose.prod.yml exec api alembic downgrade -1`.
 
 ### 9.3 Journaux
