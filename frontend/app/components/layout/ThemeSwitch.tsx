@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { voice } from "@/content/voice";
 import { useTheme } from "@/hooks/use-theme";
 import { THEME_SETTINGS } from "@/lib/theme";
@@ -12,12 +13,13 @@ type ThemeSwitchProps = { className?: string };
  */
 export function ThemeSwitch({ className }: ThemeSwitchProps) {
   const [setting, setTheme] = useTheme();
+  const labelId = useId();
   return (
     <div className={cn("flex flex-col gap-2", className)}>
-      <span id="theme-switch-label" className="field-label">
+      <span id={labelId} className="field-label">
         {voice.theme.label}
       </span>
-      <div role="group" aria-labelledby="theme-switch-label" className="segmented theme-switch">
+      <div role="group" aria-labelledby={labelId} className="segmented theme-switch">
         {THEME_SETTINGS.map((option) => (
           <button
             key={option}

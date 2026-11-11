@@ -32,11 +32,17 @@ export function systemPrefersDark(): boolean {
   return typeof window !== "undefined" && window.matchMedia(DARK_QUERY).matches;
 }
 
+let fallbackSetting: ThemeSetting = "system";
+
+function rememberWithoutStorage(setting: ThemeSetting): void {
+  fallbackSetting = setting;
+}
+
 export function readThemeSetting(): ThemeSetting {
   try {
     return parseTheme(window.localStorage.getItem(THEME_KEY));
   } catch {
-    return "system";
+    return fallbackSetting;
   }
 }
 
@@ -56,7 +62,7 @@ export function applyThemeSetting(setting: ThemeSetting): void {
     if (setting === "system") window.localStorage.removeItem(THEME_KEY);
     else window.localStorage.setItem(THEME_KEY, setting);
   } catch {
-    return;
+    rememberWithoutStorage(setting);
   }
   window.dispatchEvent(new CustomEvent(THEME_EVENT, { detail: setting }));
 }
