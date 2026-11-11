@@ -12,7 +12,22 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(level
 
 settings = get_settings()
 
-app = FastAPI(title="ListaYours API", version="2.0.0")
+
+def docs_options(production: bool) -> dict[str, str | None]:
+    """Interactive docs and the OpenAPI schema are served in development only."""
+    if production:
+        return {"docs_url": None, "redoc_url": None, "openapi_url": None}
+    return {"docs_url": "/docs", "redoc_url": "/redoc", "openapi_url": "/openapi.json"}
+
+
+docs = docs_options(settings.is_production)
+app = FastAPI(
+    title="ListaYours API",
+    version="2.0.0",
+    docs_url=docs["docs_url"],
+    redoc_url=docs["redoc_url"],
+    openapi_url=docs["openapi_url"],
+)
 
 app.add_middleware(
     CORSMiddleware,
