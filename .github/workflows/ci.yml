@@ -136,8 +136,7 @@ jobs:
     name: Dependency audit (advisory)
     runs-on: ubuntu-latest
     # Reports known vulnerabilities without blocking merges until the dependency upgrades land
-    # (docs/DECISIONS.md); flip continue-on-error to false once the baseline is clean.
-    continue-on-error: true
+    # (docs/DECISIONS.md); remove the step-level continue-on-error once the baseline is clean.
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -148,6 +147,8 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: npm audit (production dependencies)
         working-directory: frontend
+        continue-on-error: true
         run: npm audit --omit=dev --audit-level=high
       - name: pip-audit (API requirements)
+        continue-on-error: true
         run: pipx run pip-audit -r api/requirements.txt --progress-spinner off
