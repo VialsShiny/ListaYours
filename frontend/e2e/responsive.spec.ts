@@ -85,7 +85,14 @@ const OVERLAYS: Overlay[] = [
 const report = (failures: Failure[]) =>
   failures.map((f) => `${f.rule} — ${f.target} — ${f.detail}`).join("\n");
 
-async function openScreen(page: Page, screen: Screen, width: number, fontSize?: string) {
+async function openScreen(
+  page: Page,
+  screen: Screen,
+  width: number,
+  fontSize?: string,
+  dark = false,
+) {
+  if (dark) await page.emulateMedia({ colorScheme: "dark" });
   await mockApi(page, screen.role, screen.identity);
   await signInAs(page, screen.role, screen.identity);
   await page.setViewportSize({ width, height: 900 });
@@ -141,6 +148,37 @@ for (const overlay of OVERLAYS) {
       if (SHOTS.has(width)) {
         await page.screenshot({ path: `e2e/screenshots/${overlay.name}-${width}.png` });
       }
+      const failures = await page.evaluate(auditLayout, OPTIONS);
+      expect(report(failures), report(failures)).toBe("");
+    });
+  }
+}
+
+for (const screen of SCREENS) {
+  for (const width of [320, 390, 1280]) {
+    test(`${screen.name} at ${width}px in dark`, async ({ page }) => {
+      await openScreen(page, screen, width, undefined, true);
+      await expect(page.locator("html")).toHaveCSS("color-scheme", "dark");
+      await page.screenshot({
+        path: `e2e/screenshots/${screen.name}-${width}-sombre.png`,
+        fullPage: true,
+      });
+      const failures = await page.evaluate(auditLayout, OPTIONS);
+      expect(report(failures), report(failures)).toBe("");
+    });
+  }
+}
+
+for (const overlay of OVERLAYS) {
+  for (const width of [320, 390, 1280]) {
+    if (overlay.maxWidth && width > overlay.maxWidth) continue;
+    if (overlay.minWidth && width < overlay.minWidth) continue;
+    test(`${overlay.name} at ${width}px in dark`, async ({ page }) => {
+      await openScreen(page, overlay, width, undefined, true);
+      await overlay.open(page);
+      const popup = overlay.wait ?? '[role="dialog"], [role="alertdialog"]';
+      await expect(page.locator(popup).first()).toBeVisible();
+      await page.screenshot({ path: `e2e/screenshots/${overlay.name}-${width}-sombre.png` });
       const failures = await page.evaluate(auditLayout, OPTIONS);
       expect(report(failures), report(failures)).toBe("");
     });

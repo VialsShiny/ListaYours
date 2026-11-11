@@ -133,6 +133,45 @@
     background: var(--tile);
   }
 
+  .identity-group {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--line);
+  }
+
+  .identity-group-label {
+    padding: 6px 14px 2px;
+    font-size: var(--text-micro);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--soft);
+  }
+
+  .identity-radio {
+    gap: 10px;
+  }
+
+  .identity-radio-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: transparent;
+  }
+
+  .identity-radio-dot[data-checked] {
+    background: var(--accent);
+  }
+
+  .theme-switch {
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .theme-switch button {
+    padding: 0 var(--space-4);
+  }
+
   .identity-card {
     display: flex;
     align-items: center;

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ThemeSwitch } from "@/components/layout/ThemeSwitch";
 import { UserAvatar } from "@/components/layout/UserAvatar";
 import { voice } from "@/content/voice";
 import { roleLabel } from "@/lib/identity";
@@ -39,6 +40,7 @@ export function MobileIdentity({ user, avatarUrl, onNavigate, onSignOut }: Mobil
           </button>
         </li>
       </ul>
+      <ThemeSwitch className="hairline pt-4 pb-2" />
     </div>
   );
 }
