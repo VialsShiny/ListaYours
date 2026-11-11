@@ -37,7 +37,16 @@
   white-space: nowrap;
   transition:
     color var(--dur-toggle) var(--ease-out),
-    background-color var(--dur-toggle) var(--ease-out);
+    background-color var(--dur-toggle) var(--ease-out),
+    transform calc(var(--dur-press) * var(--move) * var(--move-ui)) var(--ease-out);
+}
+
+.nav-links a:active,
+.nav-links button:active,
+.chip:active,
+.segmented a:active,
+.segmented button:active {
+  transform: scale(calc(1 - 0.03 * var(--move) * var(--move-ui)));
 }
 
 .nav-links a[aria-current="page"] {
@@ -75,7 +84,8 @@
   white-space: nowrap;
   transition:
     background-color var(--dur-toggle) var(--ease-out),
-    color var(--dur-toggle) var(--ease-out);
+    color var(--dur-toggle) var(--ease-out),
+    transform calc(var(--dur-press) * var(--move) * var(--move-ui)) var(--ease-out);
 }
 
 .segmented [aria-current],
@@ -99,6 +109,7 @@
   font-size: var(--text-secondary);
   font-weight: 400;
   white-space: nowrap;
+  transition: transform calc(var(--dur-press) * var(--move) * var(--move-ui)) var(--ease-out);
 }
 
 .chip small {

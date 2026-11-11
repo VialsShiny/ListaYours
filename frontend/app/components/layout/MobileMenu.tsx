@@ -2,21 +2,27 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { voice } from "@/content/voice";
 import { Dialog } from "@base-ui/react/dialog";
 import { Menu, X } from "lucide-react";
+import { MobileIdentity } from "@/components/layout/MobileIdentity";
 import { isActiveHref, type NavModel } from "@/lib/nav-links";
+import type { User } from "@/lib/types";
 
 type MobileMenuProps = {
   nav: NavModel;
   pathname: string | null;
+  user: User | null;
+  avatarUrl: string | null;
   onSignOut: () => void;
 };
 
 /**
- * Full-screen menu under 768px: large links separated by hairlines, account actions at the bottom.
+ * Full-screen menu under 768px: the signed-in identity on top, large links separated by hairlines,
+ * sign-in actions at the bottom for anonymous readers.
  * Base UI's Dialog provides the focus trap, Escape and scroll lock; the menu closes on navigation.
  */
-export function MobileMenu({ nav, pathname, onSignOut }: MobileMenuProps) {
+export function MobileMenu({ nav, pathname, user, avatarUrl, onSignOut }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -25,30 +31,43 @@ export function MobileMenu({ nav, pathname, onSignOut }: MobileMenuProps) {
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger className="btn btn-primary btn-sm md:hidden" aria-label="Ouvrir le menu">
-        Menu
+      <Dialog.Trigger className="btn btn-primary btn-sm md:hidden" aria-label={voice.nav.openMenu}>
+        {voice.nav.menu}
         <Menu className="size-4" aria-hidden="true" />
       </Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Popup className="ly-menu-popup md:hidden" aria-label="Menu principal">
+        <Dialog.Popup className="ly-menu-popup md:hidden" aria-label={voice.nav.menuLabel}>
           <div className="nav">
-            <span className="wordmark">ListaYours</span>
-            <Dialog.Close className="btn btn-sm" aria-label="Fermer le menu">
-              Fermer
+            <span className="wordmark">{voice.brand}</span>
+            <Dialog.Close className="btn btn-sm" aria-label={voice.nav.closeMenu}>
+              {voice.nav.close}
               <X className="size-4" aria-hidden="true" />
             </Dialog.Close>
           </div>
-          <nav aria-label="Navigation principale" className="flex flex-1 flex-col px-1 pt-6">
+          {user ? (
+            <MobileIdentity
+              user={user}
+              avatarUrl={avatarUrl}
+              onNavigate={() => setOpen(false)}
+              onSignOut={() => {
+                setOpen(false);
+                onSignOut();
+              }}
+            />
+          ) : null}
+          <nav aria-label={voice.nav.navLabel} className="flex flex-1 flex-col px-1 pt-6">
             <ul className="flex flex-col">
               {nav.links.map((item) => (
                 <li key={item.href} className="hairline">
                   <Link
                     href={item.href}
                     aria-current={isActiveHref(item.href, pathname) ? "page" : undefined}
-                    className="display flex min-h-[84px] items-center justify-between gap-4 text-[clamp(1.75rem,8.5vw,2.75rem)] tracking-[-0.045em]"
+                    className="flex min-h-[84px] items-center justify-between gap-4"
                     onClick={() => setOpen(false)}
                   >
-                    <span className="min-w-0">{item.label}</span>
+                    <span className="display min-w-0 text-[clamp(1.25rem,8vw,2.75rem)] tracking-[-0.045em]">
+                      {item.label}
+                    </span>
                     <span aria-hidden="true" className="text-[22px] text-accent">
                       →
                     </span>
@@ -72,18 +91,6 @@ export function MobileMenu({ nav, pathname, onSignOut }: MobileMenuProps) {
                 {item.label}
               </Link>
             ))}
-            {nav.showSignOut ? (
-              <button
-                type="button"
-                className="btn btn-secondary btn-hero"
-                onClick={() => {
-                  setOpen(false);
-                  onSignOut();
-                }}
-              >
-                Déconnexion
-              </button>
-            ) : null}
           </div>
         </Dialog.Popup>
       </Dialog.Portal>

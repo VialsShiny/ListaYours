@@ -1,6 +1,8 @@
+import { voice } from "@/content/voice";
+
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-export const NETWORK_ERROR_MESSAGE = "Impossible de joindre le serveur. Vérifiez votre connexion.";
+export const NETWORK_ERROR_MESSAGE = voice.errors.network;
 export const UNAUTHORIZED_EVENT = "listayours:unauthorized";
 
 type ValidationIssue = { loc?: unknown; msg: string; type?: string };
@@ -42,7 +44,7 @@ export function detailToMessage(body: ApiErrorBody, fallback: string): string {
 /**
  * Extracts a user-facing French message from anything thrown by `apiFetch`.
  */
-export function errorMessage(error: unknown, fallback = "Une erreur est survenue."): string {
+export function errorMessage(error: unknown, fallback: string = voice.errors.generic): string {
   if (error instanceof ApiError) return error.message || fallback;
   if (error instanceof TypeError) return NETWORK_ERROR_MESSAGE;
   if (error instanceof DOMException && error.name === "AbortError") return fallback;
@@ -53,17 +55,17 @@ export function errorMessage(error: unknown, fallback = "Une erreur est survenue
 function statusFallback(status: number): string {
   switch (status) {
     case 401:
-      return "Vous devez être connecté pour effectuer cette action.";
+      return voice.errors.unauthorized;
     case 403:
-      return "Vous n'avez pas les droits nécessaires.";
+      return voice.errors.forbidden;
     case 404:
-      return "Ressource introuvable.";
+      return voice.errors.notFound;
     case 409:
-      return "Conflit : cette action n'est plus possible.";
+      return voice.errors.conflict;
     case 429:
-      return "Trop de requêtes. Réessayez dans quelques instants.";
+      return voice.errors.tooMany;
     default:
-      return `Erreur serveur (${status}).`;
+      return voice.errors.server(status);
   }
 }
 
@@ -83,13 +85,19 @@ async function parseBody(response: Response): Promise<unknown> {
  */
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = { Accept: "application/json" };
-  if (options.body !== undefined) headers["Content-Type"] = "application/json";
+  const binary = options.body instanceof Blob;
+  if (binary) headers["Content-Type"] = (options.body as Blob).type || "application/octet-stream";
+  else if (options.body !== undefined) headers["Content-Type"] = "application/json";
   if (options.token) headers.Authorization = `Bearer ${options.token}`;
 
   const response = await fetch(`${API_BASE}${path}`, {
     method: options.method ?? "GET",
     headers,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    body: binary
+      ? (options.body as Blob)
+      : options.body === undefined
+        ? undefined
+        : JSON.stringify(options.body),
     signal: options.signal,
   });
 

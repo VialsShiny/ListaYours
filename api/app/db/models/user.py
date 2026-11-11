@@ -1,7 +1,7 @@
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import CheckConstraint, String, Uuid
+from sqlalchemy import CheckConstraint, LargeBinary, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -25,7 +25,13 @@ class User(Base):
     display_name: Mapped[str] = mapped_column(String(80), nullable=False)
     role: Mapped[str] = mapped_column(String(16), nullable=False, default=ROLE_VISITOR)
     created_at: Mapped[datetime] = mapped_column(UtcDateTime, nullable=False, default=utcnow)
+    avatar: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    avatar_updated_at: Mapped[datetime | None] = mapped_column(UtcDateTime, nullable=True)
 
     @property
     def is_owner(self) -> bool:
         return self.role == ROLE_OWNER
+
+    @property
+    def has_avatar(self) -> bool:
+        return self.avatar_updated_at is not None

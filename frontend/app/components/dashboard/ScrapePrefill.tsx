@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { voice } from "@/content/voice";
 import ProductCard from "@/components/ProductCard";
 import ResultRawViewer from "@/components/ResultRawViewer";
 import { StatusMessage } from "@/components/feedback/StatusMessage";
@@ -17,7 +18,7 @@ type ScrapePrefillProps = {
 };
 
 /**
- * "Pré-remplir depuis un lien produit": calls the scraper, previews the product, fills the form.
+ * « Remplir depuis un lien » : calls the scraper, previews the product, fills the form.
  */
 export function ScrapePrefill({ initialUrl, onPrefill }: ScrapePrefillProps) {
   const [url, setUrl] = useState(initialUrl);
@@ -38,7 +39,7 @@ export function ScrapePrefill({ initialUrl, onPrefill }: ScrapePrefillProps) {
       : state.phase === "error"
         ? state.message
         : state.phase === "success"
-          ? "Nom, prix et image trouvés. Vérifiez avant d'enregistrer."
+          ? voice.dashboard.gifts.prefillDone
           : null;
 
   return (
@@ -47,11 +48,11 @@ export function ScrapePrefill({ initialUrl, onPrefill }: ScrapePrefillProps) {
       className="flex flex-col gap-2.5 rounded-[20px] border border-line bg-bg p-4 md:p-5"
     >
       <h3 id="prefill-title" className="field-label">
-        Pré-remplir depuis un lien produit
+        {voice.dashboard.gifts.prefillTitle}
       </h3>
       <div className="flex flex-col gap-2 sm:flex-row">
         <label htmlFor="scrape-url" className="sr-only">
-          Adresse du produit
+          {voice.dashboard.gifts.prefillUrl}
         </label>
         <Input
           id="scrape-url"
@@ -70,7 +71,7 @@ export function ScrapePrefill({ initialUrl, onPrefill }: ScrapePrefillProps) {
           className="min-h-12 flex-1 text-[14px]"
         />
         <label htmlFor="scrape-strategy" className="sr-only">
-          Stratégie d&apos;analyse
+          {voice.dashboard.gifts.prefillStrategy}
         </label>
         <Select
           id="scrape-strategy"
@@ -89,7 +90,7 @@ export function ScrapePrefill({ initialUrl, onPrefill }: ScrapePrefillProps) {
           disabled={loading || url.trim() === ""}
           onClick={handleAnalyse}
         >
-          {loading ? "Analyse…" : "Remplir"}
+          {loading ? voice.dashboard.gifts.filling : voice.dashboard.gifts.fill}
         </Button>
       </div>
       <StatusMessage

@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { voice } from "@/content/voice";
+import dynamic from "next/dynamic";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -9,8 +11,13 @@ import { GiftFormDrawer } from "@/components/dashboard/GiftFormDrawer";
 import { GiftRow } from "@/components/dashboard/GiftRow";
 import type { OwnerStore } from "@/hooks/use-owner-data";
 import { deleteGift, reorderGifts, updateGift } from "@/lib/api-owner";
-import { sortByPosition, swapIds } from "@/lib/reorder";
+import { sortByPosition } from "@/lib/reorder";
 import type { Category, OwnerGift } from "@/lib/types";
+
+const SortableList = dynamic(
+  () => import("@/components/dashboard/SortableList").then((module) => module.SortableList),
+  { ssr: false },
+);
 
 const INITIAL_ROWS = 6;
 
@@ -20,9 +27,10 @@ type DrawerState = { open: false } | { open: true; gift: OwnerGift | null };
 
 export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
   const [drawer, setDrawer] = useState<DrawerState>({ open: false });
-  const [toDelete, setToDelete] = useState<OwnerGift | null>(null);
+  const [toConfirm, setToConfirm] = useState<OwnerGift | null>(null);
   const [expanded, setExpanded] = useState(false);
   const ordered = useMemo(() => sortByPosition(gifts), [gifts]);
+  const byId = useMemo(() => new Map(ordered.map((gift) => [gift.id, gift])), [ordered]);
   const names = useMemo(
     () => new Map(categories.map((category) => [String(category.id), category.name])),
     [categories],
@@ -30,93 +38,93 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
   const visible = expanded ? ordered : ordered.slice(0, INITIAL_ROWS);
   const hidden = ordered.length - visible.length;
 
-  function move(index: number, direction: -1 | 1) {
-    const neighbour = ordered[index + direction];
-    if (!neighbour) return;
-    const ids = swapIds(ordered, ordered[index].id, neighbour.id);
-    void store.run((token) => reorderGifts(token, ids), "Le réordonnancement a échoué.");
+  function reorder(visibleIds: Array<OwnerGift["id"]>) {
+    const rest = ordered.slice(visible.length).map((gift) => gift.id);
+    void store.run(
+      (token) => reorderGifts(token, [...visibleIds, ...rest]),
+      voice.dashboard.gifts.reorderFailed,
+    );
   }
 
   function toggleVisibility(gift: OwnerGift) {
     void store.run(
       (token) => updateGift(token, gift.id, { is_visible: !gift.is_visible }),
-      "Le changement de visibilité a échoué.",
+      voice.dashboard.gifts.visibilityFailed,
     );
   }
 
-  async function confirmDelete() {
-    if (!toDelete) return;
+  async function remove(gift: OwnerGift) {
     const { ok } = await store.run(
-      (token) => deleteGift(token, toDelete.id),
-      "La suppression a échoué.",
+      (token) => deleteGift(token, gift.id),
+      voice.dashboard.gifts.deleteFailed,
     );
-    if (ok) setToDelete(null);
+    if (ok) setToConfirm(null);
   }
+
+  const openForm = (gift: OwnerGift | null) => setDrawer({ open: true, gift });
 
   return (
     <div className="flex flex-col gap-4 md:gap-6">
       <DashboardSectionTitle
         id="cadeaux-titre"
         index="#03"
-        title="Cadeaux"
+        title={voice.dashboard.sections.gifts}
         aside={
           <div className="flex items-center gap-4">
             <p className="text-secondary text-soft">
-              {gifts.length} {gifts.length > 1 ? "cadeaux" : "cadeau"}
+              {voice.dashboard.categories.count(gifts.length)}
             </p>
-            <Button
-              variant="primary"
-              className="max-md:hidden"
-              onClick={() => setDrawer({ open: true, gift: null })}
-            >
-              Ajouter un cadeau
+            <Button variant="primary" className="max-md:hidden" onClick={() => openForm(null)}>
+              {voice.dashboard.gifts.add}
             </Button>
           </div>
         }
       />
       {ordered.length === 0 ? (
         <EmptyState
-          title="Aucun cadeau pour l'instant"
-          text="Ajoutez votre premier cadeau en collant un lien produit."
+          title={voice.dashboard.gifts.emptyTitle}
+          text={voice.dashboard.gifts.emptyText}
           action={
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setDrawer({ open: true, gift: null })}
-            >
-              Ajouter un cadeau
+            <Button variant="primary" size="sm" onClick={() => openForm(null)}>
+              {voice.dashboard.gifts.add}
             </Button>
           }
         />
       ) : (
-        <ol className="panel flex flex-col overflow-hidden">
-          {visible.map((gift, index) => (
-            <GiftRow
-              key={gift.id}
-              gift={gift}
-              categoryName={names.get(String(gift.category_id)) ?? "Autres"}
-              isFirst={index === 0}
-              isLast={index === ordered.length - 1}
-              busy={store.busy}
-              onEdit={() => setDrawer({ open: true, gift })}
-              onToggleVisibility={() => toggleVisibility(gift)}
-              onMoveUp={() => move(index, -1)}
-              onMoveDown={() => move(index, 1)}
-              onDelete={() => setToDelete(gift)}
-            />
-          ))}
+        <div className="panel flex flex-col overflow-hidden">
+          <SortableList
+            ids={visible.map((gift) => gift.id)}
+            labelOf={(id) => byId.get(id)?.name ?? ""}
+            onReorder={reorder}
+            renderRow={(id) => {
+              const gift = byId.get(id);
+              if (!gift) return null;
+              return (
+                <GiftRow
+                  key={gift.id}
+                  gift={gift}
+                  categoryName={names.get(String(gift.category_id)) ?? "Autres"}
+                  busy={store.busy}
+                  onEdit={() => openForm(gift)}
+                  onToggleVisibility={() => toggleVisibility(gift)}
+                  onDelete={() => void remove(gift)}
+                  onConfirmDelete={() => setToConfirm(gift)}
+                />
+              );
+            }}
+          />
           {hidden > 0 ? (
-            <li className="flex justify-center border-t border-line">
+            <div className="flex justify-center border-t border-line">
               <Button variant="text-accent" className="min-h-16" onClick={() => setExpanded(true)}>
-                Afficher les {hidden} autres cadeaux →
+                {voice.dashboard.gifts.showMore(hidden)}
               </Button>
-            </li>
+            </div>
           ) : null}
-        </ol>
+        </div>
       )}
-      <div className="sticky-bar -mx-4 md:hidden">
-        <Button variant="primary" block onClick={() => setDrawer({ open: true, gift: null })}>
-          Ajouter un cadeau
+      <div className="sticky-bar -mx-[16px] md:hidden">
+        <Button variant="primary" block onClick={() => openForm(null)}>
+          {voice.dashboard.gifts.add}
         </Button>
       </div>
       <GiftFormDrawer
@@ -127,12 +135,12 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
         onClose={() => setDrawer({ open: false })}
       />
       <ConfirmDialog
-        open={toDelete !== null}
-        title={toDelete ? `Supprimer « ${toDelete.name} » ?` : ""}
-        description="Le cadeau disparaîtra de la liste publique et les réservations associées seront perdues."
+        open={toConfirm !== null}
+        title={toConfirm ? voice.dashboard.gifts.dialogTitle(toConfirm.name) : ""}
+        description={voice.dashboard.gifts.dialogText}
         busy={store.busy}
-        onConfirm={confirmDelete}
-        onCancel={() => setToDelete(null)}
+        onConfirm={() => toConfirm && void remove(toConfirm)}
+        onCancel={() => setToConfirm(null)}
       />
     </div>
   );

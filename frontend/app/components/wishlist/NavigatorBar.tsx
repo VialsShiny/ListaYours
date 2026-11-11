@@ -1,4 +1,5 @@
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { voice } from "@/content/voice";
 import { Button } from "@/components/ui/button";
 import { formatPosition } from "@/lib/wishlist-navigation";
 
@@ -15,7 +16,7 @@ type NavigatorBarProps = {
 
 /**
  * Counter "01 / 23" (polite live region), category shortcut, previous/next and the main action,
- * followed by a thin progress line with an accent segment.
+ * followed by a thin progress line whose accent segment scales over 220ms.
  */
 export function NavigatorBar({
   index,
@@ -27,14 +28,14 @@ export function NavigatorBar({
   onShowCategory,
   action,
 }: NavigatorBarProps) {
-  const progress = total > 0 ? ((index + 1) / total) * 100 : 0;
+  const progress = total > 0 ? (index + 1) / total : 0;
   return (
     <>
       <div className="navigator-bar">
         <Button
           variant="icon"
           className="btn-icon-lg lg:btn-icon"
-          aria-label="Cadeau précédent"
+          aria-label={voice.list.previous}
           disabled={isFirst}
           onClick={onPrevious}
         >
@@ -47,7 +48,7 @@ export function NavigatorBar({
         <Button
           variant="icon"
           className="btn-icon-lg lg:btn-icon"
-          aria-label="Cadeau suivant"
+          aria-label={voice.list.next}
           disabled={isLast}
           onClick={onNext}
         >
@@ -55,7 +56,7 @@ export function NavigatorBar({
         </Button>
         {onShowCategory ? (
           <Button variant="secondary" size="sm" className="max-lg:hidden" onClick={onShowCategory}>
-            Voir la catégorie
+            {voice.list.showCategory}
           </Button>
         ) : null}
         <span className="flex-1 max-lg:hidden" />
@@ -63,11 +64,9 @@ export function NavigatorBar({
       </div>
       <div className="navigator-progress">
         <div className="progress-line" aria-hidden="true">
-          <span style={{ width: `${progress}%` }} />
+          <span style={{ transform: `scaleX(${progress})` }} />
         </div>
-        <p className="text-small mt-3 text-soft max-lg:hidden">
-          Astuce : les flèches ← → du clavier changent de cadeau.
-        </p>
+        <p className="text-small mt-3 text-soft max-lg:hidden">{voice.list.tip}</p>
       </div>
     </>
   );

@@ -5,6 +5,8 @@ export type User = {
   email: string;
   display_name: string;
   role: UserRole;
+  has_avatar: boolean;
+  avatar_updated_at: string | null;
 };
 
 export type AuthResponse = {
@@ -141,3 +143,5 @@ export type ScrapeResponse = {
   strategy_used: string | null;
   debug: boolean;
 };
+
+export type ProfilePatch = { display_name?: string; email?: string };

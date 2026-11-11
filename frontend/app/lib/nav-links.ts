@@ -1,3 +1,5 @@
+import { voice } from "@/content/voice";
+
 export type NavRole = "anonymous" | "visitor" | "owner";
 
 export type NavLinkItem = { href: string; label: string };
@@ -13,16 +15,16 @@ export type NavModel = {
  */
 export function buildNav(role: NavRole, listHref: string | null): NavModel {
   const links: NavLinkItem[] = [];
-  if (listHref) links.push({ href: listHref, label: "La liste" });
-  if (role === "anonymous") links.push({ href: "/#comment-ca-marche", label: "Comment ça marche" });
-  if (role === "visitor") links.push({ href: "/mes-reservations", label: "Mes réservations" });
-  if (role === "owner") links.push({ href: "/tableau-de-bord", label: "Tableau de bord" });
+  if (listHref) links.push({ href: listHref, label: voice.nav.list });
+  if (role === "anonymous") links.push({ href: "/#comment-ca-se-passe", label: voice.nav.how });
+  if (role === "visitor") links.push({ href: "/mes-reservations", label: voice.nav.reservations });
+  if (role === "owner") links.push({ href: "/tableau-de-bord", label: voice.nav.dashboard });
 
   const actions: NavLinkItem[] =
     role === "anonymous"
       ? [
-          { href: "/connexion", label: "Connexion" },
-          { href: "/inscription", label: "Inscription" },
+          { href: "/connexion", label: voice.nav.login },
+          { href: "/inscription", label: voice.nav.register },
         ]
       : [];
 

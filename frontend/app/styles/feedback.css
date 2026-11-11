@@ -1,0 +1,98 @@
+@layer components {
+  .swap-label {
+    display: inline-block;
+    transition:
+      opacity calc(var(--dur-toggle) / 2) var(--ease-out),
+      filter calc(var(--dur-toggle) / 2) var(--ease-out);
+  }
+
+  .swap-label.is-swapping {
+    opacity: 0.6;
+    filter: blur(2px);
+  }
+
+  .btn-state {
+    min-width: min(11.5rem, 100%);
+  }
+
+  .sticky-bar .btn-state {
+    min-width: 0;
+  }
+
+  .shake {
+    animation: shake calc(320ms * var(--move) * var(--move-ui)) var(--ease-out) 1;
+  }
+
+  @keyframes shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    20% {
+      transform: translateX(-6px);
+    }
+    40% {
+      transform: translateX(5px);
+    }
+    60% {
+      transform: translateX(-4px);
+    }
+    80% {
+      transform: translateX(2px);
+    }
+  }
+
+  .toast {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: min(100%, 360px);
+    padding: 14px 18px;
+    border-radius: var(--radius-card);
+    background: var(--card);
+    border: 1px solid var(--field-border);
+    box-shadow: var(--shadow-2);
+    color: var(--ink);
+    font-size: var(--text-secondary);
+    line-height: 1.45;
+  }
+
+  .toast-title {
+    font-weight: 500;
+  }
+
+  .toast-description {
+    color: var(--soft);
+  }
+
+  .toast-error {
+    border: 1.5px solid var(--accent);
+  }
+
+  .toast-icon {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+  }
+
+  .toast-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .toast-error .toast-icon {
+    color: var(--accent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shake {
+      animation: none;
+    }
+
+    .swap-label {
+      transition: none;
+    }
+  }
+}

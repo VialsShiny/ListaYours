@@ -1,42 +1,40 @@
 "use client";
 
-import { ArrowDown, ArrowUp, Gift } from "lucide-react";
+import { Gift } from "lucide-react";
+import { voice } from "@/content/voice";
 import { Button } from "@/components/ui/button";
+import { HoldButton } from "@/components/ui/hold-button";
 import { Toggle } from "@/components/ui/toggle";
+import { SortableRow } from "@/components/dashboard/SortableRow";
 import { formatPrice } from "@/lib/format";
 import type { OwnerGift } from "@/lib/types";
 
 type GiftRowProps = {
   gift: OwnerGift;
   categoryName: string;
-  isFirst: boolean;
-  isLast: boolean;
   busy: boolean;
   onEdit: () => void;
   onToggleVisibility: () => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
   onDelete: () => void;
+  onConfirmDelete: () => void;
 };
 
 export function GiftRow({
   gift,
   categoryName,
-  isFirst,
-  isLast,
   busy,
   onEdit,
   onToggleVisibility,
-  onMoveUp,
-  onMoveDown,
   onDelete,
+  onConfirmDelete,
 }: GiftRowProps) {
-  const price = formatPrice(gift.price, gift.currency) ?? "Prix non renseigné";
+  const price = formatPrice(gift.price, gift.currency) ?? voice.list.noPrice;
   return (
-    <li className="list-row min-h-24 flex-wrap md:flex-nowrap">
-      <span className="drag-handle max-md:hidden" aria-hidden="true">
-        ⋮⋮
-      </span>
+    <SortableRow
+      id={gift.id}
+      handleLabel={voice.dashboard.categories.reorder(gift.name)}
+      className="list-row min-h-24 flex-wrap md:flex-nowrap"
+    >
       <div className="thumb">
         {gift.image_url ? (
           <img src={gift.image_url} alt="" loading="lazy" referrerPolicy="no-referrer" />
@@ -58,7 +56,8 @@ export function GiftRow({
         id={`gift-${gift.id}-visible`}
         label={
           <>
-            Visible<span className="sr-only"> : {gift.name}</span>
+            {voice.dashboard.gifts.visible}
+            <span className="sr-only"> : {gift.name}</span>
           </>
         }
         size="sm"
@@ -68,29 +67,17 @@ export function GiftRow({
         className="shrink-0 max-md:[&_label]:sr-only"
       />
       <div className="flex w-full shrink-0 items-center gap-1 md:w-auto">
-        <Button
-          variant="icon"
-          aria-label={`Monter ${gift.name}`}
-          disabled={busy || isFirst}
-          onClick={onMoveUp}
-        >
-          <ArrowUp aria-hidden="true" />
-        </Button>
-        <Button
-          variant="icon"
-          aria-label={`Descendre ${gift.name}`}
-          disabled={busy || isLast}
-          onClick={onMoveDown}
-        >
-          <ArrowDown aria-hidden="true" />
-        </Button>
         <Button variant="secondary" size="sm" disabled={busy} onClick={onEdit}>
-          Modifier
+          {voice.dashboard.gifts.modify}
         </Button>
-        <Button variant="text-accent" disabled={busy} onClick={onDelete}>
-          Supprimer
-        </Button>
+        <HoldButton
+          label={voice.dashboard.gifts.remove}
+          holdLabel={voice.dashboard.gifts.hold(gift.name)}
+          disabled={busy}
+          onConfirm={onDelete}
+          onFallback={onConfirmDelete}
+        />
       </div>
-    </li>
+    </SortableRow>
   );
 }

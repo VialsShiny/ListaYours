@@ -1,4 +1,5 @@
 import { formatPrice, hasDiscount } from "@/lib/format";
+import { voice } from "@/content/voice";
 import { cn } from "@/lib/utils";
 
 type GiftPriceProps = {
@@ -22,7 +23,7 @@ export function GiftPrice({
   className,
 }: GiftPriceProps) {
   const discounted = hasDiscount(price, oldPrice);
-  const current = formatPrice(price, currency) ?? "Prix non renseigné";
+  const current = formatPrice(price, currency) ?? voice.list.noPrice;
   return (
     <p className={cn("price flex flex-wrap items-baseline gap-x-2 gap-y-1", className)}>
       <span className={cn(discounted && !muted && "price-reduced", muted && "text-soft")}>
@@ -36,7 +37,7 @@ export function GiftPrice({
         </s>
       ) : null}
       {discounted && withNote ? (
-        <span className="text-small font-semibold text-accent">Prix réduit</span>
+        <span className="text-small font-semibold text-accent">{voice.list.reduced}</span>
       ) : null}
     </p>
   );

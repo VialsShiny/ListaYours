@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { voice } from "@/content/voice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { OwnerStore } from "@/hooks/use-owner-data";
@@ -15,7 +16,7 @@ export function CategoryAddForm({ store }: { store: OwnerStore }) {
     if (!trimmed) return;
     const { ok } = await store.run(
       (token) => createCategory(token, trimmed),
-      "La création de la catégorie a échoué.",
+      voice.dashboard.categories.createFailed,
     );
     if (ok) setName("");
   }
@@ -23,13 +24,13 @@ export function CategoryAddForm({ store }: { store: OwnerStore }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-2 sm:flex-row">
       <label htmlFor="new-category" className="sr-only">
-        Nouvelle catégorie
+        {voice.dashboard.categories.placeholder}
       </label>
       <Input
         id="new-category"
         required
         maxLength={80}
-        placeholder="Nouvelle catégorie"
+        placeholder={voice.dashboard.categories.placeholder}
         value={name}
         onChange={(event) => setName(event.target.value)}
         className="flex-1"
@@ -40,7 +41,7 @@ export function CategoryAddForm({ store }: { store: OwnerStore }) {
         className="shrink-0"
         disabled={store.busy || name.trim() === ""}
       >
-        Ajouter
+        {voice.dashboard.categories.add}
       </Button>
     </form>
   );

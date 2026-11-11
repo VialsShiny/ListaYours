@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { voice } from "@/content/voice";
 import { useAsync } from "@/hooks/use-async";
 import { useAuth } from "@/hooks/use-auth";
 import { fetchOwnerData } from "@/lib/api-owner";
@@ -27,7 +28,7 @@ export function useOwnerData() {
 
   const run = useCallback(
     async (mutation: (token: string) => Promise<unknown>, fallback: string): Promise<RunResult> => {
-      if (!token) return { ok: false, error: "Connectez-vous en tant que propriétaire." };
+      if (!token) return { ok: false, error: voice.errors.ownerOnly };
       setBusy(true);
       setActionError(null);
       try {

@@ -15,6 +15,7 @@ export type AuthContextValue = {
   isOwner: boolean;
   isVisitor: boolean;
   signIn: (token: string, user: User) => void;
+  updateUser: (user: User) => void;
   signOut: () => void;
 };
 
@@ -70,6 +71,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setStatus("authenticated");
   }, []);
 
+  const updateUser = useCallback((nextUser: User) => {
+    const currentToken = readToken();
+    if (currentToken) writeSession(currentToken, nextUser);
+    setUser(nextUser);
+  }, []);
+
   const signOut = useCallback(() => {
     clearSession();
     setToken(null);
@@ -90,9 +97,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isOwner: status === "authenticated" && user?.role === "owner",
       isVisitor: status === "authenticated" && user?.role === "visitor",
       signIn,
+      updateUser,
       signOut,
     }),
-    [status, user, token, signIn, signOut],
+    [status, user, token, signIn, updateUser, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

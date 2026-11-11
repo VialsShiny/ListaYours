@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { voice } from "@/content/voice";
+import { Segmented } from "@/components/ui/segmented";
 import type { ViewMode } from "@/hooks/use-view-mode";
-import { cn } from "@/lib/utils";
 
 type ViewSwitchProps = {
   view: ViewMode;
   hrefFor: (mode: ViewMode) => string;
+  onSelect: (mode: ViewMode) => void;
   className?: string;
 };
 
@@ -14,11 +16,18 @@ const OPTIONS: Array<{ mode: ViewMode; label: string }> = [
 ];
 
 /**
- * Segmented control between the two list views. Plain links keep it server-renderable.
+ * Naviguer / Grille switch. Plain links keep it server-renderable; a click hands over to
+ * `onSelect`, which swaps the view under a View Transition and updates the URL.
  */
-export function ViewSwitch({ view, hrefFor, className }: ViewSwitchProps) {
+export function ViewSwitch({ view, hrefFor, onSelect, className }: ViewSwitchProps) {
+  const activeIndex = OPTIONS.findIndex((option) => option.mode === view);
   return (
-    <nav aria-label="Affichage de la liste" className={cn("segmented", className)}>
+    <Segmented
+      aria-label={voice.list.viewLabel}
+      count={OPTIONS.length}
+      activeIndex={activeIndex}
+      className={className}
+    >
       {OPTIONS.map((option) => (
         <Link
           key={option.mode}
@@ -26,11 +35,15 @@ export function ViewSwitch({ view, hrefFor, className }: ViewSwitchProps) {
           replace
           scroll={false}
           aria-current={view === option.mode ? "page" : undefined}
-          className="flex-1"
+          onClick={(event) => {
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            onSelect(option.mode);
+          }}
         >
           {option.label}
         </Link>
       ))}
-    </nav>
+    </Segmented>
   );
 }

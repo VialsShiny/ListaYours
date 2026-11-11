@@ -1,0 +1,63 @@
+@layer components {
+  .hold {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .hold-fill {
+    position: absolute;
+    inset: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: inherit;
+    background: var(--accent);
+    color: var(--card);
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path var(--hold-release-ms, 200ms) var(--ease-out);
+  }
+
+  .hold[data-holding="true"] .hold-fill {
+    clip-path: inset(0 0 0 0);
+    transition: clip-path var(--hold-ms, 1200ms) linear;
+  }
+
+  .hold-label,
+  .hold-fill-label {
+    white-space: nowrap;
+  }
+
+  .sortable-row {
+    position: relative;
+    transition: transform calc(320ms * var(--move)) var(--ease-spring);
+  }
+
+  .sortable-row[data-dragging="true"] {
+    z-index: 2;
+    background: var(--card);
+    box-shadow: var(--shadow-2);
+    transition: none;
+  }
+
+  .sortable-handle {
+    display: inline-grid;
+    place-items: center;
+    width: var(--target);
+    height: var(--target);
+    margin-left: calc(var(--space-2) * -1);
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--soft);
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .sortable-handle:active {
+    cursor: grabbing;
+  }
+}

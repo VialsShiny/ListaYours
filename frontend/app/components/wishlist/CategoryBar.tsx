@@ -1,3 +1,4 @@
+import { voice } from "@/content/voice";
 import type { GiftGroup } from "@/lib/wishlist-groups";
 
 type CategoryBarProps = {
@@ -11,7 +12,7 @@ export function CategoryBar({ groups }: CategoryBarProps) {
   if (groups.length === 0) return null;
   return (
     <nav
-      aria-label="Catégories"
+      aria-label={voice.list.categories}
       className="material sticky-top -mx-1 flex gap-2 overflow-x-auto rounded-[24px] p-3 [scrollbar-width:none] md:flex-wrap"
     >
       {groups.map((group) => (

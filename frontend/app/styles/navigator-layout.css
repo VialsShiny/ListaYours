@@ -1,0 +1,66 @@
+@layer components {
+  @media (min-width: 1024px) {
+    .navigator {
+      grid-template-columns: minmax(0, 1fr) 320px;
+      align-items: start;
+    }
+
+    .navigator-main {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      grid-template-rows: auto auto auto;
+      align-items: center;
+      gap: var(--space-6) var(--space-7);
+      min-height: 560px;
+    }
+
+    .navigator-info {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .navigator-stage {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .navigator-bar {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+
+    .navigator-progress {
+      grid-column: 1 / -1;
+      grid-row: 3;
+    }
+
+    .navigator-ghost {
+      top: 28%;
+      left: -8%;
+    }
+  }
+
+  @media (max-width: 1023px) {
+    .navigator-viewport {
+      order: 1;
+    }
+
+    .navigator-info {
+      order: 2;
+      align-items: center;
+      text-align: center;
+    }
+
+    .navigator-bar {
+      order: 3;
+    }
+
+    .navigator-progress {
+      order: 4;
+    }
+
+    .navigator-bar {
+      justify-content: center;
+    }
+  }
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { voice } from "@/content/voice";
 import { errorMessage } from "@/lib/api";
 
 export type AsyncState<T> = {
@@ -44,7 +45,7 @@ export function useAsync<T>(
       })
       .catch((caught: unknown) => {
         if (controller.signal.aborted) return;
-        setError(errorMessage(caught, "Le chargement a échoué."));
+        setError(errorMessage(caught, voice.errors.loadFailed));
         setLoading(false);
       });
     return () => controller.abort();

@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
+import { voice } from "@/content/voice";
 import { ErrorPanel } from "@/components/feedback/ErrorPanel";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Notice } from "@/components/feedback/Notice";
-import { StatusMessage } from "@/components/feedback/StatusMessage";
 import { CategoryBar } from "@/components/wishlist/CategoryBar";
 import { CategorySection } from "@/components/wishlist/CategorySection";
 import { GiftGridSkeleton } from "@/components/wishlist/GiftCardSkeleton";
@@ -12,16 +12,18 @@ import { GiftNavigator } from "@/components/wishlist/GiftNavigator";
 import type { ViewerRole } from "@/components/wishlist/ReservationControl";
 import { WishlistHeader } from "@/components/wishlist/WishlistHeader";
 import { WishlistHeaderSkeleton } from "@/components/wishlist/WishlistHeaderSkeleton";
+import { useActionToast } from "@/hooks/use-action-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { usePublicWishlist } from "@/hooks/use-public-wishlist";
 import { useReservationActions } from "@/hooks/use-reservation-actions";
 import { useViewMode } from "@/hooks/use-view-mode";
+import { fireReservationConfetti } from "@/lib/confetti";
 import { groupGiftsByCategory } from "@/lib/wishlist-groups";
 
 export function WishlistView({ slug }: { slug: string }) {
   const { status, isOwner } = useAuth();
   const { data, error, loading, refetch, patchGift } = usePublicWishlist(slug);
-  const { view, hrefFor } = useViewMode();
+  const { view, hrefFor, switchTo } = useViewMode();
   const loginHref = `/connexion?next=${encodeURIComponent(`/l/${slug}`)}`;
   const viewer: ViewerRole = isOwner
     ? "owner"
@@ -30,10 +32,15 @@ export function WishlistView({ slug }: { slug: string }) {
       : "anonymous";
 
   const actions = useReservationActions({
-    onReserved: (id) => patchGift(id, { is_reserved: true, reserved_by_me: true }),
+    onReserved: (id) => {
+      patchGift(id, { is_reserved: true, reserved_by_me: true });
+      void fireReservationConfetti();
+    },
     onCancelled: (id) => patchGift(id, { is_reserved: false, reserved_by_me: false }),
     onConflict: refetch,
   });
+
+  useActionToast(actions.message);
 
   const groups = useMemo(
     () => (data ? groupGiftsByCategory(data.categories, data.gifts, { dropEmpty: true }) : []),
@@ -45,7 +52,7 @@ export function WishlistView({ slug }: { slug: string }) {
       <>
         <WishlistHeaderSkeleton />
         <section className="container pt-12" aria-busy="true">
-          <p className="eyebrow mb-6">Chargement de la liste…</p>
+          <p className="eyebrow mb-6">{voice.list.loading}</p>
           <GiftGridSkeleton />
         </section>
       </>
@@ -55,7 +62,7 @@ export function WishlistView({ slug }: { slug: string }) {
   if (error || !data) {
     return (
       <section className="container pt-8">
-        <ErrorPanel message={error ?? "Cette liste est introuvable."} onRetry={refetch} />
+        <ErrorPanel message={error ?? voice.list.notFound} onRetry={refetch} />
       </section>
     );
   }
@@ -72,10 +79,7 @@ export function WishlistView({ slug }: { slug: string }) {
     <>
       {viewer === "owner" ? (
         <div className="container pt-8 md:pt-10">
-          <Notice title="Aperçu propriétaire">
-            Vous voyez votre liste comme si chaque cadeau était disponible. Aucune réservation ne
-            vous est jamais montrée.
-          </Notice>
+          <Notice title={voice.list.ownerTitle}>{voice.list.ownerText}</Notice>
         </div>
       ) : null}
       <WishlistHeader
@@ -83,18 +87,18 @@ export function WishlistView({ slug }: { slug: string }) {
         giftCount={data.gifts.length}
         view={view}
         hrefFor={hrefFor}
+        onSelect={switchTo}
       />
-      <div className="container mt-6 flex flex-col gap-3 empty:hidden">
-        {viewer === "anonymous" ? (
-          <Notice href={loginHref} linkLabel="Se connecter">
-            Connectez-vous pour réserver un cadeau. Le propriétaire ne verra rien.
+      {viewer === "anonymous" ? (
+        <div className="container mt-6">
+          <Notice href={loginHref} linkLabel={voice.list.anonymousLink}>
+            {voice.list.anonymousText}
           </Notice>
-        ) : null}
-        <StatusMessage message={actions.message} />
-      </div>
+        </div>
+      ) : null}
       {groups.length === 0 ? (
         <section className="container pt-12">
-          <EmptyState title="Aucun cadeau pour le moment" text="La liste se remplit bientôt." />
+          <EmptyState title={voice.list.emptyTitle} text={voice.list.emptyText} />
         </section>
       ) : view === "naviguer" ? (
         <GiftNavigator groups={groups} {...giftProps} />

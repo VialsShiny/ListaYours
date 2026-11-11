@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
@@ -40,6 +41,8 @@ class UserOut(BaseModel):
     email: str
     display_name: str
     role: str
+    has_avatar: bool = False
+    avatar_updated_at: datetime | None = None
 
 
 class TokenResponse(BaseModel):

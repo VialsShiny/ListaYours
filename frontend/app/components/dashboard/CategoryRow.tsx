@@ -1,34 +1,33 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowDown, ArrowUp, Check, X } from "lucide-react";
+import { voice } from "@/content/voice";
+import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HoldButton } from "@/components/ui/hold-button";
 import { Input } from "@/components/ui/input";
+import { SortableRow } from "@/components/dashboard/SortableRow";
 import type { Category } from "@/lib/types";
 import { formatIndex } from "@/lib/wishlist-navigation";
 
 type CategoryRowProps = {
   category: Category;
   index: number;
-  total: number;
   count: number;
   busy: boolean;
   onRename: (name: string) => Promise<boolean>;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
   onDelete: () => void;
+  onConfirmDelete: () => void;
 };
 
 export function CategoryRow({
   category,
   index,
-  total,
   count,
   busy,
   onRename,
-  onMoveUp,
-  onMoveDown,
   onDelete,
+  onConfirmDelete,
 }: CategoryRowProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(category.name);
@@ -46,15 +45,16 @@ export function CategoryRow({
   }
 
   return (
-    <li className="list-row flex-wrap md:flex-nowrap">
-      <span className="drag-handle max-md:hidden" aria-hidden="true">
-        ⋮⋮
-      </span>
+    <SortableRow
+      id={category.id}
+      handleLabel={voice.dashboard.categories.reorder(category.name)}
+      className="list-row flex-wrap md:flex-nowrap"
+    >
       <span className="index-tag w-9 shrink-0 text-[14px]">{formatIndex(index)}</span>
       {editing ? (
         <form onSubmit={submitRename} className="flex min-w-0 flex-1 items-center gap-2">
           <label htmlFor={inputId} className="sr-only">
-            Nouveau nom de la catégorie
+            {voice.dashboard.categories.renameLabel}
           </label>
           <Input
             id={inputId}
@@ -64,12 +64,17 @@ export function CategoryRow({
             onChange={(event) => setDraft(event.target.value)}
             className="min-h-11"
           />
-          <Button type="submit" variant="icon" aria-label="Valider le nom" disabled={busy}>
+          <Button
+            type="submit"
+            variant="icon"
+            aria-label={voice.dashboard.categories.validate}
+            disabled={busy}
+          >
             <Check aria-hidden="true" />
           </Button>
           <Button
             variant="icon"
-            aria-label="Annuler le renommage"
+            aria-label={voice.dashboard.categories.cancelRename}
             onClick={() => {
               setDraft(category.name);
               setEditing(false);
@@ -84,34 +89,22 @@ export function CategoryRow({
         </p>
       )}
       <span className="text-small shrink-0 text-soft md:text-[14px]">
-        {count} {count > 1 ? "cadeaux" : "cadeau"}
+        {voice.dashboard.categories.count(count)}
       </span>
       <div className="flex w-full shrink-0 items-center gap-1 md:w-auto">
-        <Button
-          variant="icon"
-          aria-label={`Monter ${category.name}`}
-          disabled={busy || index === 0}
-          onClick={onMoveUp}
-        >
-          <ArrowUp aria-hidden="true" />
-        </Button>
-        <Button
-          variant="icon"
-          aria-label={`Descendre ${category.name}`}
-          disabled={busy || index === total - 1}
-          onClick={onMoveDown}
-        >
-          <ArrowDown aria-hidden="true" />
-        </Button>
         {!editing ? (
           <Button variant="text" onClick={() => setEditing(true)}>
-            Renommer
+            {voice.dashboard.categories.rename}
           </Button>
         ) : null}
-        <Button variant="text-accent" disabled={busy} onClick={onDelete}>
-          Supprimer
-        </Button>
+        <HoldButton
+          label={voice.dashboard.categories.remove}
+          holdLabel={voice.dashboard.categories.hold(category.name)}
+          disabled={busy}
+          onConfirm={onDelete}
+          onFallback={onConfirmDelete}
+        />
       </div>
-    </li>
+    </SortableRow>
   );
 }

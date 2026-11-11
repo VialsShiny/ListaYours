@@ -1,4 +1,5 @@
 import { PageHero } from "@/components/layout/PageHero";
+import { voice } from "@/content/voice";
 import { ViewSwitch } from "@/components/wishlist/ViewSwitch";
 import type { ViewMode } from "@/hooks/use-view-mode";
 import type { WishlistSummary } from "@/lib/types";
@@ -8,24 +9,34 @@ type WishlistHeaderProps = {
   giftCount: number;
   view: ViewMode;
   hrefFor: (mode: ViewMode) => string;
+  onSelect: (mode: ViewMode) => void;
 };
 
 /**
  * Eyebrow, huge list title with the accent period, and the Naviguer / Grille switch.
  */
-export function WishlistHeader({ wishlist, giftCount, view, hrefFor }: WishlistHeaderProps) {
-  const countLabel = `${giftCount} ${giftCount > 1 ? "cadeaux" : "cadeau"}`;
+export function WishlistHeader({
+  wishlist,
+  giftCount,
+  view,
+  hrefFor,
+  onSelect,
+}: WishlistHeaderProps) {
   return (
     <PageHero
-      eyebrow={`Liste de souhaits · ${countLabel}`}
+      eyebrow={voice.list.eyebrow(giftCount)}
       title={wishlist.title}
       titleId="liste-titre"
+      userContent
       aside={
         <>
-          <ViewSwitch view={view} hrefFor={hrefFor} className="w-full md:w-auto" />
-          <p className="text-[14px] text-soft max-md:hidden">
-            Naviguer : un cadeau à la fois. Grille : tout d&apos;un coup d&apos;œil.
-          </p>
+          <ViewSwitch
+            view={view}
+            hrefFor={hrefFor}
+            onSelect={onSelect}
+            className="w-full md:w-auto"
+          />
+          <p className="text-[14px] text-soft max-md:hidden">{voice.list.viewHelp}</p>
         </>
       }
     >
