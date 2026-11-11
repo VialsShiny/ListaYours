@@ -2,24 +2,23 @@
 #
 # Usage (from this directory, see docs/DEPLOY.md):
 #   cp listayours.env.example .env && chmod 600 .env   # then fill in the values
-#   docker compose -f docker-compose.prod.yml up -d --build
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# The API image is built by GitHub Actions (.github/workflows/deploy-api.yml) and pulled from
+# GHCR; pull-deploy.sh (systemd timer) updates it automatically. To build on the VM instead:
+#   docker build -t ghcr.io/vialsshiny/listayours-api:main ../../api
 #
 # Optional self-hosted Postgres (instead of Neon/Supabase):
-#   docker compose -f docker-compose.prod.yml --profile local-db up -d --build
+#   docker compose -f docker-compose.prod.yml --profile local-db up -d
 #
 # Compose reads `.env` from this directory both for ${VAR} interpolation below and
 # as the API container's env_file. Never commit `.env` (it is in .gitignore).
 
 services:
   api:
-    build:
-      context: ../../api
-      dockerfile: Dockerfile
-      # The VM is ARM64; building on the VM itself produces a linux/arm64 image.
-      # To build elsewhere: docker buildx build --platform linux/arm64 -t listayours-api:prod ../../api
-      platforms:
-        - linux/arm64
-    image: listayours-api:prod
+    # Tag pinned in .env (API_IMAGE); `sha-<commit>` tags give an exact rollback.
+    image: ${API_IMAGE:-ghcr.io/vialsshiny/listayours-api:main}
+    pull_policy: always
     container_name: listayours_api
     restart: unless-stopped
     env_file:
