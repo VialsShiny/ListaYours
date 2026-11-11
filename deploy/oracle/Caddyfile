@@ -7,6 +7,11 @@
 {$API_DOMAIN} {
 	encode zstd gzip
 
+	# Largest legitimate request is a 2 MB avatar upload; bigger bodies are cut before the API reads them.
+	request_body {
+		max_size 3MB
+	}
+
 	# Caddy sets X-Forwarded-For / X-Forwarded-Proto itself; the API honours them
 	# only when TRUST_PROXY_HEADERS=true (set in .env).
 	reverse_proxy api:8000
