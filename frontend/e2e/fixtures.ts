@@ -43,10 +43,35 @@ const GIFTS = GIFT_NAMES.map((name, index) => ({
   updated_at: "2026-11-01T10:00:00Z",
 }));
 
+const NO_PHOTO = { has_avatar: false, avatar_updated_at: null };
+
 const USERS = {
-  visitor: { id: 2, email: "visiteur@example.test", display_name: "Camille", role: "visitor" },
-  owner: { id: 1, email: "owner@example.test", display_name: "Moi", role: "owner" },
+  visitor: {
+    id: 2,
+    email: "visiteur@example.test",
+    display_name: "Camille",
+    role: "visitor",
+    ...NO_PHOTO,
+  },
+  owner: { id: 1, email: "owner@example.test", display_name: "Moi", role: "owner", ...NO_PHOTO },
 };
+
+export type Identity = { displayName?: string; avatar?: boolean };
+
+const AVATAR_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect width="256" height="256" fill="#cf3328"/></svg>';
+
+/**
+ * The fixture user for a role, with an optional long pseudo and picture flag.
+ */
+export function userFor(role: Exclude<Role, "anonymous">, identity: Identity = {}) {
+  return {
+    ...USERS[role],
+    display_name: identity.displayName ?? USERS[role].display_name,
+    has_avatar: Boolean(identity.avatar),
+    avatar_updated_at: identity.avatar ? "2026-11-11T10:00:00Z" : null,
+  };
+}
 
 const RESERVATIONS = [2, 5].map((giftId, index) => ({
   reservation: { id: index + 1, gift_id: giftId, created_at: "2026-11-02T10:00:00Z" },
@@ -65,7 +90,7 @@ const OWNER_WISHLIST = {
 /**
  * Answers every `/api/**` call with fixture data so the pages render without the API.
  */
-export async function mockApi(page: Page, role: Role): Promise<void> {
+export async function mockApi(page: Page, role: Role, identity: Identity = {}): Promise<void> {
   await page.route("**/api/**", async (route) => {
     const url = new URL(route.request().url());
     const path = url.pathname;
@@ -84,8 +109,15 @@ export async function mockApi(page: Page, role: Role): Promise<void> {
         reservations_visible: true,
       });
     }
-    if (path === "/api/auth/me") {
-      return role === "anonymous" ? json({ detail: "Non authentifié" }, 401) : json(USERS[role]);
+    if (path === "/api/auth/me" || path === "/api/account") {
+      return role === "anonymous"
+        ? json({ detail: "Non authentifié" }, 401)
+        : json(userFor(role, identity));
+    }
+    if (path === "/api/account/avatar") {
+      if (role === "anonymous") return json({ detail: "Non authentifié" }, 401);
+      if (!identity.avatar) return json({ detail: "Pas de photo pour ce compte." }, 404);
+      return route.fulfill({ status: 200, contentType: "image/svg+xml", body: AVATAR_SVG });
     }
     if (path === "/api/me/reservations") return json(role === "visitor" ? RESERVATIONS : []);
     if (path === "/api/owner/wishlist") {
@@ -99,14 +131,14 @@ export async function mockApi(page: Page, role: Role): Promise<void> {
 /**
  * Stores a fake session before the first script runs, the way the app does after a login.
  */
-export async function signInAs(page: Page, role: Role): Promise<void> {
+export async function signInAs(page: Page, role: Role, identity: Identity = {}): Promise<void> {
   if (role === "anonymous") return;
   await page.addInitScript(
     ([token, user]) => {
       window.localStorage.setItem("listayours.token", token);
       window.localStorage.setItem("listayours.user", user);
     },
-    [`e2e-${role}-token`, JSON.stringify(USERS[role])] as const,
+    [`e2e-${role}-token`, JSON.stringify(userFor(role, identity))] as const,
   );
 }
 

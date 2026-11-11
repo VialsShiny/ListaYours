@@ -1,3 +1,4 @@
+import { account } from "@/content/voice-account";
 import { dashboard } from "@/content/voice-dashboard";
 
 /**
@@ -15,6 +16,8 @@ export const voice = {
     login: "Entrer",
     register: "Je suis invité(e)",
     signOut: "Sortir",
+    account: "Mon compte",
+    accountMenu: "Menu du compte",
     menu: "Menu",
     close: "Fermer",
     menuLabel: "Menu principal",
@@ -163,5 +166,6 @@ export const voice = {
     text: "Cette page n'existe pas, mes envies si.",
     back: "Retour à l'accueil",
   },
+  account,
   dashboard,
 } as const;

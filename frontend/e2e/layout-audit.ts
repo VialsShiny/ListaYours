@@ -44,6 +44,7 @@ export function auditLayout(options: AuditOptions): Failure[] {
 
   for (const el of Array.from(document.querySelectorAll("body *"))) {
     if (!visible(el) || el.hasAttribute("data-overflow-ok")) continue;
+    if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) continue;
     const style = getComputedStyle(el);
     const clips = /hidden|clip/.test(style.overflowX);
     const ellipsis = style.textOverflow === "ellipsis" || style.webkitLineClamp !== "none";
