@@ -1,0 +1,10 @@
+[Unit]
+Description=ListaYours API pull-based deployment (GHCR -> docker compose)
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+EnvironmentFile=-/etc/default/listayours-deploy
+ExecStart=/usr/local/bin/listayours-pull-deploy.sh

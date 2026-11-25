@@ -16,7 +16,7 @@ type SampleCardProps = { slug: string | null; className?: string };
  */
 export function SampleCard({ slug, className }: SampleCardProps) {
   const state = useAsync(
-    (signal) => fetchPublicWishlist(slug ?? "", null, signal),
+    (signal) => fetchPublicWishlist(slug ?? "", signal),
     slug ?? "none",
     Boolean(slug),
   );

@@ -7,8 +7,21 @@
 {$API_DOMAIN} {
 	encode zstd gzip
 
-	# Caddy sets X-Forwarded-For / X-Forwarded-Proto itself; the API honours them
-	# only when TRUST_PROXY_HEADERS=true (set in .env).
+	# Largest legitimate request is a 2 MB avatar upload; bigger bodies are cut before the API reads them.
+	request_body {
+		max_size 3MB
+	}
+
+	# Only the Vercel proxy (frontend/middleware.ts) knows the shared secret; everything else is
+	# refused here, before the API, except the health check used by the VM itself.
+	@direct {
+		not path /health
+		not header X-Proxy-Secret {$API_PROXY_SECRET}
+	}
+	respond @direct 403
+
+	# Caddy sets X-Forwarded-For / X-Forwarded-Proto itself; the API uses X-Client-Ip from the
+	# proxy for rate limiting once the secret matched (TRUST_PROXY_HEADERS stays false).
 	reverse_proxy api:8000
 
 	header {

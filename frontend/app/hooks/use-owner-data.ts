@@ -16,23 +16,19 @@ export type RunResult = { ok: true; error: null } | { ok: false; error: string }
  * refetches on success and surfaces a French error otherwise.
  */
 export function useOwnerData() {
-  const { token, isOwner, status } = useAuth();
-  const enabled = status !== "loading" && isOwner && Boolean(token);
-  const state = useAsync<OwnerData>(
-    (signal) => fetchOwnerData(token ?? "", signal),
-    token ?? "no-token",
-    enabled,
-  );
+  const { isOwner, status } = useAuth();
+  const enabled = status !== "loading" && isOwner;
+  const state = useAsync<OwnerData>((signal) => fetchOwnerData(signal), "owner-data", enabled);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const run = useCallback(
-    async (mutation: (token: string) => Promise<unknown>, fallback: string): Promise<RunResult> => {
-      if (!token) return { ok: false, error: voice.errors.ownerOnly };
+    async (mutation: () => Promise<unknown>, fallback: string): Promise<RunResult> => {
+      if (!isOwner) return { ok: false, error: voice.errors.ownerOnly };
       setBusy(true);
       setActionError(null);
       try {
-        await mutation(token);
+        await mutation();
         state.refetch();
         return { ok: true, error: null };
       } catch (error) {
@@ -43,12 +39,11 @@ export function useOwnerData() {
         setBusy(false);
       }
     },
-    [token, state],
+    [isOwner, state],
   );
 
   return {
     ...state,
-    token,
     busy,
     actionError,
     clearActionError: () => setActionError(null),

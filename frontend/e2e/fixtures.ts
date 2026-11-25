@@ -129,16 +129,16 @@ export async function mockApi(page: Page, role: Role, identity: Identity = {}): 
 }
 
 /**
- * Stores a fake session before the first script runs, the way the app does after a login.
+ * Caches the profile before the first script runs, the way the app does after a login; the
+ * session itself is an httpOnly cookie, which the mocked `/api/auth/me` stands in for.
  */
 export async function signInAs(page: Page, role: Role, identity: Identity = {}): Promise<void> {
   if (role === "anonymous") return;
   await page.addInitScript(
-    ([token, user]) => {
-      window.localStorage.setItem("listayours.token", token);
+    (user) => {
       window.localStorage.setItem("listayours.user", user);
     },
-    [`e2e-${role}-token`, JSON.stringify(userFor(role, identity))] as const,
+    JSON.stringify(userFor(role, identity)),
   );
 }
 

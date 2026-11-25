@@ -29,7 +29,7 @@ WORKDIR /app
 
 COPY --from=builder /opt/venv /opt/venv
 
-RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates libatomic1 \
     && playwright install --with-deps chromium \
     && apt-get clean && rm -rf /var/lib/apt/lists/* \
     && groupadd --system app && useradd --system --gid app --create-home app \
@@ -43,7 +43,9 @@ USER app
 
 EXPOSE 8000
 
+# --no-proxy-headers: the API decides itself whether to trust X-Forwarded-For (TRUST_PROXY_HEADERS),
+# instead of uvicorn rewriting the client address for whoever connects from a loopback address.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD curl -fsS "http://127.0.0.1:${API_PORT}/health" || exit 1
 
-CMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port ${API_PORT}"]
+CMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port ${API_PORT} --no-proxy-headers"]

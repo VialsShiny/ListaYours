@@ -29,15 +29,12 @@ export function CategoryManager({ store, categories, gifts }: CategoryManagerPro
   }
 
   function reorder(ids: Array<Category["id"]>) {
-    void store.run(
-      (token) => reorderCategories(token, ids),
-      voice.dashboard.categories.reorderFailed,
-    );
+    void store.run(() => reorderCategories(ids), voice.dashboard.categories.reorderFailed);
   }
 
   async function remove(category: Category) {
     const { ok } = await store.run(
-      (token) => deleteCategory(token, category.id),
+      () => deleteCategory(category.id),
       voice.dashboard.categories.deleteFailed,
     );
     if (ok) setToConfirm(null);
@@ -69,7 +66,7 @@ export function CategoryManager({ store, categories, gifts }: CategoryManagerPro
                 busy={store.busy}
                 onRename={async (name) => {
                   const result = await store.run(
-                    (token) => renameCategory(token, category.id, name),
+                    () => renameCategory(category.id, name),
                     voice.dashboard.categories.renameFailed,
                   );
                   return result.ok;

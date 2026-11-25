@@ -45,11 +45,12 @@ principal, le reste du guide est inchangé.
 ## 1. Ce qui est déployé
 
 ```
-Navigateur ──HTTPS──▶ Vercel (Next.js, frontend/)          NEXT_PUBLIC_API_URL
-                           │
-                           └──HTTPS (CORS)──▶ Caddy :443 ──▶ api:8000 (FastAPI + Chromium)
-                                              VM Oracle A1        │
-                                                                  └──TLS──▶ Postgres (Neon / Supabase / docker db)
+Navigateur ──HTTPS──▶ Vercel (Next.js, frontend/)   cookie de session httpOnly, même origine
+                           │  /api/* proxifié par frontend/middleware.ts
+                           │  (X-Proxy-Secret + X-Client-Ip)        API_INTERNAL_URL, API_PROXY_SECRET
+                           └──HTTPS──▶ Caddy :443 ──▶ api:8000 (FastAPI + Chromium)
+                                       VM Oracle A1        │  refuse tout appel sans le secret
+                                                           └──TLS──▶ Postgres (Neon / Supabase / docker db)
 ```
 
 - **API** : image construite depuis `api/Dockerfile` (Python 3.11, Chromium installé par Playwright).
@@ -60,10 +61,15 @@ Navigateur ──HTTPS──▶ Vercel (Next.js, frontend/)          NEXT_PUBLIC
   `OWNER_EMAIL` (obligatoire en production ; le compte qui s'inscrit avec cette adresse devient le
   propriétaire, décision n° 5 de `docs/DECISIONS.md`), `CORS_ORIGINS` (origines navigateur séparées par
   des virgules, doit contenir l'URL Vercel), `SCRAPE_TIMEOUT_SECONDS`, `SCRAPE_CACHE_TTL_SECONDS`,
-  `RATE_LIMIT_PER_MINUTE`, `TRUST_PROXY_HEADERS` (`true` uniquement derrière un reverse proxy qui écrit
-  `X-Forwarded-For`), `API_PORT`.
-- **Frontend** : Next.js 14 App Router, déployé sur Vercel avec le répertoire racine `frontend`.
-  Une seule variable : `NEXT_PUBLIC_API_URL` (URL publique de l'API, sans `/` final).
+  `RATE_LIMIT_PER_MINUTE`, `TRUST_PROXY_HEADERS` (`false` : l'adresse du client vient de l'en-tête
+  `X-Client-Ip` posé par le proxy Vercel une fois le secret vérifié), `API_PROXY_SECRET` (obligatoire en
+  production : sans l'en-tête `X-Proxy-Secret` correspondant, Caddy puis l'API répondent 403, sauf
+  `/health`), `API_PORT`.
+- **Frontend** : Next.js 14 App Router, déployé sur Vercel avec le répertoire racine `frontend`. Le
+  navigateur ne parle qu'à l'origine Vercel : `frontend/middleware.ts` proxifie `/api/*` vers l'API.
+  Deux variables, côté serveur uniquement : `API_INTERNAL_URL` (URL publique de l'API, sans `/` final)
+  et `API_PROXY_SECRET` (même valeur que sur la VM). La session est un cookie `__Host-listayours_session`
+  httpOnly, Secure, SameSite=Lax ; les mutations exigent un signal same-site (`Sec-Fetch-Site` / `Origin`).
 - **Fichiers ajoutés par ce guide** :
 
 | Fichier | Rôle |
@@ -71,6 +77,10 @@ Navigateur ──HTTPS──▶ Vercel (Next.js, frontend/)          NEXT_PUBLIC
 | `deploy/oracle/docker-compose.prod.yml` | API + Caddy (+ Postgres optionnel via `--profile local-db`) |
 | `deploy/oracle/Caddyfile` | Reverse proxy, TLS automatique, en‑têtes de sécurité |
 | `deploy/oracle/listayours.env.example` | Noms des variables de production (à copier en `.env`, mode 600) |
+| `deploy/oracle/pull-deploy.sh`, `listayours-deploy.{service,timer}` | Déploiement continu côté VM : toutes les 5 min, `docker compose pull` et recréation du conteneur si l'image a changé |
+| `.github/workflows/deploy-api.yml` | Construit l'image `linux/arm64` à chaque push vert sur `main` et la publie sur GHCR (`ghcr.io/vialsshiny/listayours-api:main` et `:sha-<commit>`) |
+| `.github/workflows/uptime.yml` | Appelle `/health` toutes les 15 min (variable de dépôt `API_HEALTH_URL`) |
+| `.github/dependabot.yml` | Mises à jour hebdomadaires npm, pip, actions et images Docker |
 | `deploy/keepalive/*` | Timer systemd contre la règle d'inactivité Oracle |
 | `deploy/northflank/README.md` | Réglages à reproduire dans l'interface Northflank |
 | `frontend/vercel.json` | Fige le preset `nextjs` sur Vercel |
@@ -336,9 +346,10 @@ Renseignez (noms seulement ici, jamais de valeurs dans le dépôt) :
 | `JWT_SECRET` | la valeur générée au § 2.4 (≥ 32 caractères) |
 | `JWT_EXPIRES_MINUTES` | `10080` (7 jours) |
 | `OWNER_EMAIL` | votre adresse ; le compte inscrit avec cette adresse devient propriétaire |
-| `CORS_ORIGINS` | `https://<projet>.vercel.app` puis, séparé par une virgule, votre domaine frontend s'il existe ; **sans `/` final**. Vous reviendrez compléter cette valeur au § 5.5 |
+| `CORS_ORIGINS` | `https://<projet>.vercel.app` puis, séparé par une virgule, votre domaine frontend s'il existe ; **sans `/` final**. Sert à la vérification d'origine anti-CSRF. Vous reviendrez compléter cette valeur au § 5.5 |
+| `API_PROXY_SECRET` | généré comme le secret JWT (`secrets.token_urlsafe(32)`) ; la **même** valeur ira dans la variable Vercel du § 5.4 |
 | `SCRAPE_TIMEOUT_SECONDS`, `SCRAPE_CACHE_TTL_SECONDS`, `RATE_LIMIT_PER_MINUTE` | valeurs par défaut `90`, `300`, `20` |
-| `TRUST_PROXY_HEADERS` | `true` (Caddy écrit `X-Forwarded-For`) |
+| `TRUST_PROXY_HEADERS` | `false` (l'adresse du client arrive dans `X-Client-Ip` avec le secret) |
 | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | seulement avec `--profile local-db` ; mot de passe généré comme le secret JWT |
 
 Vérifiez les droits sans afficher le contenu :
@@ -348,15 +359,24 @@ stat -c '%a %U %n' .env        # attendu : 600 ubuntu .env
 grep -c '^JWT_SECRET=.\{32,\}' .env   # attendu : 1
 ```
 
-### 4.11 Déployer (construction de l'image en linux/arm64)
+### 4.11 Déployer (image publiée par GitHub Actions, déploiement continu en mode « pull »)
 
-La VM est ARM64 : l'image **doit** être construite pour `linux/arm64`. Le plus simple est de la
-construire sur la VM elle‑même, ce que fait la commande ci‑dessous (`platforms: [linux/arm64]` dans le
-compose). Comptez 5 à 10 minutes la première fois (téléchargement de Chromium).
+L'image de l'API n'est plus construite sur la VM : à chaque push sur `main` dont la CI est verte,
+`.github/workflows/deploy-api.yml` construit l'image `linux/arm64` sur un runner ARM GitHub et la
+publie sur GHCR sous `ghcr.io/vialsshiny/listayours-api:main` (et `:sha-<commit>` pour revenir en
+arrière). La VM ne reçoit aucune connexion entrante de GitHub et GitHub ne détient aucun secret de
+la VM : c'est la VM qui interroge le registre.
+
+1. **[MANUAL]** Après la première exécution du workflow, rendez le paquet public : GitHub › votre
+   profil › **Packages** › `listayours-api` › **Package settings** › **Change visibility** › Public.
+   Sans cela, `docker pull` sur la VM exige un `docker login ghcr.io` avec un jeton personnel en
+   lecture seule (`read:packages`), à stocker dans `~/.docker/config.json` en mode 600.
+2. Premier démarrage :
 
 ```bash
 cd ~/listayours/deploy/oracle
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
 docker compose -f docker-compose.prod.yml ps
 docker compose -f docker-compose.prod.yml logs -f api      # Ctrl-C pour quitter
 ```
@@ -364,26 +384,33 @@ docker compose -f docker-compose.prod.yml logs -f api      # Ctrl-C pour quitter
 Avec Postgres auto‑hébergé :
 
 ```bash
-docker compose -f docker-compose.prod.yml --profile local-db up -d --build
+docker compose -f docker-compose.prod.yml --profile local-db up -d
 ```
 
-Construction sur un autre poste (amd64) si la VM est trop lente :
+3. Déploiement continu : installez le timer qui vérifie le registre toutes les 5 minutes et recrée
+   le conteneur `api` uniquement quand l'image a changé (le conteneur relance `alembic upgrade head`
+   au démarrage) :
 
 ```bash
-cd ~/Code/ListaYours
-docker buildx create --use --name arm 2>/dev/null || true
-docker buildx build --platform linux/arm64 -t ghcr.io/VOTRE_COMPTE/listayours-api:prod --push ./api
+cd ~/listayours
+sudo install -m 0755 deploy/oracle/pull-deploy.sh /usr/local/bin/listayours-pull-deploy.sh
+sudo install -m 0644 deploy/oracle/listayours-deploy.service deploy/oracle/listayours-deploy.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now listayours-deploy.timer
+systemctl list-timers listayours-deploy.timer
+sudo journalctl -u listayours-deploy.service -n 20 --no-pager
 ```
 
-puis dans `docker-compose.prod.yml` remplacez la section `build:` du service `api` par
-`image: ghcr.io/VOTRE_COMPTE/listayours-api:prod`, puis sur la VM :
+Le script journalise « up to date », « new image… healthy after update » ou « health check FAILED ».
+Pour geler une version ou revenir en arrière, mettez `API_IMAGE=ghcr.io/vialsshiny/listayours-api:sha-<commit>`
+dans `.env` et lancez `sudo systemctl start listayours-deploy.service` (ou `docker compose … up -d`).
+
+Construction locale de secours (si GHCR est indisponible) :
 
 ```bash
-cd ~/listayours/deploy/oracle
-docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d
+cd ~/listayours && docker build -t ghcr.io/vialsshiny/listayours-api:main ./api
+cd deploy/oracle && docker compose -f docker-compose.prod.yml up -d --pull never
 ```
-
-(l'authentification au registre est à votre charge, **[MANUAL]**).
 
 ### 4.12 Reverse proxy et TLS automatique
 
@@ -446,15 +473,17 @@ devient obligatoire.
 
    | Nom | Valeur | Environnements | Type |
    |---|---|---|---|
-   | `NEXT_PUBLIC_API_URL` | `https://api.example.com` (Oracle) ou l'URL `https://….code.run` (Northflank), **sans `/` final** | Production (et Preview si vous voulez tester les branches contre l'API de production) | Config (la valeur est publique par construction : Next.js l'inline dans le bundle navigateur) |
+   | `API_INTERNAL_URL` | `https://api.example.com` (Oracle) ou l'URL `https://….code.run` (Northflank), **sans `/` final** | Production (et Preview si vous voulez tester les branches contre l'API de production) | Config (lue par `middleware.ts` côté serveur, jamais envoyée au navigateur) |
+   | `API_PROXY_SECRET` | la valeur du § 4.10 | Production (et Preview, mêmes conditions) | **Sensitive** |
 
-   Les variables Vercel sont « encrypted at rest » ; les variables `NEXT_PUBLIC_` sont inlinées au
-   build, donc **tout changement exige un redéploiement**
-   (https://vercel.com/docs/environment-variables, lu le 2026‑11‑08).
+   Les variables Vercel sont « encrypted at rest » et lues par le middleware à chaque requête : un
+   changement prend effet au redéploiement suivant
+   (https://vercel.com/docs/environment-variables, lu le 2026‑11‑08). Aucune variable `NEXT_PUBLIC_*`.
 5. **Deploy**. Notez l'URL de production, de la forme `https://<projet>.vercel.app`.
 6. **[MANUAL]** Domaine personnalisé facultatif : **Settings › Domains**, ajoutez `www.example.com`, puis
    créez l'enregistrement CNAME indiqué par Vercel chez votre registrar.
-7. **Câblage CORS côté API** : ajoutez l'URL Vercel (et le domaine personnalisé) à `CORS_ORIGINS`.
+7. **Origines autorisées côté API** : ajoutez l'URL Vercel (et le domaine personnalisé) à `CORS_ORIGINS`
+   (vérification `Origin` des connexions et mutations).
    - Oracle : sur la VM, éditez `~/listayours/deploy/oracle/.env`, puis **recréez** le conteneur
      (`restart` ne relit pas `env_file`) :
 
@@ -463,14 +492,13 @@ devient obligatoire.
      ```
 
    - Northflank : modifiez la variable dans le service ou le secret group, le service redémarre.
-   - Les déploiements **Preview** de Vercel ont des URL différentes à chaque branche : ils ne passeront
-     pas CORS sauf à les ajouter explicitement. C'est voulu (liste blanche stricte).
-8. Vérifiez l'en‑tête CORS depuis votre poste :
+   - Les déploiements **Preview** de Vercel ont des URL différentes à chaque branche : leurs connexions
+     seront refusées sauf à les ajouter explicitement. C'est voulu (liste blanche stricte).
+8. Vérifiez depuis votre poste que l'API n'est joignable qu'à travers le site :
 
    ```bash
-   curl -sSI https://api.example.com/api/public/wishlists -H 'Origin: https://<projet>.vercel.app' \
-     | grep -i '^access-control-allow-origin'
-   # attendu : access-control-allow-origin: https://<projet>.vercel.app
+   curl -sS -o /dev/null -w '%{http_code}\n' https://api.example.com/api/public/wishlists   # attendu : 403
+   curl -sS -o /dev/null -w '%{http_code}\n' https://<projet>.vercel.app/api/public/wishlists   # attendu : 200
    ```
 
 ---
@@ -511,8 +539,8 @@ lues le 2026‑11‑08) ; l'interface peut avoir évolué.
    Environment**. Noms :
 
    `ENVIRONMENT=production`, `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_MINUTES`, `OWNER_EMAIL`,
-   `CORS_ORIGINS`, `SCRAPE_TIMEOUT_SECONDS`, `SCRAPE_CACHE_TTL_SECONDS`, `RATE_LIMIT_PER_MINUTE`,
-   `TRUST_PROXY_HEADERS`, `API_PORT=8000`.
+   `CORS_ORIGINS`, `API_PROXY_SECRET`, `SCRAPE_TIMEOUT_SECONDS`, `SCRAPE_CACHE_TTL_SECONDS`,
+   `RATE_LIMIT_PER_MINUTE`, `TRUST_PROXY_HEADERS=false`, `API_PORT=8000`.
 
    Pour `TRUST_PROXY_HEADERS` : le trafic passe par l'ingress Northflank ; que celui‑ci écrase
    `X-Forwarded-For` avec l'IP réelle du client n'a pas été vérifié dans la documentation **[uncertain]**.
@@ -533,8 +561,8 @@ lues le 2026‑11‑08) ; l'interface peut avoir évolué.
    ```
 
 8. **[MANUAL]** Domaine personnalisé facultatif : **Service › Ports & DNS › Link domain**, puis CNAME chez
-   votre registrar. Sinon l'URL `code.run` suffit : mettez‑la dans `NEXT_PUBLIC_API_URL` (§ 5.4) et
-   l'URL Vercel dans `CORS_ORIGINS`.
+   votre registrar. Sinon l'URL `code.run` suffit : mettez‑la dans `API_INTERNAL_URL` (§ 5.4), le même
+   `API_PROXY_SECRET` des deux côtés, et l'URL Vercel dans `CORS_ORIGINS`.
 9. **Base de données** : gardez Neon (§ 3.2). Le Sandbox inclut « 1 database » Northflank, mais son coût
    s'impute sur les 20 $ partagés avec l'API et sa taille gratuite n'est pas documentée **[uncertain]**.
 10. Migrations : automatiques au démarrage du conteneur. Manuellement : **Service › Shell** (ou
@@ -609,7 +637,7 @@ Puis, dans un navigateur :
 2. Dans une fenêtre privée, inscrivez un compte visiteur, réservez un cadeau.
 3. Revenez sur le compte propriétaire : le cadeau doit apparaître **disponible** (c'est le contrat de
    confidentialité, `docs/PRIVACY.md`).
-4. Onglet *Network* des outils de développement : aucune erreur CORS, toutes les requêtes API en `https://`.
+4. Onglet *Network* des outils de développement : toutes les requêtes API partent vers l'origine du site (`/api/...`), aucune vers l'API directement.
 
 ---
 
@@ -617,12 +645,16 @@ Puis, dans un navigateur :
 
 ### 9.1 Déployer une nouvelle version (Oracle)
 
+Rien à faire : fusionnez dans `main`. La CI construit et publie l'image, le timer de la VM la
+récupère dans les 5 minutes (§ 4.11). Pour forcer tout de suite :
+
 ```bash
-ssh -i ~/.ssh/listayours_oci ubuntu@IP_PUBLIQUE_VM
-cd ~/listayours && git pull --ff-only
-cd deploy/oracle && docker compose -f docker-compose.prod.yml up -d --build
-docker image prune -f
+ssh -i ~/.ssh/listayours_oci ubuntu@IP_PUBLIQUE_VM sudo systemctl start listayours-deploy.service
 ```
+
+Les fichiers de `deploy/oracle/` (Caddyfile, compose, unités systemd) ne sont pas dans l'image :
+après les avoir modifiés dans le dépôt, `cd ~/listayours && git pull --ff-only` sur la VM puis
+`docker compose -f docker-compose.prod.yml up -d` (et `sudo install …` pour les unités).
 
 La migration s'exécute au redémarrage du conteneur. Le frontend se redéploie seul à chaque push sur
 `main` (Vercel), de même que l'API sur Northflank.
@@ -630,11 +662,15 @@ La migration s'exécute au redémarrage du conteneur. Le frontend se redéploie 
 ### 9.2 Retour arrière
 
 ```bash
-cd ~/listayours && git log --oneline -5
-git checkout <sha_precedent> && cd deploy/oracle && docker compose -f docker-compose.prod.yml up -d --build
+cd ~/listayours/deploy/oracle
+git -C ~/listayours log --oneline -5                 # choisir le commit précédent
+sed -i 's#^API_IMAGE=.*#API_IMAGE=ghcr.io/vialsshiny/listayours-api:sha-<SHA_COMPLET>#' .env
+docker compose -f docker-compose.prod.yml up -d
 ```
 
-Une migration Alembic n'est pas annulée automatiquement ; si la version précédente l'exige :
+Le timer continue de tourner mais ne change plus rien tant que `API_IMAGE` pointe sur un tag `sha-`.
+Remettez `:main` pour reprendre le déploiement continu. Une migration Alembic n'est pas annulée
+automatiquement ; si la version précédente l'exige :
 `docker compose -f docker-compose.prod.yml exec api alembic downgrade -1`.
 
 ### 9.3 Journaux
@@ -812,8 +848,8 @@ Relevé du 2026‑11‑08.
   `--log-level trace` en production.
 - **Sur la VM** : `.env` en mode `600`, propriétaire `ubuntu`, dans `~/listayours/deploy/oracle/` ; la clé
   SSH privée ne quitte pas votre poste.
-- **Sur Vercel** : variables chiffrées au repos ; `NEXT_PUBLIC_API_URL` est la seule variable, et elle est
-  publique par nature. Ne mettez **aucun** secret dans une variable `NEXT_PUBLIC_*`.
+- **Sur Vercel** : variables chiffrées au repos ; `API_PROXY_SECRET` est marquée Sensitive, `API_INTERNAL_URL`
+  n'est jamais inlinée dans le bundle. Ne créez **aucune** variable `NEXT_PUBLIC_*`.
 - **Sur Northflank** : secret groups ou variables de service, **jamais** en build argument.
 - **Rotation** : si `JWT_SECRET` fuit, générez‑en un nouveau (§ 2.4), remplacez‑le, `docker compose … up -d` ;
   toutes les sessions sont invalidées, c'est voulu. Si `DATABASE_URL` fuit, changez le mot de passe dans
@@ -830,7 +866,7 @@ Relevé du 2026‑11‑08.
 | Le conteneur `api` redémarre en boucle | `JWT_SECRET` < 32 caractères ou `OWNER_EMAIL` vide en production ; `DATABASE_URL` invalide | `docker compose logs api` montre `RuntimeError: JWT_SECRET must be set…` ; corriger `.env`, `up -d` |
 | `alembic upgrade head` échoue avec une erreur SSL | `sslmode` manquant vers Neon/Supabase | Ajouter `?sslmode=require` à `DATABASE_URL` |
 | Le frontend affiche une erreur réseau, console : `blocked by CORS policy` | L'origine Vercel n'est pas dans `CORS_ORIGINS`, ou `/` final en trop | § 5.7 puis `up -d` (pas `restart`) |
-| Le frontend appelle `http://localhost:8000` | `NEXT_PUBLIC_API_URL` absente au moment du build | Ajouter la variable puis **redéployer** sur Vercel |
+| Le site répond 502/403 sur `/api/*` | `API_INTERNAL_URL` ou `API_PROXY_SECRET` absente ou différente de la VM | Ajouter la variable puis **redéployer** sur Vercel |
 | Première requête lente après une pause | Suspension Neon (5 min) | Normal ; `pool_pre_ping` gère la reconnexion |
 | `500` sur toutes les routes base de données | Projet Supabase en pause | Reprendre le projet dans le tableau de bord **[MANUAL]** |
 | `exec /opt/venv/bin/python: exec format error` | Image construite pour amd64 lancée sur la VM ARM64 | Reconstruire sur la VM ou avec `--platform linux/arm64` (§ 4.11) |

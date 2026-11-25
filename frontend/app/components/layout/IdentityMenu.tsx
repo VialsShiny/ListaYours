@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "@base-ui/react/menu";
 import { ChevronDown } from "lucide-react";
+import { ThemeMenuGroup } from "@/components/layout/ThemeMenuGroup";
 import { UserAvatar } from "@/components/layout/UserAvatar";
 import { voice } from "@/content/voice";
 import { roleLabel } from "@/lib/identity";
@@ -52,6 +53,7 @@ export function IdentityMenu({ user, avatarUrl, onSignOut }: IdentityMenuProps) 
             <Menu.Item className="identity-item" onClick={onSignOut}>
               {voice.nav.signOut}
             </Menu.Item>
+            <ThemeMenuGroup />
           </Menu.Popup>
         </Menu.Positioner>
       </Menu.Portal>

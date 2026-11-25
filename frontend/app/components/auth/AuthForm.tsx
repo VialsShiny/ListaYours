@@ -49,7 +49,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         mode === "login"
           ? await login(email.trim(), password)
           : await register(email.trim(), password, displayName.trim());
-      signIn(response.access_token, response.user);
+      signIn(response.user);
       router.replace(next);
     } catch (caught) {
       setError(errorMessage(caught, voice.auth.failed));

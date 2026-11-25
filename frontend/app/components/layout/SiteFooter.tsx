@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { voice } from "@/content/voice";
 import { MicroLabel } from "@/components/layout/MicroLabel";
+import { ThemeSwitch } from "@/components/layout/ThemeSwitch";
 
 export function SiteFooter() {
   const columns = [
@@ -44,7 +45,10 @@ export function SiteFooter() {
           ))}
         </div>
       </div>
-      <p className="text-small mt-10 text-soft">{voice.footer.signature}</p>
+      <div className="mt-10 flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+        <p className="text-small text-soft">{voice.footer.signature}</p>
+        <ThemeSwitch />
+      </div>
     </footer>
   );
 }

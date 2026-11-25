@@ -26,7 +26,7 @@ export function StatusMessage({ message, tone = "info", className }: StatusMessa
           aria-hidden="true"
           className={cn(
             "inline-grid size-5 shrink-0 place-items-center rounded-full text-[11px] font-semibold",
-            tone === "error" ? "bg-accent text-card" : "bg-ink text-on-ink",
+            tone === "error" ? "bg-accent text-on-accent" : "bg-ink text-on-ink",
           )}
         >
           {tone === "error" ? "!" : "✓"}

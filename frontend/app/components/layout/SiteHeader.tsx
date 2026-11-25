@@ -11,8 +11,8 @@ import { usePublicWishlists } from "@/hooks/use-public-wishlist";
 import { buildNav, isActiveHref, type NavRole } from "@/lib/nav-links";
 
 export function SiteHeader() {
-  const { status, user, token, isOwner, signOut } = useAuth();
-  const avatarUrl = useAvatarUrl(user, token);
+  const { status, user, isOwner, signOut } = useAuth();
+  const avatarUrl = useAvatarUrl(user);
   const pathname = usePathname();
   const wishlists = usePublicWishlists();
   const firstSlug = wishlists.data?.[0]?.slug;

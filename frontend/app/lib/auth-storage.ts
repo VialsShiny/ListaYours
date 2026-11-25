@@ -1,8 +1,11 @@
 import type { User } from "@/lib/types";
 
-export const TOKEN_KEY = "listayours.token";
 export const USER_KEY = "listayours.user";
 
+/**
+ * The session itself lives in an httpOnly cookie the browser sends on its own; only the public
+ * profile is cached here so the header can render before `/api/auth/me` answers.
+ */
 function storage(): Storage | null {
   if (typeof window === "undefined") return null;
   try {
@@ -10,10 +13,6 @@ function storage(): Storage | null {
   } catch {
     return null;
   }
-}
-
-export function readToken(): string | null {
-  return storage()?.getItem(TOKEN_KEY) ?? null;
 }
 
 export function readUser(): User | null {
@@ -28,23 +27,17 @@ export function readUser(): User | null {
   }
 }
 
-export function writeSession(token: string, user: User): void {
-  const store = storage();
-  if (!store) return;
+export function writeUser(user: User): void {
   try {
-    store.setItem(TOKEN_KEY, token);
-    store.setItem(USER_KEY, JSON.stringify(user));
+    storage()?.setItem(USER_KEY, JSON.stringify(user));
   } catch {
     return;
   }
 }
 
-export function clearSession(): void {
-  const store = storage();
-  if (!store) return;
+export function clearUser(): void {
   try {
-    store.removeItem(TOKEN_KEY);
-    store.removeItem(USER_KEY);
+    storage()?.removeItem(USER_KEY);
   } catch {
     return;
   }

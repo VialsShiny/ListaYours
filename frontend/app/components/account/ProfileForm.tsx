@@ -12,12 +12,12 @@ import { updateProfile } from "@/lib/api-account";
 import { notifySuccess } from "@/lib/toast";
 import type { User } from "@/lib/types";
 
-type ProfileFormProps = { user: User; token: string };
+type ProfileFormProps = { user: User };
 
 /**
  * Pseudo and e-mail. The role is shown read-only; values are kept on error.
  */
-export function ProfileForm({ user, token }: ProfileFormProps) {
+export function ProfileForm({ user }: ProfileFormProps) {
   const { updateUser } = useAuth();
   const [name, setName] = useState(user.display_name);
   const [email, setEmail] = useState(user.email);
@@ -32,7 +32,7 @@ export function ProfileForm({ user, token }: ProfileFormProps) {
     setError(null);
     setSaving(true);
     try {
-      const next = await updateProfile(token, { display_name: name.trim(), email: email.trim() });
+      const next = await updateProfile({ display_name: name.trim(), email: email.trim() });
       updateUser(next);
       notifySuccess(voice.account.profile.saved);
     } catch (caught) {

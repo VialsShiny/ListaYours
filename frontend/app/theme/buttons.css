@@ -60,7 +60,7 @@
 
 .btn-destructive-fill {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .btn-muted {
@@ -131,7 +131,7 @@
   height: 38px;
   border-radius: 50%;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-size: 18px;
   margin-right: -20px;
 }
@@ -151,7 +151,7 @@
   }
 
   .btn-primary:hover {
-    background: #262626;
+    background: var(--ink-hover);
   }
 
   .btn-secondary:hover,
@@ -160,7 +160,7 @@
   }
 
   .btn-destructive:hover {
-    color: #b32a20;
-    border-color: #b32a20;
+    color: var(--accent-hover);
+    border-color: var(--accent-hover);
   }
 }
