@@ -44,6 +44,20 @@ principal, le reste du guide est inchangé.
 
 ## 1. Ce qui est déployé
 
+> **État réel au 2026‑11‑25.** Le site est en ligne : frontend `https://listayours.vercel.app` (Vercel
+> Hobby, projet `listayours`, racine `frontend`), API `https://api--listayours-api--dytzfpp9vv7y.code.run`
+> (Northflank, projet gratuit, région Europe‑West London, service `listayours-api`, plan `nf-compute-20`
+> 0,2 vCPU / 512 Mo, build depuis `api/Dockerfile` à chaque push sur `main`), base Neon (projet
+> `Listayours`, région AWS Frankfurt, Postgres 18). **L'inscription Oracle a été refusée** par le filtre
+> anti‑fraude après validation de la carte (trois tentatives) : le § 4 reste documenté mais n'est pas
+> utilisé ; le § 6 (Northflank) est l'hébergeur effectif. Northflank **demande désormais une carte**
+> pour vérifier le compte (« to verify your account and help prevent abuse »), sans débit ; le plan
+> `nf-compute-50` (1 Go) est grisé « Not available due to free project limits », donc Chromium tourne
+> dans 512 Mo et peut manquer de mémoire sur certains sites (le service redémarre alors seul).
+> Vérifié en production : en‑têtes de sécurité, cookie `__Host-listayours_session` httpOnly, appels
+> directs à l'API refusés (403), `/docs` absent (404), CSRF cross‑site refusé, envoi de 3 Mo refusé
+> (413), 20 contrôles automatisés passés (`docs/PROGRESS.md` § 17).
+
 ```
 Navigateur ──HTTPS──▶ Vercel (Next.js, frontend/)   cookie de session httpOnly, même origine
                            │  /api/* proxifié par frontend/middleware.ts
@@ -503,10 +517,15 @@ devient obligatoire.
 
 ---
 
-## 6. Hébergeur de repli : Northflank Sandbox
+## 6. Hébergeur de repli : Northflank Sandbox (hébergeur effectif depuis le 2026‑11‑25)
 
 À utiliser si la carte Oracle est inacceptable (Northflank devient alors le principal) ou si la VM
-Oracle est indisponible. Faits relevés le 2026‑11‑08 sur https://northflank.com/pricing : Sandbox
+Oracle est indisponible. **Relevé du 2026‑11‑25** : la page tarifaire affiche toujours « No card
+needed », mais le formulaire de création du premier service exige une carte « to verify your
+account », sans débit ; le projet gratuit est limité à `nf-compute-20` (0,2 vCPU · 512 Mo, les plans
+supérieurs sont grisés) ; les variables se saisissent dans **Service › Environment** (pas de groupe de
+secrets nécessaire) et chaque enregistrement redéploie le service. Faits relevés le 2026‑11‑08 sur
+https://northflank.com/pricing : Sandbox
 « No card needed », « Up to $20/mo of resources on Northflank Cloud », « 2 services, 2 jobs, and
 1 database », « Always on, no sleeping ». La même page liste le plan `nf-compute-50` (0,5 vCPU · 1 Go) à
 « $12.00 per month » (relevé du 2026‑11‑08) : il tient dans les 20 $, mais les minutes de build et une
