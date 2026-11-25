@@ -1,37 +1,37 @@
-import { API_BASE, ApiError, apiFetch, detailToMessage, type ApiErrorBody } from "@/lib/api";
+import { ApiError, apiFetch, detailToMessage, type ApiErrorBody } from "@/lib/api";
 import { voice } from "@/content/voice";
 import type { ProfilePatch, User } from "@/lib/types";
 
-export function fetchAccount(token: string, signal?: AbortSignal): Promise<User> {
-  return apiFetch<User>("/api/account", { token, signal });
+export function fetchAccount(signal?: AbortSignal): Promise<User> {
+  return apiFetch<User>("/api/account", { session: true, signal });
 }
 
-export function updateProfile(token: string, patch: ProfilePatch): Promise<User> {
-  return apiFetch<User>("/api/account", { method: "PATCH", token, body: patch });
+export function updateProfile(patch: ProfilePatch): Promise<User> {
+  return apiFetch<User>("/api/account", { method: "PATCH", session: true, body: patch });
 }
 
-export function changePassword(token: string, current: string, next: string): Promise<void> {
+export function changePassword(current: string, next: string): Promise<void> {
   return apiFetch<void>("/api/account/password", {
     method: "POST",
-    token,
+    session: true,
     body: { current_password: current, new_password: next },
   });
 }
 
-export function uploadAvatar(token: string, image: Blob): Promise<User> {
-  return apiFetch<User>("/api/account/avatar", { method: "PUT", token, body: image });
+export function uploadAvatar(image: Blob): Promise<User> {
+  return apiFetch<User>("/api/account/avatar", { method: "PUT", session: true, body: image });
 }
 
-export function deleteAvatar(token: string): Promise<User> {
-  return apiFetch<User>("/api/account/avatar", { method: "DELETE", token });
+export function deleteAvatar(): Promise<User> {
+  return apiFetch<User>("/api/account/avatar", { method: "DELETE", session: true });
 }
 
 /**
- * Reads the signed-in user's picture as a Blob (the API only serves it with the Bearer token).
+ * Reads the signed-in user's picture as a Blob (the API serves it to the session cookie only).
  */
-export async function fetchAvatar(token: string, signal?: AbortSignal): Promise<Blob> {
-  const response = await fetch(`${API_BASE}/api/account/avatar`, {
-    headers: { Accept: "image/webp,image/*", Authorization: `Bearer ${token}` },
+export async function fetchAvatar(signal?: AbortSignal): Promise<Blob> {
+  const response = await fetch("/api/account/avatar", {
+    headers: { Accept: "image/webp,image/*" },
     signal,
   });
   if (!response.ok) {

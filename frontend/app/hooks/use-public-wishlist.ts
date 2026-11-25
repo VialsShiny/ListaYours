@@ -11,16 +11,12 @@ export function usePublicWishlists() {
 }
 
 /**
- * Loads a public wishlist once the session is known, so the Bearer token is sent when present.
+ * Loads a public wishlist once the session is known, so reservation state matches the viewer.
  */
 export function usePublicWishlist(slug: string) {
-  const { status, token } = useAuth();
+  const { status } = useAuth();
   const ready = status !== "loading";
-  const state = useAsync(
-    (signal) => fetchPublicWishlist(slug, token, signal),
-    `${slug}:${token ?? "anon"}`,
-    ready,
-  );
+  const state = useAsync((signal) => fetchPublicWishlist(slug, signal), `${slug}:${status}`, ready);
 
   const patchGift = useCallback(
     (giftId: PublicGift["id"], patch: Partial<PublicGift>) => {

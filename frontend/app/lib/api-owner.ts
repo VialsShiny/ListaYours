@@ -11,68 +11,68 @@ import type {
 } from "@/lib/types";
 
 type Id = number | string;
+const session = true;
 
-export function fetchOwnerData(token: string, signal?: AbortSignal): Promise<OwnerData> {
-  return apiFetch<OwnerData>("/api/owner/wishlist", { token, signal });
+export function fetchOwnerData(signal?: AbortSignal): Promise<OwnerData> {
+  return apiFetch<OwnerData>("/api/owner/wishlist", { session, signal });
 }
 
-export function patchWishlist(token: string, patch: WishlistPatch): Promise<OwnerWishlist> {
-  return apiFetch<OwnerWishlist>("/api/owner/wishlist", { method: "PATCH", token, body: patch });
+export function patchWishlist(patch: WishlistPatch): Promise<OwnerWishlist> {
+  return apiFetch<OwnerWishlist>("/api/owner/wishlist", { method: "PATCH", session, body: patch });
 }
 
-export function createCategory(token: string, name: string): Promise<Category> {
-  return apiFetch<Category>("/api/owner/categories", { method: "POST", token, body: { name } });
+export function createCategory(name: string): Promise<Category> {
+  return apiFetch<Category>("/api/owner/categories", { method: "POST", session, body: { name } });
 }
 
-export function renameCategory(token: string, id: Id, name: string): Promise<Category> {
+export function renameCategory(id: Id, name: string): Promise<Category> {
   return apiFetch<Category>(`/api/owner/categories/${id}`, {
     method: "PATCH",
-    token,
+    session,
     body: { name },
   });
 }
 
-export function deleteCategory(token: string, id: Id): Promise<void> {
-  return apiFetch<void>(`/api/owner/categories/${id}`, { method: "DELETE", token });
+export function deleteCategory(id: Id): Promise<void> {
+  return apiFetch<void>(`/api/owner/categories/${id}`, { method: "DELETE", session });
 }
 
-export function reorderCategories(token: string, ids: Id[]): Promise<Category[]> {
+export function reorderCategories(ids: Id[]): Promise<Category[]> {
   return apiFetch<Category[]>("/api/owner/categories/reorder", {
     method: "PUT",
-    token,
+    session,
     body: { ids },
   });
 }
 
-export function createGift(token: string, payload: GiftPayload): Promise<OwnerGift> {
-  return apiFetch<OwnerGift>("/api/owner/gifts", { method: "POST", token, body: payload });
+export function createGift(payload: GiftPayload): Promise<OwnerGift> {
+  return apiFetch<OwnerGift>("/api/owner/gifts", { method: "POST", session, body: payload });
 }
 
-export function updateGift(
-  token: string,
-  id: Id,
-  payload: Partial<GiftPayload>,
-): Promise<OwnerGift> {
-  return apiFetch<OwnerGift>(`/api/owner/gifts/${id}`, { method: "PATCH", token, body: payload });
+export function updateGift(id: Id, payload: Partial<GiftPayload>): Promise<OwnerGift> {
+  return apiFetch<OwnerGift>(`/api/owner/gifts/${id}`, { method: "PATCH", session, body: payload });
 }
 
-export function deleteGift(token: string, id: Id): Promise<void> {
-  return apiFetch<void>(`/api/owner/gifts/${id}`, { method: "DELETE", token });
+export function deleteGift(id: Id): Promise<void> {
+  return apiFetch<void>(`/api/owner/gifts/${id}`, { method: "DELETE", session });
 }
 
-export function reorderGifts(token: string, ids: Id[]): Promise<OwnerGift[]> {
-  return apiFetch<OwnerGift[]>("/api/owner/gifts/reorder", { method: "PUT", token, body: { ids } });
+export function reorderGifts(ids: Id[]): Promise<OwnerGift[]> {
+  return apiFetch<OwnerGift[]>("/api/owner/gifts/reorder", {
+    method: "PUT",
+    session,
+    body: { ids },
+  });
 }
 
 export function scrapeProduct(
-  token: string,
   url: string,
   strategy: ScrapeStrategy,
   signal?: AbortSignal,
 ): Promise<ScrapeResponse> {
   return apiFetch<ScrapeResponse>("/api/scrape", {
     method: "POST",
-    token,
+    session,
     body: { url, strategy, debug: false },
     signal,
   });

@@ -42,8 +42,8 @@ export function SettingsForm({ store, wishlist }: SettingsFormProps) {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const { ok } = await store.run(
-      (token) =>
-        patchWishlist(token, {
+      () =>
+        patchWishlist({
           title: title.trim(),
           description: description.trim() === "" ? null : description.trim(),
           slug: slug.trim(),

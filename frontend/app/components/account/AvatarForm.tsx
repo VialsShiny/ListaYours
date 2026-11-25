@@ -14,15 +14,15 @@ import { checkAvatarFile, cropToSquare } from "@/lib/avatar-file";
 import { notifySuccess } from "@/lib/toast";
 import type { User } from "@/lib/types";
 
-type AvatarFormProps = { user: User; token: string };
+type AvatarFormProps = { user: User };
 type Picked = { blob: Blob; url: string };
 
 /**
  * Current picture (or initial), a drop zone, a square preview before saving, and removal.
  */
-export function AvatarForm({ user, token }: AvatarFormProps) {
+export function AvatarForm({ user }: AvatarFormProps) {
   const { updateUser } = useAuth();
-  const currentUrl = useAvatarUrl(user, token);
+  const currentUrl = useAvatarUrl(user);
   const [picked, setPicked] = useState<Picked | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -81,9 +81,7 @@ export function AvatarForm({ user, token }: AvatarFormProps) {
               <Button
                 variant="primary"
                 disabled={busy}
-                onClick={() =>
-                  run(() => uploadAvatar(token, picked.blob), voice.account.photo.saved)
-                }
+                onClick={() => run(() => uploadAvatar(picked.blob), voice.account.photo.saved)}
               >
                 {busy ? voice.errors.wait : voice.account.photo.save}
               </Button>
@@ -95,7 +93,7 @@ export function AvatarForm({ user, token }: AvatarFormProps) {
             <Button
               variant="destructive"
               disabled={busy}
-              onClick={() => run(() => deleteAvatar(token), voice.account.photo.removed)}
+              onClick={() => run(() => deleteAvatar(), voice.account.photo.removed)}
             >
               {busy ? voice.errors.wait : voice.account.photo.remove}
             </Button>

@@ -45,6 +45,7 @@ services:
     environment:
       # Public hostname of the API (DNS A/AAAA record -> VM public IP). Caddy obtains the TLS certificate itself.
       API_DOMAIN: ${API_DOMAIN:?API_DOMAIN must be set in .env (e.g. api.example.com)}
+      API_PROXY_SECRET: ${API_PROXY_SECRET:?API_PROXY_SECRET must be set in .env (shared with Vercel)}
     ports:
       - "80:80"
       - "443:443"

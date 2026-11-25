@@ -71,7 +71,7 @@ JSON‑LD → microdata → OpenGraph → parseurs Amazon / AliExpress → heuri
 
 Toutes les variables sont listées dans [`.env.example`](.env.example) (noms uniquement, jamais de
 secrets dans le dépôt). Les plus importantes : `DATABASE_URL`, `JWT_SECRET`, `OWNER_EMAIL`,
-`CORS_ORIGINS`, `NEXT_PUBLIC_API_URL`.
+`CORS_ORIGINS`, `API_PROXY_SECRET`, `API_INTERNAL_URL`.
 
 ## Qualité
 

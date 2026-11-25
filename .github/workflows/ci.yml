@@ -95,7 +95,6 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          NEXT_PUBLIC_API_URL: http://localhost:8000
           NEXT_TELEMETRY_DISABLED: "1"
 
   docker:
@@ -121,7 +120,6 @@ jobs:
           push: false
           load: true
           tags: listayours-frontend:ci
-          build-args: NEXT_PUBLIC_API_URL=http://localhost:8000
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,scope=frontend,mode=max
       # The image runs its database migrations at startup; a SQLite URL keeps the smoke test self-contained.
