@@ -85,13 +85,16 @@ export function forwardedHeaders(source: Headers, clientIp: string, secret: stri
 }
 
 /**
- * Status to answer instead of proxying the body, or `null` when the body may go through:
- * a declared, numeric Content-Length of at most 3 MB, never a chunked transfer.
+ * Status to answer instead of proxying the body, or `null` when the body may go through: a
+ * numeric Content-Length of at most 3 MB, never a chunked transfer. A missing Content-Length is
+ * an empty body: Vercel's edge drops the `Content-Length: 0` that browsers send on body-less
+ * writes such as logout and deletes, so requiring it would refuse them.
  */
 export function bodyRejection(method: string, headers: Headers): number | null {
   if (BODYLESS_METHODS.has(method)) return null;
+  if (headers.has("transfer-encoding")) return 411;
   const length = headers.get("content-length");
-  if (length === null || headers.has("transfer-encoding")) return 411;
+  if (length === null) return null;
   if (!/^\d+$/.test(length)) return 400;
   return Number(length) > MAX_BODY_BYTES ? 413 : null;
 }
