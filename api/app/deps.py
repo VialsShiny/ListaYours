@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.db.models import User
 from app.db.session import get_db
-from app.limits import reservation_limiter, scrape_limiter
+from app.limits import import_limiter, reservation_limiter, scrape_limiter
 from app.services.auth_service import decode_access_token, get_user
 from app.utils.rate_limit import too_many_requests
 from app.utils.session import read_session_cookie
@@ -63,6 +63,12 @@ def require_visitor(user: Annotated[User, Depends(get_current_user)]) -> User:
 def scrape_rate_limit(owner: Annotated[User, Depends(require_owner)]) -> None:
     """Budget the scraper per authenticated owner, so unauthenticated callers cannot burn it."""
     if not scrape_limiter.allow(f"scrape:{owner.id}"):
+        raise too_many_requests()
+
+
+def import_rate_limit(owner: Annotated[User, Depends(require_owner)]) -> None:
+    """Budget CSV imports, dry runs included, per authenticated owner."""
+    if not import_limiter.allow(f"import:{owner.id}"):
         raise too_many_requests()
 
 

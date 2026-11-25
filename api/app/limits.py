@@ -8,6 +8,7 @@ from app.utils.rate_limit import SlidingWindowLimiter, enforce, too_many_request
 LOGIN_EMAIL_LIMIT = 10
 LOGIN_EMAIL_WINDOW_SECONDS = 15 * 60
 RESERVATION_LIMIT_PER_MINUTE = 30
+IMPORT_LIMIT_PER_MINUTE = 10
 
 _per_minute = get_settings().rate_limit_per_minute
 login_limiter = SlidingWindowLimiter(limit=_per_minute)
@@ -16,6 +17,7 @@ register_limiter = SlidingWindowLimiter(limit=_per_minute)
 account_limiter = SlidingWindowLimiter(limit=_per_minute)
 reservation_limiter = SlidingWindowLimiter(limit=RESERVATION_LIMIT_PER_MINUTE)
 scrape_limiter = SlidingWindowLimiter(limit=_per_minute)
+import_limiter = SlidingWindowLimiter(limit=IMPORT_LIMIT_PER_MINUTE)
 
 ALL_LIMITERS = (
     login_limiter,
@@ -24,6 +26,7 @@ ALL_LIMITERS = (
     account_limiter,
     reservation_limiter,
     scrape_limiter,
+    import_limiter,
 )
 
 
