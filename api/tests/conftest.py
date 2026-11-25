@@ -58,6 +58,7 @@ def client() -> Iterator[TestClient]:
 def register(client: TestClient, email: str, password: str = "motdepasse123", name: str = "Test") -> dict:
     response = client.post("/api/auth/register", json={"email": email, "password": password, "display_name": name})
     assert response.status_code == 201, response.text
+    client.cookies.clear()
     return response.json()
 
 

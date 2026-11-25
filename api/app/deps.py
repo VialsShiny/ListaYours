@@ -9,6 +9,7 @@ from app.db.models import User
 from app.db.session import get_db
 from app.services.auth_service import decode_access_token, get_user
 from app.utils.rate_limit import SlidingWindowLimiter, enforce
+from app.utils.session import read_session_cookie
 
 bearer = HTTPBearer(auto_error=False)
 auth_limiter = SlidingWindowLimiter(limit=get_settings().rate_limit_per_minute)
@@ -18,12 +19,15 @@ DbSession = Annotated[Session, Depends(get_db)]
 
 
 def get_optional_user(
+    request: Request,
     db: DbSession,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
 ) -> User | None:
-    if credentials is None:
+    """The session cookie set by the API itself, or a Bearer token for non-browser clients."""
+    token = read_session_cookie(request, get_settings()) if credentials is None else credentials.credentials
+    if not token:
         return None
-    user_id = decode_access_token(credentials.credentials)
+    user_id = decode_access_token(token)
     return get_user(db, user_id) if user_id else None
 
 

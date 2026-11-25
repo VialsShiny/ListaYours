@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import get_settings
+from app.middleware import csrf_guard, proxy_gate
 from app.routers import account, auth, owner_categories, owner_gifts, owner_wishlist, public, reservations, scrape
 from app.services.errors import ServiceError
 
@@ -29,6 +30,8 @@ app = FastAPI(
     openapi_url=docs["openapi_url"],
 )
 
+app.middleware("http")(csrf_guard(settings))
+app.middleware("http")(proxy_gate(settings))
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,

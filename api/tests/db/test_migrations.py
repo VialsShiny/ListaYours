@@ -1,10 +1,10 @@
 import os
 from pathlib import Path
 
+from alembic.config import Config
 from sqlalchemy import create_engine, inspect
 
 from alembic import command
-from alembic.config import Config
 from app.db.base import Base
 
 API_DIR = Path(__file__).resolve().parents[2]
