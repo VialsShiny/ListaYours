@@ -1,5 +1,9 @@
+/** Dependabot writes release-note bodies with long lines; its headers still follow the convention. */
+const isDependabot = (message) => /^Signed-off-by: dependabot\[bot\]/m.test(message);
+
 module.exports = {
   extends: ["@commitlint/config-conventional"],
+  ignores: [isDependabot],
   rules: {
     "type-enum": [
       2,
