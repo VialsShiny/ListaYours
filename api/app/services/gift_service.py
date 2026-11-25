@@ -1,12 +1,17 @@
 import uuid
 from decimal import ROUND_HALF_UP, Decimal
+from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.models import Category, Gift, Wishlist
 from app.schemas.gift import GiftCreate, GiftUpdate
-from app.services.errors import NotFound
+from app.services.category_service import CATEGORY_NOT_FOUND
+from app.services.errors import NotFound, ServiceError
+
+GIFT_NOT_FOUND = "Cadeau introuvable."
+REORDER_MISMATCH = "La liste d'identifiants ne correspond pas aux cadeaux."
 
 
 def list_gifts(db: Session, wishlist: Wishlist, visible_only: bool = False) -> list[Gift]:
@@ -19,7 +24,7 @@ def list_gifts(db: Session, wishlist: Wishlist, visible_only: bool = False) -> l
 def get_gift(db: Session, wishlist: Wishlist, gift_id: uuid.UUID) -> Gift:
     gift = db.get(Gift, gift_id)
     if gift is None or gift.wishlist_id != wishlist.id:
-        raise NotFound("Cadeau introuvable.")
+        raise NotFound(GIFT_NOT_FOUND)
     return gift
 
 
@@ -28,10 +33,10 @@ def _check_category(db: Session, wishlist: Wishlist, category_id: uuid.UUID | No
         return
     category = db.get(Category, category_id)
     if category is None or category.wishlist_id != wishlist.id:
-        raise NotFound("Catégorie introuvable.")
+        raise NotFound(CATEGORY_NOT_FOUND)
 
 
-def _apply(gift: Gift, changes: dict) -> None:
+def apply_changes(gift: Gift, changes: dict[str, Any]) -> None:
     for field, value in changes.items():
         if field in {"image_url", "purchase_url"} and value is not None:
             value = str(value)
@@ -48,7 +53,7 @@ def next_position(db: Session, wishlist: Wishlist) -> int:
 def create_gift(db: Session, wishlist: Wishlist, payload: GiftCreate) -> Gift:
     _check_category(db, wishlist, payload.category_id)
     gift = Gift(wishlist_id=wishlist.id, position=next_position(db, wishlist))
-    _apply(gift, payload.model_dump())
+    apply_changes(gift, payload.model_dump())
     db.add(gift)
     db.commit()
     db.refresh(gift)
@@ -60,7 +65,7 @@ def update_gift(db: Session, wishlist: Wishlist, gift_id: uuid.UUID, payload: Gi
     changes = payload.model_dump(exclude_unset=True)
     if "category_id" in changes:
         _check_category(db, wishlist, changes["category_id"])
-    _apply(gift, changes)
+    apply_changes(gift, changes)
     db.commit()
     db.refresh(gift)
     return gift
@@ -76,7 +81,7 @@ def delete_gift(db: Session, wishlist: Wishlist, gift_id: uuid.UUID) -> None:
 def reorder_gifts(db: Session, wishlist: Wishlist, ordered_ids: list[uuid.UUID]) -> list[Gift]:
     gifts = {gift.id: gift for gift in list_gifts(db, wishlist)}
     if set(ordered_ids) != set(gifts) or len(ordered_ids) != len(gifts):
-        raise NotFound("La liste d'identifiants ne correspond pas aux cadeaux.")
+        raise ServiceError(REORDER_MISMATCH, 400)
     for position, gift_id in enumerate(ordered_ids):
         gifts[gift_id].position = position
     db.commit()

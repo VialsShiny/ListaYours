@@ -1,10 +1,6 @@
-import { ApiError, apiFetch, detailToMessage, type ApiErrorBody } from "@/lib/api";
+import { apiFetch, parseError } from "@/lib/api";
 import { voice } from "@/content/voice";
 import type { ProfilePatch, User } from "@/lib/types";
-
-export function fetchAccount(signal?: AbortSignal): Promise<User> {
-  return apiFetch<User>("/api/account", { session: true, signal });
-}
 
 export function updateProfile(patch: ProfilePatch): Promise<User> {
   return apiFetch<User>("/api/account", { method: "PATCH", session: true, body: patch });
@@ -34,14 +30,6 @@ export async function fetchAvatar(signal?: AbortSignal): Promise<Blob> {
     headers: { Accept: "image/webp,image/*" },
     signal,
   });
-  if (!response.ok) {
-    let body: ApiErrorBody = null;
-    try {
-      body = (await response.json()) as ApiErrorBody;
-    } catch {
-      body = null;
-    }
-    throw new ApiError(response.status, body, detailToMessage(body, voice.errors.loadFailed));
-  }
+  if (!response.ok) throw await parseError(response, voice.errors.loadFailed);
   return response.blob();
 }

@@ -41,7 +41,8 @@ def test_scrape_endpoint_reports_errors_as_success_false(monkeypatch, client, ow
     assert response.status_code == 200
     body = response.json()
     assert body["success"] is False
-    assert body["error"] == "boom"
+    assert body["error"] == "Échec du scraping."
+    assert "boom" not in response.text
     assert body["data"] is None
     assert body["strategy_used"] is None
     assert body["debug"] is True

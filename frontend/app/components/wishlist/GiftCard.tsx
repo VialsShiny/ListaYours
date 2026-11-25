@@ -5,6 +5,7 @@ import { voice } from "@/content/voice";
 import { GiftPrice } from "@/components/wishlist/GiftPrice";
 import { ReservationControl, type ViewerRole } from "@/components/wishlist/ReservationControl";
 import { hasDiscount } from "@/lib/format";
+import { safeHttpUrl } from "@/lib/safe-url";
 import type { PublicGift } from "@/lib/types";
 
 type GiftCardProps = {
@@ -23,6 +24,7 @@ type GiftCardProps = {
 export function GiftCard({ gift, viewer, loginHref, pending, onReserve, onCancel }: GiftCardProps) {
   const reservedByOther = viewer !== "owner" && gift.is_reserved && !gift.reserved_by_me;
   const titleId = `gift-${gift.id}-title`;
+  const productUrl = safeHttpUrl(gift.purchase_url);
 
   return (
     <article
@@ -52,9 +54,9 @@ export function GiftCard({ gift, viewer, loginHref, pending, onReserve, onCancel
           {hasDiscount(gift.price, gift.old_price) && !reservedByOther ? (
             <span className="font-semibold text-accent">{voice.list.reduced}</span>
           ) : null}
-          {gift.purchase_url ? (
+          {productUrl ? (
             <a
-              href={gift.purchase_url}
+              href={productUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-link inline-flex min-h-11 items-center"

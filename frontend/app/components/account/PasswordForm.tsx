@@ -7,20 +7,23 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { errorMessage } from "@/lib/api";
+import { useAuth } from "@/hooks/use-auth";
 import { changePassword } from "@/lib/api-account";
+import { passwordTooLong } from "@/lib/password";
 import { notifySuccess } from "@/lib/toast";
 
 /**
- * Current password, new password; fields are cleared only after a confirmed change.
+ * Current password, new password; fields are cleared only after a confirmed change. The hidden
+ * username field lets password managers attach the new password to the right account.
  */
 export function PasswordForm() {
+  const { user } = useAuth();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const bytesOver = (value: string) => new TextEncoder().encode(value).length > 72;
   const currentError =
-    error && (/actuel/i.test(error) || (/octets/i.test(error) && bytesOver(current)))
+    error && (/actuel/i.test(error) || (/octets/i.test(error) && passwordTooLong(current)))
       ? error
       : null;
   const nextError =
@@ -29,6 +32,10 @@ export function PasswordForm() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (passwordTooLong(current) || passwordTooLong(next)) {
+      setError(voice.auth.passwordTooLong);
+      return;
+    }
     setError(null);
     setSaving(true);
     try {
@@ -45,6 +52,14 @@ export function PasswordForm() {
 
   return (
     <form onSubmit={handleSubmit} className="panel flex max-w-[640px] flex-col gap-5 p-5 md:p-8">
+      <input
+        type="text"
+        name="username"
+        autoComplete="username"
+        value={user?.email ?? ""}
+        readOnly
+        hidden
+      />
       <Field
         id="current-password"
         label={voice.account.password.current}

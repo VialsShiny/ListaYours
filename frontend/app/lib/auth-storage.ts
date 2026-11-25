@@ -1,6 +1,8 @@
-import type { User } from "@/lib/types";
+import type { User, UserRole } from "@/lib/types";
 
 export const USER_KEY = "listayours.user";
+
+const ROLES: readonly UserRole[] = ["owner", "visitor"];
 
 /**
  * The session itself lives in an httpOnly cookie the browser sends on its own; only the public
@@ -20,7 +22,8 @@ export function readUser(): User | null {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as Partial<User>;
-    if (!parsed || typeof parsed !== "object" || !parsed.email || !parsed.role) return null;
+    if (!parsed || typeof parsed !== "object" || !parsed.email) return null;
+    if (!ROLES.includes(parsed.role as UserRole)) return null;
     return parsed as User;
   } catch {
     return null;

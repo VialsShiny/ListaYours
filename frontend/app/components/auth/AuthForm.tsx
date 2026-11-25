@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import { errorMessage } from "@/lib/api";
 import { login, register } from "@/lib/api-auth";
+import { passwordTooLong } from "@/lib/password";
 import { safeNextPath } from "@/lib/safe-next";
 
 type AuthFormProps = { mode: "login" | "register" };
@@ -42,6 +43,11 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (passwordTooLong(password)) {
+      setError(voice.auth.passwordTooLong);
+      setErrorSeq((current) => current + 1);
+      return;
+    }
     setError(null);
     setBusy(true);
     try {
@@ -90,7 +96,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               id="email"
               name="email"
               type="email"
-              autoComplete="email"
+              autoComplete={mode === "login" ? "username" : "email"}
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}

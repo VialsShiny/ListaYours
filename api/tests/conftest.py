@@ -13,7 +13,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session, sessionmaker
 
-from app import deps
+from app import limits
 from app.db.base import Base
 from app.db.session import engine, get_db
 from app.main import app
@@ -25,8 +25,7 @@ TestingSession = sessionmaker(bind=engine, autoflush=False, expire_on_commit=Fal
 def database() -> Iterator[None]:
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
-    deps.auth_limiter.reset()
-    deps.scrape_limiter.reset()
+    limits.reset_all()
     yield
     Base.metadata.drop_all(bind=engine)
 

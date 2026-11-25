@@ -3,16 +3,18 @@ import { Suspense } from "react";
 import { WishlistView } from "@/components/wishlist/WishlistView";
 import { WishlistHeaderSkeleton } from "@/components/wishlist/WishlistHeaderSkeleton";
 
-type PageProps = { params: { slug: string } };
+type PageProps = { params: Promise<{ slug: string }> };
 
-export function generateMetadata({ params }: PageProps): Metadata {
-  return { title: `Liste ${params.slug}` };
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  return { title: `Liste ${slug}` };
 }
 
-export default function PublicWishlistPage({ params }: PageProps) {
+export default async function PublicWishlistPage({ params }: PageProps) {
+  const { slug } = await params;
   return (
     <Suspense fallback={<WishlistHeaderSkeleton />}>
-      <WishlistView slug={params.slug} />
+      <WishlistView slug={slug} />
     </Suspense>
   );
 }

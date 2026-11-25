@@ -1,6 +1,8 @@
-from app import deps
+from app import limits
 from tests.account.helpers import assert_no_secret, headers
 from tests.conftest import register
+
+PASSWORD = {"current_password": "motdepasse123"}
 
 
 def test_anonymous_requests_are_rejected(client) -> None:
@@ -28,7 +30,7 @@ def test_read_own_account_without_secrets(client, visitor) -> None:
 def test_update_display_name_and_email(client, visitor) -> None:
     response = client.patch(
         "/api/account",
-        json={"display_name": "  Oriane  ", "email": "Oriane@Listayours-Test.fr"},
+        json={"display_name": "  Oriane  ", "email": "Oriane@Listayours-Test.fr", "current_password": "motdepasse123"},
         headers=headers(visitor),
     )
     assert response.status_code == 200, response.text
@@ -58,9 +60,13 @@ def test_role_is_read_only(client, visitor) -> None:
 
 
 def test_email_uniqueness_and_owner_email_are_enforced(client, owner, visitor, visitor2) -> None:
-    taken = client.patch("/api/account", json={"email": "visitor2@listayours-test.fr"}, headers=headers(visitor))
+    taken = client.patch(
+        "/api/account", json={"email": "visitor2@listayours-test.fr", **PASSWORD}, headers=headers(visitor)
+    )
     assert taken.status_code == 409
-    reserved = client.patch("/api/account", json={"email": "owner@listayours-test.fr"}, headers=headers(visitor))
+    reserved = client.patch(
+        "/api/account", json={"email": "owner@listayours-test.fr", **PASSWORD}, headers=headers(visitor)
+    )
     assert reserved.status_code == 409
     same = client.patch("/api/account", json={"email": "visitor@listayours-test.fr"}, headers=headers(visitor))
     assert same.status_code == 200
@@ -103,18 +109,29 @@ def test_password_change_requires_the_current_password(client) -> None:
     assert new.status_code == 200
 
 
-def test_password_change_is_rate_limited(client, visitor) -> None:
-    deps.auth_limiter.limit = 2
-    deps.auth_limiter.reset()
-    try:
-        statuses = [
-            client.post(
-                "/api/account/password",
-                json={"current_password": "mauvais-mdp", "new_password": "nouveaumdp456"},
-                headers=headers(visitor),
-            ).status_code
-            for _ in range(3)
-        ]
-    finally:
-        deps.auth_limiter.limit = 1000
+def test_password_change_is_rate_limited(client, visitor, monkeypatch) -> None:
+    monkeypatch.setattr(limits.account_limiter, "limit", 2)
+    statuses = [
+        client.post(
+            "/api/account/password",
+            json={"current_password": "mauvais-mdp", "new_password": "nouveaumdp456"},
+            headers=headers(visitor),
+        ).status_code
+        for _ in range(3)
+    ]
     assert statuses == [400, 400, 429]
+
+
+def test_email_change_requires_the_current_password(client, visitor) -> None:
+    new_email = {"email": "nouvelle@listayours-test.fr"}
+    missing = client.patch("/api/account", json=new_email, headers=headers(visitor))
+    assert missing.status_code == 400
+    assert missing.json()["detail"] == "Le mot de passe actuel est requis pour changer d'e-mail."
+    wrong = client.patch(
+        "/api/account", json={**new_email, "current_password": "mauvais-mdp"}, headers=headers(visitor)
+    )
+    assert wrong.status_code == 400
+    assert wrong.json()["detail"] == "Mot de passe actuel incorrect."
+    assert client.get("/api/account", headers=headers(visitor)).json()["email"] == "visitor@listayours-test.fr"
+    ok = client.patch("/api/account", json={**new_email, **PASSWORD}, headers=headers(visitor))
+    assert ok.status_code == 200 and ok.json()["email"] == "nouvelle@listayours-test.fr"

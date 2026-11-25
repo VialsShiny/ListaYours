@@ -7,6 +7,17 @@ import type { User } from "@/lib/types";
 const cache = new Map<string, Promise<string>>();
 
 /**
+ * Drops every cached picture and revokes its object URL, so nothing of the previous account
+ * stays reachable after sign-out.
+ */
+export function forgetAvatarUrls(): void {
+  for (const pending of cache.values()) {
+    pending.then((objectUrl) => URL.revokeObjectURL(objectUrl)).catch(() => undefined);
+  }
+  cache.clear();
+}
+
+/**
  * Object URL of the signed-in user's picture, fetched once per picture version and shared
  * between the header and the account page. `null` while loading or when there is no picture.
  */

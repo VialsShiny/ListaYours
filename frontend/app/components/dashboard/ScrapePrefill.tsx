@@ -7,7 +7,7 @@ import ResultRawViewer from "@/components/ResultRawViewer";
 import { StatusMessage } from "@/components/feedback/StatusMessage";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
-import { SCRAPE_PROGRESS_MESSAGE, useScrape } from "@/hooks/use-scrape";
+import { useScrape } from "@/hooks/use-scrape";
 import type { GiftFormValues } from "@/lib/gift-form";
 import { prefillGiftFromProduct } from "@/lib/gift-prefill";
 import type { ScrapeStrategy } from "@/lib/types";
@@ -35,7 +35,7 @@ export function ScrapePrefill({ initialUrl, onPrefill }: ScrapePrefillProps) {
 
   const message =
     state.phase === "loading"
-      ? SCRAPE_PROGRESS_MESSAGE
+      ? voice.dashboard.gifts.scraping
       : state.phase === "error"
         ? state.message
         : state.phase === "success"

@@ -5,6 +5,7 @@ import { voice } from "@/content/voice";
 import { Button } from "@/components/ui/button";
 import { GiftPhoto } from "@/components/wishlist/GiftPhoto";
 import { formatDate, formatPrice } from "@/lib/format";
+import { safeHttpUrl } from "@/lib/safe-url";
 import type { MyReservation } from "@/lib/types";
 
 type ReservationCardProps = {
@@ -21,6 +22,7 @@ export function ReservationCard({ item, pending, onCancel }: ReservationCardProp
   const { gift, wishlist, reservation } = item;
   const price = formatPrice(gift.price, gift.currency);
   const date = reservation.created_at ? formatDate(reservation.created_at) : "";
+  const productUrl = safeHttpUrl(gift.purchase_url);
   return (
     <article className="panel flex w-full flex-col gap-4 p-4 md:flex-row md:items-center md:gap-6 md:p-5">
       <div className="flex min-w-0 flex-1 items-center gap-4 md:gap-6">
@@ -46,9 +48,9 @@ export function ReservationCard({ item, pending, onCancel }: ReservationCardProp
         </div>
       </div>
       <div className="flex gap-2.5 md:shrink-0 md:items-center md:gap-3">
-        {gift.purchase_url ? (
+        {productUrl ? (
           <a
-            href={gift.purchase_url}
+            href={productUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="text-link text-secondary inline-flex min-h-12 flex-1 items-center justify-center md:flex-none md:pr-3"

@@ -7,6 +7,7 @@ import { HoldButton } from "@/components/ui/hold-button";
 import { Toggle } from "@/components/ui/toggle";
 import { SortableRow } from "@/components/dashboard/SortableRow";
 import { formatPrice } from "@/lib/format";
+import { safeHttpUrl } from "@/lib/safe-url";
 import type { OwnerGift } from "@/lib/types";
 
 type GiftRowProps = {
@@ -29,6 +30,7 @@ export function GiftRow({
   onConfirmDelete,
 }: GiftRowProps) {
   const price = formatPrice(gift.price, gift.currency) ?? voice.list.noPrice;
+  const imageUrl = safeHttpUrl(gift.image_url);
   return (
     <SortableRow
       id={gift.id}
@@ -36,8 +38,8 @@ export function GiftRow({
       className="list-row min-h-24 flex-wrap md:flex-nowrap"
     >
       <div className="thumb">
-        {gift.image_url ? (
-          <img src={gift.image_url} alt="" loading="lazy" referrerPolicy="no-referrer" />
+        {imageUrl ? (
+          <img src={imageUrl} alt="" loading="lazy" referrerPolicy="no-referrer" />
         ) : (
           <div className="flex size-full items-center justify-center text-soft" aria-hidden="true">
             <Gift className="size-5" strokeWidth={1.5} />

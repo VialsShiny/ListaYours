@@ -1,40 +1,49 @@
+import re
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from typing import Annotated
+from typing import Annotated, Any
 
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl, StringConstraints, field_serializer, field_validator
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    ValidationInfo,
+    field_serializer,
+    field_validator,
+)
 
 from app.schemas.category import CategoryOut
+from app.schemas.common import BoundedUrl
 from app.schemas.wishlist import WishlistOut
 
-MAX_URL_LENGTH = 2048
 Name = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
-Currency = Annotated[str, StringConstraints(strip_whitespace=True, to_upper=True, min_length=3, max_length=3)]
-Money = Annotated[Decimal, Field(ge=0, lt=100_000_000)]
+CURRENCY_PATTERN = re.compile(r"^[A-Z]{3}$")
 
 
-def check_url_length(value: HttpUrl | None) -> HttpUrl | None:
-    if value is not None and len(str(value)) > MAX_URL_LENGTH:
-        raise ValueError(f"L'URL ne doit pas dépasser {MAX_URL_LENGTH} caractères.")
+def check_currency(value: str) -> str:
+    """Runs after upper-casing, so `usd` is accepted as `USD` while digits or accents are refused."""
+    if not CURRENCY_PATTERN.fullmatch(value):
+        raise ValueError("La devise doit être un code de trois lettres, par exemple EUR.")
     return value
+
+
+Currency = Annotated[str, StringConstraints(strip_whitespace=True, to_upper=True), AfterValidator(check_currency)]
+Money = Annotated[Decimal, Field(ge=0, lt=100_000_000)]
 
 
 class GiftBase(BaseModel):
     name: Name
     description: str = Field(default="", max_length=4000)
-    image_url: HttpUrl | None = None
+    image_url: BoundedUrl | None = None
     price: Money | None = None
     old_price: Money | None = None
     currency: Currency = "EUR"
-    purchase_url: HttpUrl | None = None
+    purchase_url: BoundedUrl | None = None
     category_id: uuid.UUID | None = None
     is_visible: bool = True
-
-    @field_validator("image_url", "purchase_url")
-    @classmethod
-    def urls_fit_the_column(cls, value: HttpUrl | None) -> HttpUrl | None:
-        return check_url_length(value)
 
 
 class GiftCreate(GiftBase):
@@ -46,25 +55,20 @@ class GiftUpdate(BaseModel):
 
     name: Name | None = None
     description: str | None = Field(default=None, max_length=4000)
-    image_url: HttpUrl | None = None
+    image_url: BoundedUrl | None = None
     price: Money | None = None
     old_price: Money | None = None
     currency: Currency | None = None
-    purchase_url: HttpUrl | None = None
+    purchase_url: BoundedUrl | None = None
     category_id: uuid.UUID | None = None
     is_visible: bool | None = None
 
     @field_validator("name", "description", "currency", "is_visible", mode="before")
     @classmethod
-    def required_fields_cannot_be_null(cls, value, info):
+    def required_fields_cannot_be_null(cls, value: Any, info: ValidationInfo) -> Any:
         if value is None:
             raise ValueError(f"Le champ {info.field_name} ne peut pas être vide.")
         return value
-
-    @field_validator("image_url", "purchase_url")
-    @classmethod
-    def urls_fit_the_column(cls, value: HttpUrl | None) -> HttpUrl | None:
-        return check_url_length(value)
 
 
 class GiftCore(BaseModel):

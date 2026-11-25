@@ -18,6 +18,7 @@ import { usePublicWishlist } from "@/hooks/use-public-wishlist";
 import { useReservationActions } from "@/hooks/use-reservation-actions";
 import { useViewMode } from "@/hooks/use-view-mode";
 import { fireReservationConfetti } from "@/lib/confetti";
+import { resolveViewer } from "@/lib/viewer";
 import { groupGiftsByCategory } from "@/lib/wishlist-groups";
 
 export function WishlistView({ slug }: { slug: string }) {
@@ -25,11 +26,11 @@ export function WishlistView({ slug }: { slug: string }) {
   const { data, error, loading, refetch, patchGift } = usePublicWishlist(slug);
   const { view, hrefFor, switchTo } = useViewMode();
   const loginHref = `/connexion?next=${encodeURIComponent(`/l/${slug}`)}`;
-  const viewer: ViewerRole = isOwner
-    ? "owner"
-    : status === "authenticated"
-      ? "visitor"
-      : "anonymous";
+  const viewer: ViewerRole = resolveViewer({
+    status,
+    isOwner,
+    reservationsVisible: data?.reservations_visible,
+  });
 
   const actions = useReservationActions({
     onReserved: (id) => {

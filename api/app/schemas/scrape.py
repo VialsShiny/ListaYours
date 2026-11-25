@@ -1,10 +1,14 @@
+"""Request and response contract of POST /api/scrape, unchanged from the original scraper API."""
+
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field
+
+from app.schemas.common import BoundedUrl
 
 
 class ScrapeRequest(BaseModel):
-    url: HttpUrl = Field(..., description="URL de la page produit à scraper")
+    url: BoundedUrl = Field(..., description="URL de la page produit à scraper")
     strategy: Literal["HTTPX", "PLAYWRIGHT"] = Field(
         "HTTPX", description="Stratégie de scraping à utiliser. Valeurs: 'HTTPX', 'PLAYWRIGHT'"
     )

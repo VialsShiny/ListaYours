@@ -15,24 +15,33 @@ import type { User } from "@/lib/types";
 type ProfileFormProps = { user: User };
 
 /**
- * Pseudo and e-mail. The role is shown read-only; values are kept on error.
+ * Pseudo and e-mail. The role is shown read-only; values are kept on error. Changing the
+ * e-mail asks for the current password, which the API requires; its messages are shown as-is.
  */
 export function ProfileForm({ user }: ProfileFormProps) {
   const { updateUser } = useAuth();
   const [name, setName] = useState(user.display_name);
   const [email, setEmail] = useState(user.email);
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const emailError = error && /e-?mail|adresse/i.test(error) ? error : null;
-  const otherError = error && !emailError ? error : null;
-  const dirty = name.trim() !== user.display_name || email.trim().toLowerCase() !== user.email;
+  const emailChanged = email.trim().toLowerCase() !== user.email;
+  const passwordError = error && emailChanged && /mot de passe/i.test(error) ? error : null;
+  const emailError = error && !passwordError && /e-?mail|adresse/i.test(error) ? error : null;
+  const otherError = error && !emailError && !passwordError ? error : null;
+  const dirty = name.trim() !== user.display_name || emailChanged;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setSaving(true);
     try {
-      const next = await updateProfile({ display_name: name.trim(), email: email.trim() });
+      const next = await updateProfile(
+        emailChanged
+          ? { display_name: name.trim(), email: email.trim(), current_password: password }
+          : { display_name: name.trim() },
+      );
+      setPassword("");
       updateUser(next);
       notifySuccess(voice.account.profile.saved);
     } catch (caught) {
@@ -73,6 +82,30 @@ export function ProfileForm({ user }: ProfileFormProps) {
           />
         )}
       </Field>
+      {emailChanged ? (
+        <Field
+          id="account-current-password"
+          label={voice.account.profile.currentPassword}
+          hint={voice.account.profile.currentPasswordHint}
+          required
+          error={passwordError}
+        >
+          {(describedBy, invalid) => (
+            <Input
+              id="account-current-password"
+              name="current_password"
+              type="password"
+              autoComplete="current-password"
+              required
+              maxLength={72}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              aria-describedby={describedBy}
+              aria-invalid={invalid || undefined}
+            />
+          )}
+        </Field>
+      ) : null}
       <StatusMessage message={otherError} tone="error" />
       <Button type="submit" variant="primary" disabled={saving || !dirty} className="self-start">
         {saving ? voice.errors.wait : voice.account.profile.save}

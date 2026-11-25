@@ -13,7 +13,7 @@ def test_category_crud_and_reorder(client, owner) -> None:
     reordered = client.put("/api/owner/categories/reorder", json={"ids": [b["id"], a["id"]]}, headers=headers)
     assert [c["id"] for c in reordered.json()] == [b["id"], a["id"]]
     bad = client.put("/api/owner/categories/reorder", json={"ids": [b["id"]]}, headers=headers)
-    assert bad.status_code == 404
+    assert bad.status_code == 400
     gift = create_gift(client, owner, "Dans A", category_id=a["id"])
     assert client.delete(f"/api/owner/categories/{a['id']}", headers=headers).status_code == 204
     detached = client.get(f"/api/owner/gifts/{gift['id']}", headers=headers).json()

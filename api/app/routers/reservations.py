@@ -1,22 +1,28 @@
 import uuid
 
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, Depends, Response, status
 
-from app.deps import DbSession, VisitorUser
+from app.deps import DbSession, VisitorUser, reservation_rate_limit
 from app.schemas.gift import PublicGiftOut
 from app.schemas.public import MyReservationOut, ReservationOut
 from app.schemas.wishlist import WishlistSummary
 from app.services import reservation_service
 
 router = APIRouter(prefix="/api", tags=["reservations"])
+limited = [Depends(reservation_rate_limit)]
 
 
-@router.post("/gifts/{gift_id}/reservation", response_model=ReservationOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/gifts/{gift_id}/reservation",
+    response_model=ReservationOut,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=limited,
+)
 def reserve(gift_id: uuid.UUID, visitor: VisitorUser, db: DbSession) -> ReservationOut:
     return ReservationOut.model_validate(reservation_service.reserve_gift(db, visitor, gift_id))
 
 
-@router.delete("/gifts/{gift_id}/reservation", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/gifts/{gift_id}/reservation", status_code=status.HTTP_204_NO_CONTENT, dependencies=limited)
 def cancel(gift_id: uuid.UUID, visitor: VisitorUser, db: DbSession) -> Response:
     reservation_service.cancel_reservation(db, visitor, gift_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

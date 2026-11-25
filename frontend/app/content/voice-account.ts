@@ -10,6 +10,8 @@ export const account = {
   profile: {
     name: "Prénom ou surnom",
     email: "Adresse e-mail",
+    currentPassword: "Mot de passe actuel",
+    currentPasswordHint: "Pour changer d'adresse, confirme que c'est bien toi.",
     save: "Enregistrer",
     saved: "C'est noté.",
     failed: "Ça n'a pas marché, réessaie.",

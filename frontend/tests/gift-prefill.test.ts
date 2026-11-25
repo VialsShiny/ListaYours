@@ -75,4 +75,23 @@ describe("prefillGiftFromProduct", () => {
     expect(result.price).toBe("");
     expect(result.old_price).toBe("");
   });
+
+  it("skips non-http(s) URL candidates and falls through to the next one", () => {
+    const hostile: ProductData = {
+      ...product,
+      canonical_url: "javascript:alert(1)",
+      product_url: "https://shop.example/p/2",
+      images: ["javascript:alert(1)", "https://cdn.example/ok.jpg"],
+    };
+    const typed = prefillGiftFromProduct(hostile, "https://typed.example/item", EMPTY_GIFT_FORM);
+    expect(typed.purchase_url).toBe("https://typed.example/item");
+    expect(typed.image_url).toBe("https://cdn.example/ok.jpg");
+    const fromProduct = prefillGiftFromProduct(hostile, "data:text/html,x", EMPTY_GIFT_FORM);
+    expect(fromProduct.purchase_url).toBe("https://shop.example/p/2");
+    const none = prefillGiftFromProduct({ ...hostile, product_url: "vbscript:x" }, "/relative", {
+      ...EMPTY_GIFT_FORM,
+      purchase_url: "https://kept.example/",
+    });
+    expect(none.purchase_url).toBe("https://kept.example/");
+  });
 });
