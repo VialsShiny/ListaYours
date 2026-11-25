@@ -84,6 +84,7 @@ secrets dans le dépôt). Les plus importantes : `DATABASE_URL`, `JWT_SECRET`, `
 - [`docs/AUDIT.md`](docs/AUDIT.md) — état réel de la pile et comportement du scraper (étape 1).
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) — journal des décisions.
 - [`docs/PRIVACY.md`](docs/PRIVACY.md) — comment l'API et la base garantissent que le propriétaire ne voit jamais les réservations.
+- [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) — guide développeur : installation, structure, modèle de sécurité, règles de code, livraison et dépendances.
 - [`docs/DEPLOY.md`](docs/DEPLOY.md) — mise en production gratuite avec une API qui ne dort jamais (Vercel + Northflank + Neon en service depuis le 2026-11-25 ; Oracle Always Free documenté en variante), étapes `[MANUAL]` marquées ; [`docs/HOSTING-RESEARCH.md`](docs/HOSTING-RESEARCH.md) détaille la comparaison des offres gratuites (relevé du 2026-11-08).
 - [`deploy/`](deploy/) — compose de production, Caddyfile, timer anti-inactivité, notes Northflank.
 - [`docs/screenshot-capture.md`](docs/screenshot-capture.md) — capture d'écran de debug du scraper.
