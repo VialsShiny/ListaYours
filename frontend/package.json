@@ -45,6 +45,6 @@
     "prettier": "^3.9.10",
     "shadcn": "^4.16.2",
     "typescript": "^5.4.5",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.12"
   }
 }

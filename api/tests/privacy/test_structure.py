@@ -16,8 +16,19 @@ from app.schemas.wishlist import WishlistOut
 OWNER_PREFIXES = ("/api/owner", "/api/scrape")
 
 
-def owner_routes() -> list[APIRoute]:
-    return [r for r in app.routes if isinstance(r, APIRoute) and r.path.startswith(OWNER_PREFIXES)]
+def effective_routes() -> list:
+    """Every registered operation, with router-level dependencies merged in (FastAPI includes routers lazily)."""
+    found = []
+    for entry in app.routes:
+        if isinstance(entry, APIRoute):
+            found.append(entry)
+        elif hasattr(entry, "effective_route_contexts"):
+            found.extend(entry.effective_route_contexts())
+    return found
+
+
+def owner_routes() -> list:
+    return [r for r in effective_routes() if r.path.startswith(OWNER_PREFIXES)]
 
 
 def dependency_callables(dependant) -> set:
