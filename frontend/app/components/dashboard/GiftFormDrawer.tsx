@@ -62,7 +62,7 @@ export function GiftFormDrawer({ open, gift, categories, store, onClose }: GiftF
     setSaving(true);
     const payload = giftFormToPayload(values);
     const result = await store.run(
-      (token) => (gift ? updateGift(token, gift.id, payload) : createGift(token, payload)),
+      () => (gift ? updateGift(gift.id, payload) : createGift(payload)),
       voice.dashboard.gifts.saveFailed,
     );
     setSaving(false);

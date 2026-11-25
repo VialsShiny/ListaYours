@@ -1,7 +1,5 @@
 import { voice } from "@/content/voice";
 
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-
 export const NETWORK_ERROR_MESSAGE = voice.errors.network;
 export const UNAUTHORIZED_EVENT = "listayours:unauthorized";
 
@@ -24,7 +22,7 @@ export class ApiError extends Error {
 export type RequestOptions = {
   method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
   body?: unknown;
-  token?: string | null;
+  session?: boolean;
   signal?: AbortSignal;
 };
 
@@ -80,7 +78,8 @@ async function parseBody(response: Response): Promise<unknown> {
 }
 
 /**
- * Thin fetch wrapper for the ListaYours API: JSON in/out, Bearer auth, typed errors.
+ * Thin fetch wrapper for the same-origin ListaYours API: JSON in/out, cookie session, typed errors.
+ * `session: true` marks calls that need the session, so a 401 signs the user out.
  * Network failures are rethrown as `TypeError` so `errorMessage` can name them.
  */
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -88,9 +87,8 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
   const binary = options.body instanceof Blob;
   if (binary) headers["Content-Type"] = (options.body as Blob).type || "application/octet-stream";
   else if (options.body !== undefined) headers["Content-Type"] = "application/json";
-  if (options.token) headers.Authorization = `Bearer ${options.token}`;
 
-  const response = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(path, {
     method: options.method ?? "GET",
     headers,
     body: binary
@@ -106,7 +104,7 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
 
   if (!response.ok) {
     const errorBody = (body ?? null) as ApiErrorBody;
-    if (response.status === 401 && options.token && typeof window !== "undefined") {
+    if (response.status === 401 && options.session && typeof window !== "undefined") {
       window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
     }
     throw new ApiError(

@@ -1,9 +1,8 @@
 const isDev = process.env.NODE_ENV === "development";
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 /**
  * Content Security Policy. Next.js and the theme boot script need inline scripts, Tailwind and
- * Base UI need inline styles; everything else is restricted to this origin and the API.
+ * Base UI need inline styles; everything else is restricted to this origin (the API is proxied).
  * Product photos come from any shop, so images stay open; blob: covers avatars and crops.
  */
 const contentSecurityPolicy = [
@@ -12,7 +11,7 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https: http:",
   "font-src 'self' data:",
-  `connect-src 'self' ${apiUrl}${isDev ? " ws: wss:" : ""}`,
+  `connect-src 'self'${isDev ? " ws: wss:" : ""}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -32,9 +31,6 @@ const securityHeaders = [
 const nextConfig = {
   output: "standalone",
   poweredByHeader: false,
-  env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

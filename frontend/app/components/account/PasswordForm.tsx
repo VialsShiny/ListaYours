@@ -10,12 +10,10 @@ import { errorMessage } from "@/lib/api";
 import { changePassword } from "@/lib/api-account";
 import { notifySuccess } from "@/lib/toast";
 
-type PasswordFormProps = { token: string };
-
 /**
  * Current password, new password; fields are cleared only after a confirmed change.
  */
-export function PasswordForm({ token }: PasswordFormProps) {
+export function PasswordForm() {
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +32,7 @@ export function PasswordForm({ token }: PasswordFormProps) {
     setError(null);
     setSaving(true);
     try {
-      await changePassword(token, current, next);
+      await changePassword(current, next);
       setCurrent("");
       setNext("");
       notifySuccess(voice.account.password.saved);

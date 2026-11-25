@@ -23,8 +23,8 @@ def _is_public_address(address: str) -> bool:
     )
 
 
-def assert_public_http_url(url: str) -> None:
-    """Reject URLs that could reach internal services: non-http schemes, local names, private or reserved addresses."""
+def public_addresses(url: str) -> tuple[list[str], int]:
+    """Resolve the URL's host and return its addresses and port; raise unless every address is public."""
     parts = urlsplit(url)
     if parts.scheme not in {"http", "https"}:
         raise UnsafeUrl("Seules les URL http(s) sont acceptées.")
@@ -32,15 +32,29 @@ def assert_public_http_url(url: str) -> None:
     if not host or host in BLOCKED_HOSTNAMES or host.endswith((".localhost", ".local", ".internal")):
         raise UnsafeUrl("Cette adresse n'est pas autorisée.")
     try:
+        port = parts.port or (443 if parts.scheme == "https" else 80)
+    except ValueError as error:
+        raise UnsafeUrl("Cette adresse n'est pas autorisée.") from error
+    try:
         ipaddress.ip_address(host)
         addresses = [host]
     except ValueError:
         try:
-            infos = socket.getaddrinfo(
-                host, parts.port or (443 if parts.scheme == "https" else 80), proto=socket.IPPROTO_TCP
-            )
+            infos = socket.getaddrinfo(host, port, proto=socket.IPPROTO_TCP)
         except socket.gaierror as error:
             raise UnsafeUrl("Impossible de résoudre ce nom de domaine.") from error
         addresses = [str(info[4][0]) for info in infos]
     if not addresses or not all(_is_public_address(address) for address in addresses):
         raise UnsafeUrl("Cette adresse n'est pas autorisée.")
+    return addresses, port
+
+
+def assert_public_http_url(url: str) -> None:
+    """Reject URLs that could reach internal services: non-http schemes, local names, private or reserved addresses."""
+    public_addresses(url)
+
+
+def resolve_public(url: str) -> tuple[str, int]:
+    """The validated (address, port) to connect to, so the connection goes where the check looked."""
+    addresses, port = public_addresses(url)
+    return addresses[0], port

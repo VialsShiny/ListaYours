@@ -9,8 +9,8 @@ import { useRequireAuth } from "@/hooks/use-require-auth";
  * Account route: anonymous readers are sent to the sign-in page by the shared guard.
  */
 export function AccountView() {
-  const { status, user, token } = useRequireAuth();
-  const ready = status === "authenticated" && user !== null && token !== null;
+  const { status, user } = useRequireAuth();
+  const ready = status === "authenticated" && user !== null;
 
   return (
     <>
@@ -18,7 +18,7 @@ export function AccountView() {
         <p className="text-secondary mt-5 max-w-prose text-soft">{voice.account.intro}</p>
       </PageHero>
       {ready ? (
-        <AccountPage user={user} token={token} />
+        <AccountPage user={user} />
       ) : (
         <section className="container flex-1 pt-10">
           <p className="text-secondary text-soft">

@@ -15,7 +15,7 @@ export function CategoryAddForm({ store }: { store: OwnerStore }) {
     const trimmed = name.trim();
     if (!trimmed) return;
     const { ok } = await store.run(
-      (token) => createCategory(token, trimmed),
+      () => createCategory(trimmed),
       voice.dashboard.categories.createFailed,
     );
     if (ok) setName("");

@@ -1,6 +1,8 @@
 import logging
 import httpx
 from playwright.async_api import async_playwright
+from app.scraper.egress_proxy import egress_proxy
+from app.scraper.network import assert_landed_on_public_page, get_following_safe_redirects, guard_context
 from app.scraper.parser import extract_all_data
 from app.scraper.utils.url import is_require_pw_domain
 from pathlib import Path
@@ -22,20 +24,22 @@ async def fetch_with_httpx(url: str, debug: bool) -> str:
     if debug:
         filename = FILES_DIR / f"{datetime.now():%Y%m%d_%H%M%S}.png"
         await take_screenshot(url, filename)
-    async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
-        response = await client.get(url, headers=headers)
+    async with httpx.AsyncClient(timeout=15.0, follow_redirects=False) as client:
+        response = await get_following_safe_redirects(client, url, headers)
         response.raise_for_status()
         return response.text
 
 async def fetch_with_playwright(url: str, strategy: str, debug: bool) -> str:
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+    async with egress_proxy() as proxy, async_playwright() as p:
+        browser = await p.chromium.launch(headless=True, proxy={"server": proxy.server_url, "bypass": "<-loopback>"})
         context = await browser.new_context(
             user_agent=USER_AGENT,
             viewport={"width": 1280, "height": 800}
         )
+        await guard_context(context)
         page = await context.new_page()
         await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+        await assert_landed_on_public_page(page)
         await page.wait_for_timeout(2000)
         content = await page.content()
         if debug and strategy == "PLAYWRIGHT":
@@ -47,10 +51,12 @@ async def fetch_with_playwright(url: str, strategy: str, debug: bool) -> str:
 async def take_screenshot(url: str, path: Path):
     path.parent.mkdir(parents=True, exist_ok=True)
     logger.info(f"Saving screenshot: {path.resolve()}")
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+    async with egress_proxy() as proxy, async_playwright() as p:
+        browser = await p.chromium.launch(headless=True, proxy={"server": proxy.server_url, "bypass": "<-loopback>"})
         page = await browser.new_page()
+        await guard_context(page)
         await page.goto(url, wait_until="networkidle", timeout=30000)
+        await assert_landed_on_public_page(page)
         await page.screenshot(path=str(path), full_page=True)
         await browser.close()
 

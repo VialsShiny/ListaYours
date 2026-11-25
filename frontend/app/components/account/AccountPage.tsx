@@ -7,30 +7,30 @@ import { ProfileForm } from "@/components/account/ProfileForm";
 import { DashboardSectionTitle } from "@/components/dashboard/DashboardSectionTitle";
 import type { User } from "@/lib/types";
 
-type AccountPageProps = { user: User; token: string };
+type AccountPageProps = { user: User };
 
 /**
  * Three independent sections, each with its own save and feedback.
  */
-export function AccountPage({ user, token }: AccountPageProps) {
+export function AccountPage({ user }: AccountPageProps) {
   const sections = [
     {
       id: "identite",
       index: "#01",
       title: voice.account.sections.profile,
-      form: <ProfileForm user={user} token={token} />,
+      form: <ProfileForm user={user} />,
     },
     {
       id: "photo",
       index: "#02",
       title: voice.account.sections.photo,
-      form: <AvatarForm user={user} token={token} />,
+      form: <AvatarForm user={user} />,
     },
     {
       id: "mot-de-passe",
       index: "#03",
       title: voice.account.sections.password,
-      form: <PasswordForm token={token} />,
+      form: <PasswordForm />,
     },
   ];
 

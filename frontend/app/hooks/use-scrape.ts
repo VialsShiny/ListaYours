@@ -17,7 +17,7 @@ export type ScrapeState =
   | { phase: "error"; message: string };
 
 export function useScrape() {
-  const { token } = useAuth();
+  const { isOwner } = useAuth();
   const [state, setState] = useState<ScrapeState>({ phase: "idle" });
   const controllerRef = useRef<AbortController | null>(null);
 
@@ -25,7 +25,7 @@ export function useScrape() {
 
   const analyse = useCallback(
     async (url: string, strategy: ScrapeStrategy) => {
-      if (!token) {
+      if (!isOwner) {
         setState({ phase: "error", message: voice.errors.ownerOnly });
         return null;
       }
@@ -35,7 +35,7 @@ export function useScrape() {
       const timer = window.setTimeout(() => controller.abort(), SCRAPE_TIMEOUT_MS);
       setState({ phase: "loading" });
       try {
-        const response = await scrapeProduct(token, url, strategy, controller.signal);
+        const response = await scrapeProduct(url, strategy, controller.signal);
         if (response.success && response.data) {
           setState({ phase: "success", data: response.data, sourceUrl: url });
           return response.data;
@@ -60,7 +60,7 @@ export function useScrape() {
         window.clearTimeout(timer);
       }
     },
-    [token],
+    [isOwner],
   );
 
   const reset = useCallback(() => {

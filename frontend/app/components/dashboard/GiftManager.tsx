@@ -41,23 +41,20 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
   function reorder(visibleIds: Array<OwnerGift["id"]>) {
     const rest = ordered.slice(visible.length).map((gift) => gift.id);
     void store.run(
-      (token) => reorderGifts(token, [...visibleIds, ...rest]),
+      () => reorderGifts([...visibleIds, ...rest]),
       voice.dashboard.gifts.reorderFailed,
     );
   }
 
   function toggleVisibility(gift: OwnerGift) {
     void store.run(
-      (token) => updateGift(token, gift.id, { is_visible: !gift.is_visible }),
+      () => updateGift(gift.id, { is_visible: !gift.is_visible }),
       voice.dashboard.gifts.visibilityFailed,
     );
   }
 
   async function remove(gift: OwnerGift) {
-    const { ok } = await store.run(
-      (token) => deleteGift(token, gift.id),
-      voice.dashboard.gifts.deleteFailed,
-    );
+    const { ok } = await store.run(() => deleteGift(gift.id), voice.dashboard.gifts.deleteFailed);
     if (ok) setToConfirm(null);
   }
 

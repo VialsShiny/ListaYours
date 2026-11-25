@@ -39,14 +39,13 @@ services:
       SCRAPE_TIMEOUT_SECONDS: ${SCRAPE_TIMEOUT_SECONDS:-90}
       SCRAPE_CACHE_TTL_SECONDS: ${SCRAPE_CACHE_TTL_SECONDS:-300}
       RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-20}
+      API_PROXY_SECRET: ${API_PROXY_SECRET:-}
     shm_size: "1gb"
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
     container_name: listayours_frontend
     restart: unless-stopped
     depends_on:
@@ -55,6 +54,7 @@ services:
       - "${FRONTEND_PORT:-3000}:3000"
     environment:
       API_INTERNAL_URL: http://api:8000
+      API_PROXY_SECRET: ${API_PROXY_SECRET:-}
 
 volumes:
   db_data:

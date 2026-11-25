@@ -19,12 +19,12 @@ import { sumReservations } from "@/lib/reservations-total";
 import type { MyReservation } from "@/lib/types";
 
 export function ReservationsView() {
-  const { status, token, isOwner } = useRequireAuth();
-  const enabled = status === "authenticated" && !isOwner && Boolean(token);
+  const { status, isOwner } = useRequireAuth();
+  const enabled = status === "authenticated" && !isOwner;
   const [toCancel, setToCancel] = useState<MyReservation | null>(null);
   const list = useAsync<MyReservation[]>(
-    (signal) => fetchMyReservations(token ?? "", signal),
-    token ?? "no-token",
+    (signal) => fetchMyReservations(signal),
+    "my-reservations",
     enabled,
   );
   const actions = useReservationActions({

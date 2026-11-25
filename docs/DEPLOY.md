@@ -45,11 +45,12 @@ principal, le reste du guide est inchangé.
 ## 1. Ce qui est déployé
 
 ```
-Navigateur ──HTTPS──▶ Vercel (Next.js, frontend/)          NEXT_PUBLIC_API_URL
-                           │
-                           └──HTTPS (CORS)──▶ Caddy :443 ──▶ api:8000 (FastAPI + Chromium)
-                                              VM Oracle A1        │
-                                                                  └──TLS──▶ Postgres (Neon / Supabase / docker db)
+Navigateur ──HTTPS──▶ Vercel (Next.js, frontend/)   cookie de session httpOnly, même origine
+                           │  /api/* proxifié par frontend/middleware.ts
+                           │  (X-Proxy-Secret + X-Client-Ip)        API_INTERNAL_URL, API_PROXY_SECRET
+                           └──HTTPS──▶ Caddy :443 ──▶ api:8000 (FastAPI + Chromium)
+                                       VM Oracle A1        │  refuse tout appel sans le secret
+                                                           └──TLS──▶ Postgres (Neon / Supabase / docker db)
 ```
 
 - **API** : image construite depuis `api/Dockerfile` (Python 3.11, Chromium installé par Playwright).
@@ -60,10 +61,15 @@ Navigateur ──HTTPS──▶ Vercel (Next.js, frontend/)          NEXT_PUBLIC
   `OWNER_EMAIL` (obligatoire en production ; le compte qui s'inscrit avec cette adresse devient le
   propriétaire, décision n° 5 de `docs/DECISIONS.md`), `CORS_ORIGINS` (origines navigateur séparées par
   des virgules, doit contenir l'URL Vercel), `SCRAPE_TIMEOUT_SECONDS`, `SCRAPE_CACHE_TTL_SECONDS`,
-  `RATE_LIMIT_PER_MINUTE`, `TRUST_PROXY_HEADERS` (`true` uniquement derrière un reverse proxy qui écrit
-  `X-Forwarded-For`), `API_PORT`.
-- **Frontend** : Next.js 14 App Router, déployé sur Vercel avec le répertoire racine `frontend`.
-  Une seule variable : `NEXT_PUBLIC_API_URL` (URL publique de l'API, sans `/` final).
+  `RATE_LIMIT_PER_MINUTE`, `TRUST_PROXY_HEADERS` (`false` : l'adresse du client vient de l'en-tête
+  `X-Client-Ip` posé par le proxy Vercel une fois le secret vérifié), `API_PROXY_SECRET` (obligatoire en
+  production : sans l'en-tête `X-Proxy-Secret` correspondant, Caddy puis l'API répondent 403, sauf
+  `/health`), `API_PORT`.
+- **Frontend** : Next.js 14 App Router, déployé sur Vercel avec le répertoire racine `frontend`. Le
+  navigateur ne parle qu'à l'origine Vercel : `frontend/middleware.ts` proxifie `/api/*` vers l'API.
+  Deux variables, côté serveur uniquement : `API_INTERNAL_URL` (URL publique de l'API, sans `/` final)
+  et `API_PROXY_SECRET` (même valeur que sur la VM). La session est un cookie `__Host-listayours_session`
+  httpOnly, Secure, SameSite=Lax ; les mutations exigent un signal same-site (`Sec-Fetch-Site` / `Origin`).
 - **Fichiers ajoutés par ce guide** :
 
 | Fichier | Rôle |
@@ -340,9 +346,10 @@ Renseignez (noms seulement ici, jamais de valeurs dans le dépôt) :
 | `JWT_SECRET` | la valeur générée au § 2.4 (≥ 32 caractères) |
 | `JWT_EXPIRES_MINUTES` | `10080` (7 jours) |
 | `OWNER_EMAIL` | votre adresse ; le compte inscrit avec cette adresse devient propriétaire |
-| `CORS_ORIGINS` | `https://<projet>.vercel.app` puis, séparé par une virgule, votre domaine frontend s'il existe ; **sans `/` final**. Vous reviendrez compléter cette valeur au § 5.5 |
+| `CORS_ORIGINS` | `https://<projet>.vercel.app` puis, séparé par une virgule, votre domaine frontend s'il existe ; **sans `/` final**. Sert à la vérification d'origine anti-CSRF. Vous reviendrez compléter cette valeur au § 5.5 |
+| `API_PROXY_SECRET` | généré comme le secret JWT (`secrets.token_urlsafe(32)`) ; la **même** valeur ira dans la variable Vercel du § 5.4 |
 | `SCRAPE_TIMEOUT_SECONDS`, `SCRAPE_CACHE_TTL_SECONDS`, `RATE_LIMIT_PER_MINUTE` | valeurs par défaut `90`, `300`, `20` |
-| `TRUST_PROXY_HEADERS` | `true` (Caddy écrit `X-Forwarded-For`) |
+| `TRUST_PROXY_HEADERS` | `false` (l'adresse du client arrive dans `X-Client-Ip` avec le secret) |
 | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | seulement avec `--profile local-db` ; mot de passe généré comme le secret JWT |
 
 Vérifiez les droits sans afficher le contenu :
@@ -466,15 +473,17 @@ devient obligatoire.
 
    | Nom | Valeur | Environnements | Type |
    |---|---|---|---|
-   | `NEXT_PUBLIC_API_URL` | `https://api.example.com` (Oracle) ou l'URL `https://….code.run` (Northflank), **sans `/` final** | Production (et Preview si vous voulez tester les branches contre l'API de production) | Config (la valeur est publique par construction : Next.js l'inline dans le bundle navigateur) |
+   | `API_INTERNAL_URL` | `https://api.example.com` (Oracle) ou l'URL `https://….code.run` (Northflank), **sans `/` final** | Production (et Preview si vous voulez tester les branches contre l'API de production) | Config (lue par `middleware.ts` côté serveur, jamais envoyée au navigateur) |
+   | `API_PROXY_SECRET` | la valeur du § 4.10 | Production (et Preview, mêmes conditions) | **Sensitive** |
 
-   Les variables Vercel sont « encrypted at rest » ; les variables `NEXT_PUBLIC_` sont inlinées au
-   build, donc **tout changement exige un redéploiement**
-   (https://vercel.com/docs/environment-variables, lu le 2026‑11‑08).
+   Les variables Vercel sont « encrypted at rest » et lues par le middleware à chaque requête : un
+   changement prend effet au redéploiement suivant
+   (https://vercel.com/docs/environment-variables, lu le 2026‑11‑08). Aucune variable `NEXT_PUBLIC_*`.
 5. **Deploy**. Notez l'URL de production, de la forme `https://<projet>.vercel.app`.
 6. **[MANUAL]** Domaine personnalisé facultatif : **Settings › Domains**, ajoutez `www.example.com`, puis
    créez l'enregistrement CNAME indiqué par Vercel chez votre registrar.
-7. **Câblage CORS côté API** : ajoutez l'URL Vercel (et le domaine personnalisé) à `CORS_ORIGINS`.
+7. **Origines autorisées côté API** : ajoutez l'URL Vercel (et le domaine personnalisé) à `CORS_ORIGINS`
+   (vérification `Origin` des connexions et mutations).
    - Oracle : sur la VM, éditez `~/listayours/deploy/oracle/.env`, puis **recréez** le conteneur
      (`restart` ne relit pas `env_file`) :
 
@@ -483,14 +492,13 @@ devient obligatoire.
      ```
 
    - Northflank : modifiez la variable dans le service ou le secret group, le service redémarre.
-   - Les déploiements **Preview** de Vercel ont des URL différentes à chaque branche : ils ne passeront
-     pas CORS sauf à les ajouter explicitement. C'est voulu (liste blanche stricte).
-8. Vérifiez l'en‑tête CORS depuis votre poste :
+   - Les déploiements **Preview** de Vercel ont des URL différentes à chaque branche : leurs connexions
+     seront refusées sauf à les ajouter explicitement. C'est voulu (liste blanche stricte).
+8. Vérifiez depuis votre poste que l'API n'est joignable qu'à travers le site :
 
    ```bash
-   curl -sSI https://api.example.com/api/public/wishlists -H 'Origin: https://<projet>.vercel.app' \
-     | grep -i '^access-control-allow-origin'
-   # attendu : access-control-allow-origin: https://<projet>.vercel.app
+   curl -sS -o /dev/null -w '%{http_code}\n' https://api.example.com/api/public/wishlists   # attendu : 403
+   curl -sS -o /dev/null -w '%{http_code}\n' https://<projet>.vercel.app/api/public/wishlists   # attendu : 200
    ```
 
 ---
@@ -531,8 +539,8 @@ lues le 2026‑11‑08) ; l'interface peut avoir évolué.
    Environment**. Noms :
 
    `ENVIRONMENT=production`, `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_MINUTES`, `OWNER_EMAIL`,
-   `CORS_ORIGINS`, `SCRAPE_TIMEOUT_SECONDS`, `SCRAPE_CACHE_TTL_SECONDS`, `RATE_LIMIT_PER_MINUTE`,
-   `TRUST_PROXY_HEADERS`, `API_PORT=8000`.
+   `CORS_ORIGINS`, `API_PROXY_SECRET`, `SCRAPE_TIMEOUT_SECONDS`, `SCRAPE_CACHE_TTL_SECONDS`,
+   `RATE_LIMIT_PER_MINUTE`, `TRUST_PROXY_HEADERS=false`, `API_PORT=8000`.
 
    Pour `TRUST_PROXY_HEADERS` : le trafic passe par l'ingress Northflank ; que celui‑ci écrase
    `X-Forwarded-For` avec l'IP réelle du client n'a pas été vérifié dans la documentation **[uncertain]**.
@@ -553,8 +561,8 @@ lues le 2026‑11‑08) ; l'interface peut avoir évolué.
    ```
 
 8. **[MANUAL]** Domaine personnalisé facultatif : **Service › Ports & DNS › Link domain**, puis CNAME chez
-   votre registrar. Sinon l'URL `code.run` suffit : mettez‑la dans `NEXT_PUBLIC_API_URL` (§ 5.4) et
-   l'URL Vercel dans `CORS_ORIGINS`.
+   votre registrar. Sinon l'URL `code.run` suffit : mettez‑la dans `API_INTERNAL_URL` (§ 5.4), le même
+   `API_PROXY_SECRET` des deux côtés, et l'URL Vercel dans `CORS_ORIGINS`.
 9. **Base de données** : gardez Neon (§ 3.2). Le Sandbox inclut « 1 database » Northflank, mais son coût
    s'impute sur les 20 $ partagés avec l'API et sa taille gratuite n'est pas documentée **[uncertain]**.
 10. Migrations : automatiques au démarrage du conteneur. Manuellement : **Service › Shell** (ou
@@ -629,7 +637,7 @@ Puis, dans un navigateur :
 2. Dans une fenêtre privée, inscrivez un compte visiteur, réservez un cadeau.
 3. Revenez sur le compte propriétaire : le cadeau doit apparaître **disponible** (c'est le contrat de
    confidentialité, `docs/PRIVACY.md`).
-4. Onglet *Network* des outils de développement : aucune erreur CORS, toutes les requêtes API en `https://`.
+4. Onglet *Network* des outils de développement : toutes les requêtes API partent vers l'origine du site (`/api/...`), aucune vers l'API directement.
 
 ---
 
@@ -840,8 +848,8 @@ Relevé du 2026‑11‑08.
   `--log-level trace` en production.
 - **Sur la VM** : `.env` en mode `600`, propriétaire `ubuntu`, dans `~/listayours/deploy/oracle/` ; la clé
   SSH privée ne quitte pas votre poste.
-- **Sur Vercel** : variables chiffrées au repos ; `NEXT_PUBLIC_API_URL` est la seule variable, et elle est
-  publique par nature. Ne mettez **aucun** secret dans une variable `NEXT_PUBLIC_*`.
+- **Sur Vercel** : variables chiffrées au repos ; `API_PROXY_SECRET` est marquée Sensitive, `API_INTERNAL_URL`
+  n'est jamais inlinée dans le bundle. Ne créez **aucune** variable `NEXT_PUBLIC_*`.
 - **Sur Northflank** : secret groups ou variables de service, **jamais** en build argument.
 - **Rotation** : si `JWT_SECRET` fuit, générez‑en un nouveau (§ 2.4), remplacez‑le, `docker compose … up -d` ;
   toutes les sessions sont invalidées, c'est voulu. Si `DATABASE_URL` fuit, changez le mot de passe dans
@@ -858,7 +866,7 @@ Relevé du 2026‑11‑08.
 | Le conteneur `api` redémarre en boucle | `JWT_SECRET` < 32 caractères ou `OWNER_EMAIL` vide en production ; `DATABASE_URL` invalide | `docker compose logs api` montre `RuntimeError: JWT_SECRET must be set…` ; corriger `.env`, `up -d` |
 | `alembic upgrade head` échoue avec une erreur SSL | `sslmode` manquant vers Neon/Supabase | Ajouter `?sslmode=require` à `DATABASE_URL` |
 | Le frontend affiche une erreur réseau, console : `blocked by CORS policy` | L'origine Vercel n'est pas dans `CORS_ORIGINS`, ou `/` final en trop | § 5.7 puis `up -d` (pas `restart`) |
-| Le frontend appelle `http://localhost:8000` | `NEXT_PUBLIC_API_URL` absente au moment du build | Ajouter la variable puis **redéployer** sur Vercel |
+| Le site répond 502/403 sur `/api/*` | `API_INTERNAL_URL` ou `API_PROXY_SECRET` absente ou différente de la VM | Ajouter la variable puis **redéployer** sur Vercel |
 | Première requête lente après une pause | Suspension Neon (5 min) | Normal ; `pool_pre_ping` gère la reconnexion |
 | `500` sur toutes les routes base de données | Projet Supabase en pause | Reprendre le projet dans le tableau de bord **[MANUAL]** |
 | `exec /opt/venv/bin/python: exec format error` | Image construite pour amd64 lancée sur la VM ARM64 | Reconstruire sur la VM ou avec `--platform linux/arm64` (§ 4.11) |

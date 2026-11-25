@@ -22,6 +22,7 @@ class Settings:
     scrape_cache_ttl_seconds: int
     rate_limit_per_minute: int
     trust_proxy_headers: bool
+    proxy_secret: str
 
     @property
     def is_production(self) -> bool:
@@ -50,6 +51,7 @@ def load_settings() -> Settings:
         scrape_cache_ttl_seconds=int(os.getenv("SCRAPE_CACHE_TTL_SECONDS", "300")),
         rate_limit_per_minute=int(os.getenv("RATE_LIMIT_PER_MINUTE", "20")),
         trust_proxy_headers=os.getenv("TRUST_PROXY_HEADERS", "false").lower() in {"1", "true", "yes"},
+        proxy_secret=os.getenv("API_PROXY_SECRET", "").strip(),
     )
 
 

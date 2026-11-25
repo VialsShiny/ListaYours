@@ -19,6 +19,10 @@ export function register(
   });
 }
 
-export function fetchMe(token: string, signal?: AbortSignal): Promise<User> {
-  return apiFetch<User>("/api/auth/me", { token, signal });
+export function logout(): Promise<void> {
+  return apiFetch<void>("/api/auth/logout", { method: "POST" });
+}
+
+export function fetchMe(signal?: AbortSignal): Promise<User> {
+  return apiFetch<User>("/api/auth/me", { session: true, signal });
 }

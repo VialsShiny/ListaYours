@@ -29,7 +29,7 @@ WORKDIR /app
 
 COPY --from=builder /opt/venv /opt/venv
 
-RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates libatomic1 \
     && playwright install --with-deps chromium \
     && apt-get clean && rm -rf /var/lib/apt/lists/* \
     && groupadd --system app && useradd --system --gid app --create-home app \

@@ -32,7 +32,8 @@ export type ReservationActions = {
  * Every message carries a tone and an id so the caller can show it as a toast exactly once.
  */
 export function useReservationActions(handlers: ReservationHandlers): ReservationActions {
-  const { token } = useAuth();
+  const { status } = useAuth();
+  const signedIn = status === "authenticated";
   const handlersRef = useRef(handlers);
   const counter = useRef(0);
   const [pendingId, setPendingId] = useState<Id | null>(null);
@@ -49,10 +50,10 @@ export function useReservationActions(handlers: ReservationHandlers): Reservatio
 
   const reserve = useCallback(
     async (giftId: Id) => {
-      if (!token) return false;
+      if (!signedIn) return false;
       setPendingId(giftId);
       try {
-        await reserveGift(giftId, token);
+        await reserveGift(giftId);
         handlersRef.current.onReserved?.(giftId);
         say(voice.list.toastReserved, "success");
         return true;
@@ -68,15 +69,15 @@ export function useReservationActions(handlers: ReservationHandlers): Reservatio
         setPendingId(null);
       }
     },
-    [token, say],
+    [signedIn, say],
   );
 
   const cancel = useCallback(
     async (giftId: Id) => {
-      if (!token) return false;
+      if (!signedIn) return false;
       setPendingId(giftId);
       try {
-        await cancelReservation(giftId, token);
+        await cancelReservation(giftId);
         handlersRef.current.onCancelled?.(giftId);
         say(voice.list.toastCancelled, "success");
         return true;
@@ -87,7 +88,7 @@ export function useReservationActions(handlers: ReservationHandlers): Reservatio
         setPendingId(null);
       }
     },
-    [token, say],
+    [signedIn, say],
   );
 
   const clearMessage = useCallback(() => setMessage(null), []);
