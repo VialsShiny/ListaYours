@@ -1,5 +1,6 @@
 import { GiftPrice } from "@/components/wishlist/GiftPrice";
 import { voice } from "@/content/voice";
+import { safeHttpUrl } from "@/lib/safe-url";
 import type { PublicGift } from "@/lib/types";
 import { formatIndex } from "@/lib/wishlist-navigation";
 
@@ -14,6 +15,7 @@ type NavigatorStageProps = {
  * Text column of the Naviguer view: category label, name, note, price and product link.
  */
 export function NavigatorStage({ gift, groupIndex, groupName, muted }: NavigatorStageProps) {
+  const productUrl = safeHttpUrl(gift.purchase_url);
   return (
     <div className="navigator-info">
       <p className="index-tag text-[14px]">
@@ -32,9 +34,9 @@ export function NavigatorStage({ gift, groupIndex, groupName, muted }: Navigator
         muted={muted}
         className="navigator-price"
       />
-      {gift.purchase_url ? (
+      {productUrl ? (
         <a
-          href={gift.purchase_url}
+          href={productUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="text-link inline-flex min-h-11 items-center text-secondary"

@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { forgetAvatarUrls } from "@/hooks/use-avatar-url";
 import { ApiError, UNAUTHORIZED_EVENT } from "@/lib/api";
 import { fetchMe, logout } from "@/lib/api-auth";
 import { clearUser, readUser, writeUser } from "@/lib/auth-storage";
@@ -43,6 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (controller.signal.aborted) return;
         if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
           clearUser();
+          forgetAvatarUrls();
           setUser(null);
           setStatus("anonymous");
           return;
@@ -65,6 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const forget = useCallback(() => {
     clearUser();
+    forgetAvatarUrls();
     setUser(null);
     setStatus("anonymous");
   }, []);

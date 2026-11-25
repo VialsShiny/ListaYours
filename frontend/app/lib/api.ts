@@ -28,10 +28,12 @@ export type RequestOptions = {
 
 /**
  * Turns an API error body (`{detail: string}` or `{detail: [{msg}]}`) into one French sentence.
+ * A 422 whose detail is not a sentence is raw validator output, so it becomes a generic message.
  */
-export function detailToMessage(body: ApiErrorBody, fallback: string): string {
+export function detailToMessage(body: ApiErrorBody, fallback: string, status?: number): string {
   if (!body || body.detail === undefined || body.detail === null) return fallback;
   if (typeof body.detail === "string") return body.detail;
+  if (status === 422) return voice.errors.invalid;
   if (Array.isArray(body.detail)) {
     const messages = body.detail.map((issue) => issue.msg).filter(Boolean);
     return messages.length > 0 ? messages.join(" ") : fallback;
@@ -78,41 +80,54 @@ async function parseBody(response: Response): Promise<unknown> {
 }
 
 /**
+ * Builds the `ApiError` for a failed response, reading its JSON body when there is one.
+ */
+export async function parseError(response: Response, fallback?: string): Promise<ApiError> {
+  const body = ((await parseBody(response)) ?? null) as ApiErrorBody;
+  const message = detailToMessage(
+    body,
+    fallback ?? statusFallback(response.status),
+    response.status,
+  );
+  return new ApiError(response.status, body, message);
+}
+
+const BODYLESS_METHODS = new Set(["GET", "HEAD"]);
+
+/**
  * Thin fetch wrapper for the same-origin ListaYours API: JSON in/out, cookie session, typed errors.
  * `session: true` marks calls that need the session, so a 401 signs the user out.
- * Network failures are rethrown as `TypeError` so `errorMessage` can name them.
+ * Network failures are rethrown as `TypeError` so `errorMessage` can name them. Other methods
+ * without a body send an empty one so the request declares `Content-Length: 0` for the proxy.
  */
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = { Accept: "application/json" };
+  const method = options.method ?? "GET";
   const binary = options.body instanceof Blob;
   if (binary) headers["Content-Type"] = (options.body as Blob).type || "application/octet-stream";
   else if (options.body !== undefined) headers["Content-Type"] = "application/json";
 
   const response = await fetch(path, {
-    method: options.method ?? "GET",
+    method,
     headers,
     body: binary
       ? (options.body as Blob)
-      : options.body === undefined
-        ? undefined
-        : JSON.stringify(options.body),
+      : options.body !== undefined
+        ? JSON.stringify(options.body)
+        : BODYLESS_METHODS.has(method)
+          ? undefined
+          : "",
     signal: options.signal,
   });
 
   if (response.status === 204) return undefined as T;
-  const body = await parseBody(response);
 
   if (!response.ok) {
-    const errorBody = (body ?? null) as ApiErrorBody;
     if (response.status === 401 && options.session && typeof window !== "undefined") {
       window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
     }
-    throw new ApiError(
-      response.status,
-      errorBody,
-      detailToMessage(errorBody, statusFallback(response.status)),
-    );
+    throw await parseError(response);
   }
 
-  return body as T;
+  return (await parseBody(response)) as T;
 }

@@ -6,8 +6,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { ApiError, errorMessage } from "@/lib/api";
 import { cancelReservation, reserveGift } from "@/lib/api-public";
 
-export const TAKEN_MESSAGE = voice.list.toastTaken;
-
 type Id = number | string;
 
 export type ActionMessage = { id: number; text: string; tone: "success" | "error" };
@@ -59,7 +57,7 @@ export function useReservationActions(handlers: ReservationHandlers): Reservatio
         return true;
       } catch (error) {
         if (error instanceof ApiError && error.status === 409) {
-          say(TAKEN_MESSAGE, "error");
+          say(voice.list.toastTaken, "error");
           handlersRef.current.onConflict?.();
         } else {
           say(errorMessage(error, voice.list.reserveFailed), "error");

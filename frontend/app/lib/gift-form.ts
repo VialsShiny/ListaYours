@@ -30,8 +30,11 @@ function blankToNull(value: string): string | null {
   return trimmed === "" ? null : trimmed;
 }
 
-function normalizePriceInput(value: string): string | null {
-  const trimmed = value.trim().replace(/\s/g, "").replace(",", ".");
+/**
+ * Normalises a typed or scraped price ("1 249,90") to two decimals, `null` when blank or invalid.
+ */
+export function normalizePriceInput(value: string | null | undefined): string | null {
+  const trimmed = (value ?? "").trim().replace(/\s/g, "").replace(",", ".");
   if (trimmed === "") return null;
   const amount = Number(trimmed);
   if (!Number.isFinite(amount)) return null;

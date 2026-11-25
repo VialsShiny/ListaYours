@@ -19,12 +19,14 @@
     ],
     "paths": {
       "@/*": ["./app/*"]
-    }
+    },
+    "target": "ES2017"
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    "**/*.mts",
     ".next/types/**/*.ts",
     "src/app/layout.tsx",
     "next.config.mjs"

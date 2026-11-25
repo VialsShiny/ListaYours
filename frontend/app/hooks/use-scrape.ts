@@ -7,13 +7,12 @@ import { errorMessage } from "@/lib/api";
 import { scrapeProduct } from "@/lib/api-owner";
 import type { ProductData, ScrapeStrategy } from "@/lib/types";
 
-export const SCRAPE_PROGRESS_MESSAGE = voice.dashboard.gifts.scraping;
 const SCRAPE_TIMEOUT_MS = 95_000;
 
 export type ScrapeState =
   | { phase: "idle" }
   | { phase: "loading" }
-  | { phase: "success"; data: ProductData; sourceUrl: string }
+  | { phase: "success"; data: ProductData }
   | { phase: "error"; message: string };
 
 export function useScrape() {
@@ -37,7 +36,7 @@ export function useScrape() {
       try {
         const response = await scrapeProduct(url, strategy, controller.signal);
         if (response.success && response.data) {
-          setState({ phase: "success", data: response.data, sourceUrl: url });
+          setState({ phase: "success", data: response.data });
           return response.data;
         }
         setState({

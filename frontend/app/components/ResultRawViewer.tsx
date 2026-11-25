@@ -21,8 +21,10 @@ type ResultRawViewerProps = {
 
 /**
  * "Voir le résultat brut" drawer showing the raw scraper JSON next to the product preview.
+ * A debugging aid only: production builds render nothing.
  */
 export default function ResultRawViewer({ json, className }: ResultRawViewerProps) {
+  if (process.env.NODE_ENV === "production") return null;
   return (
     <Drawer>
       <DrawerTrigger className={cn(buttonVariants({ variant: "ghost" }), "self-start", className)}>

@@ -5,6 +5,7 @@ import useEmblaCarousel from "embla-carousel-react";
 import { Gift } from "lucide-react";
 import type { NavigatorMotion } from "@/hooks/use-gift-navigator";
 import { prefersReducedMotion, shouldMove } from "@/lib/motion";
+import { safeHttpUrl } from "@/lib/safe-url";
 import type { PublicGift } from "@/lib/types";
 import type { FlatGift } from "@/lib/wishlist-navigation";
 import type { ViewerRole } from "@/components/wishlist/ReservationControl";
@@ -64,6 +65,7 @@ export function NavigatorCarousel({
       <ul className="navigator-track">
         {items.map((item, position) => {
           const muted = viewer !== "owner" && item.gift.is_reserved && !item.gift.reserved_by_me;
+          const imageUrl = safeHttpUrl(item.gift.image_url);
           return (
             <li
               key={item.gift.id}
@@ -72,9 +74,9 @@ export function NavigatorCarousel({
               aria-hidden={position === index ? undefined : "true"}
             >
               <div className="navigator-image" data-muted={muted ? "true" : undefined}>
-                {item.gift.image_url ? (
+                {imageUrl ? (
                   <img
-                    src={item.gift.image_url}
+                    src={imageUrl}
                     alt=""
                     decoding="async"
                     loading={Math.abs(position - index) > 1 ? "lazy" : undefined}

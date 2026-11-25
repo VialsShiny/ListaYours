@@ -9,8 +9,11 @@ export type User = {
   avatar_updated_at: string | null;
 };
 
+/**
+ * `access_token` is `null` for browser calls: the session travels in the httpOnly cookie only.
+ */
 export type AuthResponse = {
-  access_token: string;
+  access_token: string | null;
   token_type: string;
   user: User;
 };
@@ -144,4 +147,4 @@ export type ScrapeResponse = {
   debug: boolean;
 };
 
-export type ProfilePatch = { display_name?: string; email?: string };
+export type ProfilePatch = { display_name?: string; email?: string; current_password?: string };
