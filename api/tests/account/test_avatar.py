@@ -2,7 +2,7 @@ from io import BytesIO
 
 from PIL import Image
 
-from app import deps
+from app import limits
 from app.utils.images import MAX_AVATAR_BYTES
 from tests.account.helpers import assert_no_secret, headers, image_bytes
 
@@ -91,13 +91,9 @@ def test_delete_restores_the_initial_state(client, visitor) -> None:
     assert again.status_code == 200
 
 
-def test_upload_is_rate_limited(client, visitor) -> None:
-    deps.auth_limiter.limit = 2
-    deps.auth_limiter.reset()
-    try:
-        statuses = [upload(client, visitor, image_bytes(32, 32)).status_code for _ in range(3)]
-    finally:
-        deps.auth_limiter.limit = 1000
+def test_upload_is_rate_limited(client, visitor, monkeypatch) -> None:
+    monkeypatch.setattr(limits.account_limiter, "limit", 2)
+    statuses = [upload(client, visitor, image_bytes(32, 32)).status_code for _ in range(3)]
     assert statuses == [200, 200, 429]
 
 
@@ -107,3 +103,36 @@ def test_me_exposes_the_avatar_flag_only(client, visitor) -> None:
     assert me["has_avatar"] is True
     assert "avatar" not in me
     assert_no_secret(me)
+
+
+def one_bit_png(width: int, height: int) -> bytes:
+    output = BytesIO()
+    Image.new("1", (width, height), 1).save(output, format="PNG")
+    return output.getvalue()
+
+
+def test_dimension_and_pixel_caps(client, visitor) -> None:
+    for width, height in ((5000, 5000), (4097, 16), (16, 4097)):
+        response = upload(client, visitor, one_bit_png(width, height))
+        assert response.status_code == 422, (width, height)
+        assert "4096 px" in response.json()["detail"]
+    assert upload(client, visitor, one_bit_png(4096, 3000)).status_code == 200
+
+
+def test_decompression_bomb_is_a_422(client, visitor, monkeypatch) -> None:
+    monkeypatch.setattr(Image, "MAX_IMAGE_PIXELS", 1000)
+    response = upload(client, visitor, image_bytes(100, 100))
+    assert response.status_code == 422
+    assert "trop grande" in response.json()["detail"]
+
+
+def test_avatar_bytes_are_not_loaded_with_the_user(client, visitor, db) -> None:
+    from sqlalchemy import inspect, select
+
+    from app.db.models import User
+
+    assert upload(client, visitor, image_bytes(64, 64)).status_code == 200
+    user = db.scalar(select(User).where(User.email == "visitor@listayours-test.fr"))
+    assert user is not None
+    assert "avatar" in inspect(user).unloaded
+    assert user.avatar

@@ -1,4 +1,4 @@
-"""Request-level guards: the frontend proxy handshake and CSRF checks for cookie-authenticated calls."""
+"""Request-level guards: the frontend proxy handshake, CSRF checks for cookie-authenticated calls, security headers."""
 
 import secrets
 from collections.abc import Awaitable, Callable
@@ -40,6 +40,12 @@ def proxy_gate(settings: Settings) -> Callable[[Request, Next], Awaitable[Respon
     return middleware
 
 
+def has_bearer_token(request: Request) -> bool:
+    """True only for `Authorization: Bearer <token>` with a non-empty token; other schemes stay ambient-cookie calls."""
+    scheme, _, token = request.headers.get("authorization", "").partition(" ")
+    return scheme.lower() == "bearer" and bool(token.strip())
+
+
 def _same_site_signal(request: Request, allowed_origins: set[str]) -> bool | None:
     """True when the browser vouches for a same-site request, False when it reports cross-site, None without browser headers."""
     fetch_site = request.headers.get("sec-fetch-site")
@@ -62,7 +68,7 @@ def csrf_guard(settings: Settings) -> Callable[[Request, Next], Awaitable[Respon
     allowed_origins = set(settings.cors_origins)
 
     async def middleware(request: Request, call_next: Next) -> Response:
-        if request.method in SAFE_METHODS or request.headers.get("authorization"):
+        if request.method in SAFE_METHODS or has_bearer_token(request):
             return await call_next(request)
         signal = _same_site_signal(request, allowed_origins)
         if request.url.path in SESSION_CREATING_PATHS:
@@ -74,3 +80,12 @@ def csrf_guard(settings: Settings) -> Callable[[Request, Next], Awaitable[Respon
         return await call_next(request)
 
     return middleware
+
+
+async def security_headers(request: Request, call_next: Next) -> Response:
+    """`nosniff` on every response; API responses are never cached unless the route chose its own policy."""
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    if request.url.path.startswith("/api/"):
+        response.headers.setdefault("Cache-Control", "no-store")
+    return response

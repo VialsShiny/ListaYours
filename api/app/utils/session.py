@@ -31,3 +31,8 @@ def clear_session_cookie(response: Response, settings: Settings) -> None:
     response.delete_cookie(
         key=cookie_name(settings), path="/", secure=settings.is_production, httponly=True, samesite="lax"
     )
+
+
+def is_browser_request(request: Request) -> bool:
+    """Browsers send `Sec-Fetch-Site` or `Origin` on these calls; command-line clients usually send neither."""
+    return "sec-fetch-site" in request.headers or "origin" in request.headers

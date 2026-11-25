@@ -1,6 +1,6 @@
 import pytest
 
-from app.models import ProductData, ScrapeRequest, ScrapeResponse
+from app.schemas.scrape import ProductData, ScrapeRequest, ScrapeResponse
 from app.scraper.constants.keywords import BUY_KEYWORDS, OUT_OF_STOCK_KEYWORDS
 from app.scraper.utils.parsing import parse_count, parse_price, parse_rating
 from app.scraper.utils.url import PW_DOMAINS, get_url_domain, is_require_pw_domain

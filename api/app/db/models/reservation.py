@@ -5,8 +5,7 @@ from sqlalchemy import ForeignKey, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
-from app.db.models.user import utcnow
-from app.db.types import UtcDateTime
+from app.db.types import UtcDateTime, utcnow
 
 
 class Reservation(Base):

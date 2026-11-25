@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from starlette.concurrency import run_in_threadpool
 
-from app.deps import CurrentUser, DbSession, auth_rate_limit
+from app.config import get_settings
+from app.deps import CurrentUser, DbSession
+from app.limits import account_rate_limit
 from app.schemas.account import PasswordChange, ProfileUpdate
 from app.schemas.auth import UserOut
 from app.services.account_service import (
@@ -10,10 +13,12 @@ from app.services.account_service import (
     set_avatar,
     update_profile,
 )
+from app.services.auth_service import create_access_token
 from app.utils.images import AVATAR_MEDIA_TYPE, MAX_AVATAR_BYTES, TOO_HEAVY
+from app.utils.session import set_session_cookie
 
 router = APIRouter(prefix="/api/account", tags=["account"])
-protected = [Depends(auth_rate_limit)]
+protected = [Depends(account_rate_limit)]
 AVATAR_HEADERS = {
     "X-Content-Type-Options": "nosniff",
     "Cache-Control": "private, no-store",
@@ -25,13 +30,13 @@ async def read_bounded_body(request: Request, limit: int) -> bytes:
     """Read the raw upload while refusing anything above `limit`, before and during the transfer."""
     declared = request.headers.get("content-length", "")
     if declared.isdigit() and int(declared) > limit:
-        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, TOO_HEAVY)
+        raise HTTPException(status.HTTP_413_CONTENT_TOO_LARGE, TOO_HEAVY)
     chunks: list[bytes] = []
     size = 0
     async for chunk in request.stream():
         size += len(chunk)
         if size > limit:
-            raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, TOO_HEAVY)
+            raise HTTPException(status.HTTP_413_CONTENT_TOO_LARGE, TOO_HEAVY)
         chunks.append(chunk)
     return b"".join(chunks)
 
@@ -48,8 +53,11 @@ def update_account(payload: ProfileUpdate, user: CurrentUser, db: DbSession) -> 
 
 @router.post("/password", status_code=status.HTTP_204_NO_CONTENT, dependencies=protected)
 def update_password(payload: PasswordChange, user: CurrentUser, db: DbSession) -> Response:
-    change_password(db, user, payload)
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    """Every other session is revoked; this one gets a fresh cookie so the current browser stays signed in."""
+    updated = change_password(db, user, payload)
+    response = Response(status_code=status.HTTP_204_NO_CONTENT)
+    set_session_cookie(response, create_access_token(updated), get_settings())
+    return response
 
 
 @router.get("/avatar", response_class=Response)
@@ -60,7 +68,7 @@ def read_avatar(user: CurrentUser) -> Response:
 @router.put("/avatar", response_model=UserOut, dependencies=protected)
 async def upload_avatar(request: Request, user: CurrentUser, db: DbSession) -> UserOut:
     data = await read_bounded_body(request, MAX_AVATAR_BYTES)
-    return UserOut.model_validate(set_avatar(db, user, data))
+    return UserOut.model_validate(await run_in_threadpool(set_avatar, db, user, data))
 
 
 @router.delete("/avatar", response_model=UserOut, dependencies=protected)

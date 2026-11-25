@@ -42,7 +42,8 @@ def test_token_for_deleted_or_unknown_user_is_rejected(client, owner) -> None:
 
     ghost = User(id=uuid.uuid4(), email="ghost@listayours-test.fr", password_hash="x", display_name="g", role="owner")
     token = create_access_token(ghost)
-    assert decode_access_token(token) == ghost.id
+    claims = decode_access_token(token)
+    assert claims is not None and claims.user_id == ghost.id and claims.version == 0
     assert api.get("/owner-only", headers=auth_headers(token)).status_code == 401
 
 

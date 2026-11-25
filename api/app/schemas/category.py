@@ -3,6 +3,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
+MAX_REORDER_IDS = 1000
 CategoryName = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80)]
 
 
@@ -23,4 +24,4 @@ class CategoryOut(BaseModel):
 
 
 class ReorderRequest(BaseModel):
-    ids: list[uuid.UUID] = Field(min_length=1)
+    ids: list[uuid.UUID] = Field(min_length=1, max_length=MAX_REORDER_IDS)

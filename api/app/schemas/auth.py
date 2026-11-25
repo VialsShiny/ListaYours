@@ -1,37 +1,20 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr
 
-MAX_PASSWORD_BYTES = 72
-
-
-def check_password_bytes(value: str) -> str:
-    """bcrypt only hashes the first 72 bytes, so refuse longer passwords instead of silently truncating."""
-    if len(value.encode("utf-8")) > MAX_PASSWORD_BYTES:
-        raise ValueError(f"Le mot de passe ne doit pas dépasser {MAX_PASSWORD_BYTES} octets.")
-    return value
+from app.schemas.common import CurrentPassword, DisplayName, Password
 
 
 class RegisterRequest(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=8, max_length=MAX_PASSWORD_BYTES)
-    display_name: str = Field(min_length=1, max_length=80)
-
-    @field_validator("password")
-    @classmethod
-    def password_fits_bcrypt(cls, value: str) -> str:
-        return check_password_bytes(value)
+    password: Password
+    display_name: DisplayName
 
 
 class LoginRequest(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=1, max_length=MAX_PASSWORD_BYTES)
-
-    @field_validator("password")
-    @classmethod
-    def password_fits_bcrypt(cls, value: str) -> str:
-        return check_password_bytes(value)
+    password: CurrentPassword
 
 
 class UserOut(BaseModel):
@@ -46,6 +29,8 @@ class UserOut(BaseModel):
 
 
 class TokenResponse(BaseModel):
-    access_token: str
+    """`access_token` is null for browser calls, which rely on the httpOnly session cookie only."""
+
+    access_token: str | None
     token_type: str = "bearer"
     user: UserOut

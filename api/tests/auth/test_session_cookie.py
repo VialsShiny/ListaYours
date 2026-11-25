@@ -4,7 +4,7 @@ import pytest
 from fastapi import Request
 from fastapi.testclient import TestClient
 
-from app import deps
+from app import limits
 from app.config import load_settings
 from app.main import app
 from app.middleware import csrf_guard, proxy_gate
@@ -45,6 +45,8 @@ def test_production_cookie_uses_the_host_prefix(monkeypatch) -> None:
     monkeypatch.setenv("ENVIRONMENT", "production")
     monkeypatch.setenv("JWT_SECRET", "x" * 40)
     monkeypatch.setenv("OWNER_EMAIL", "o@example.com")
+    monkeypatch.setenv("API_PROXY_SECRET", "p" * 32)
+    monkeypatch.setenv("CORS_ORIGINS", "https://listayours.example")
     assert cookie_name(load_settings()) == "__Host-listayours_session"
 
 
@@ -108,13 +110,10 @@ def test_proxy_gate_blocks_direct_calls_but_not_health(gated_client: TestClient)
     assert ok.status_code == 200 and ok.json()["ip"] == "203.0.113.9"
 
 
-def test_client_ip_header_is_ignored_without_the_secret(client: TestClient) -> None:
-    deps.auth_limiter.limit = 2
-    try:
-        codes = [
-            client.post("/api/auth/login", json=CREDENTIALS, headers={"X-Client-Ip": f"198.51.100.{i}"}).status_code
-            for i in range(3)
-        ]
-    finally:
-        deps.auth_limiter.limit = 20
+def test_client_ip_header_is_ignored_without_the_secret(client: TestClient, monkeypatch) -> None:
+    monkeypatch.setattr(limits.login_limiter, "limit", 2)
+    codes = [
+        client.post("/api/auth/login", json=CREDENTIALS, headers={"X-Client-Ip": f"198.51.100.{i}"}).status_code
+        for i in range(3)
+    ]
     assert codes[-1] == 429

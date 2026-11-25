@@ -1,28 +1,23 @@
-from typing import Annotated
+from pydantic import BaseModel, ConfigDict, EmailStr
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, StringConstraints, field_validator
-
-from app.schemas.auth import MAX_PASSWORD_BYTES, check_password_bytes
-
-DisplayName = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80)]
+from app.schemas.common import CurrentPassword, DisplayName, Password
 
 
 class ProfileUpdate(BaseModel):
-    """Editable profile fields only: the role and the identifiers are never accepted here."""
+    """Editable profile fields only: the role and the identifiers are never accepted here.
+
+    Changing the e-mail also requires `current_password`.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
     display_name: DisplayName | None = None
     email: EmailStr | None = None
+    current_password: CurrentPassword | None = None
 
 
 class PasswordChange(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    current_password: str = Field(min_length=1, max_length=MAX_PASSWORD_BYTES)
-    new_password: str = Field(min_length=8, max_length=MAX_PASSWORD_BYTES)
-
-    @field_validator("current_password", "new_password")
-    @classmethod
-    def password_fits_bcrypt(cls, value: str) -> str:
-        return check_password_bytes(value)
+    current_password: CurrentPassword
+    new_password: Password

@@ -7,13 +7,12 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.db.models import User
 from app.db.session import get_db
+from app.limits import reservation_limiter, scrape_limiter
 from app.services.auth_service import decode_access_token, get_user
-from app.utils.rate_limit import SlidingWindowLimiter, enforce
+from app.utils.rate_limit import too_many_requests
 from app.utils.session import read_session_cookie
 
 bearer = HTTPBearer(auto_error=False)
-auth_limiter = SlidingWindowLimiter(limit=get_settings().rate_limit_per_minute)
-scrape_limiter = SlidingWindowLimiter(limit=get_settings().rate_limit_per_minute)
 
 DbSession = Annotated[Session, Depends(get_db)]
 
@@ -23,12 +22,24 @@ def get_optional_user(
     db: DbSession,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
 ) -> User | None:
-    """The session cookie set by the API itself, or a Bearer token for non-browser clients."""
-    token = read_session_cookie(request, get_settings()) if credentials is None else credentials.credentials
+    """A Bearer token for non-browser clients, else the session cookie set by the API itself.
+
+    Any Authorization header, whatever its scheme, disables the cookie fallback. A token whose version
+    no longer matches the account (password changed, logged out) is refused.
+    """
+    if request.headers.get("authorization") is not None:
+        token = credentials.credentials if credentials is not None else None
+    else:
+        token = read_session_cookie(request, get_settings())
     if not token:
         return None
-    user_id = decode_access_token(token)
-    return get_user(db, user_id) if user_id else None
+    claims = decode_access_token(token)
+    if claims is None:
+        return None
+    user = get_user(db, claims.user_id)
+    if user is None or user.token_version != claims.version:
+        return None
+    return user
 
 
 def get_current_user(user: Annotated[User | None, Depends(get_optional_user)]) -> User:
@@ -49,15 +60,15 @@ def require_visitor(user: Annotated[User, Depends(get_current_user)]) -> User:
     return user
 
 
-def auth_rate_limit(request: Request) -> None:
-    enforce(auth_limiter, request, "auth", get_settings().trust_proxy_headers)
-
-
-def scrape_rate_limit(request: Request, owner: Annotated[User, Depends(require_owner)]) -> None:
+def scrape_rate_limit(owner: Annotated[User, Depends(require_owner)]) -> None:
     """Budget the scraper per authenticated owner, so unauthenticated callers cannot burn it."""
     if not scrape_limiter.allow(f"scrape:{owner.id}"):
-        enforce(scrape_limiter, request, "scrape-blocked", get_settings().trust_proxy_headers)
-        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Trop de requêtes, réessayez dans une minute.")
+        raise too_many_requests()
+
+
+def reservation_rate_limit(visitor: Annotated[User, Depends(require_visitor)]) -> None:
+    if not reservation_limiter.allow(f"reservation:{visitor.id}"):
+        raise too_many_requests()
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]

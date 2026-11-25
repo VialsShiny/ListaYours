@@ -92,3 +92,13 @@ def test_seed_without_network_uses_pdf_prices(db, monkeypatch) -> None:
     outcomes = runner.run_seed_sync(db, load_seed(SEED_FILE), "http://localhost:3000", scrape=False)
     assert all(o.source == "pdf" and "scrape_skipped" in o.flags for o in outcomes)
     assert sum(1 for o in outcomes if o.image) == 2
+
+
+def test_owner_display_name_comes_from_the_environment(db, monkeypatch) -> None:
+    monkeypatch.setenv("OWNER_EMAIL", "owner@listayours-test.fr")
+    monkeypatch.setenv("OWNER_PASSWORD", "motdepasse-seed-123")
+    monkeypatch.delenv("OWNER_DISPLAY_NAME", raising=False)
+    assert runner.ensure_owner(db, "owner@listayours-test.fr", "motdepasse-seed-123").display_name == "Propriétaire"
+    db.rollback()
+    monkeypatch.setenv("OWNER_DISPLAY_NAME", "  Camille ")
+    assert runner.ensure_owner(db, "owner@listayours-test.fr", "motdepasse-seed-123").display_name == "Camille"

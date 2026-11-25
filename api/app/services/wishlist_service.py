@@ -1,16 +1,19 @@
+import uuid
+
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.db.models import User, Wishlist
 from app.schemas.wishlist import WishlistUpdate
-from app.services.errors import Conflict, NotFound
+from app.services.db import commit_or_conflict
+from app.services.errors import NotFound
 from app.utils.slug import slugify
 
 DEFAULT_TITLE = "Liste de Souhait"
+SLUG_TAKEN = "Cette adresse de liste est déjà utilisée."
 
 
-def unique_slug(db: Session, base: str, exclude_id=None) -> str:
+def unique_slug(db: Session, base: str, exclude_id: uuid.UUID | None = None) -> str:
     slug = slugify(base)
     candidate = slug
     counter = 2
@@ -51,10 +54,6 @@ def update_settings(db: Session, wishlist: Wishlist, payload: WishlistUpdate) ->
     for field, value in changes.items():
         if value is not None:
             setattr(wishlist, field, value)
-    try:
-        db.commit()
-    except IntegrityError as error:
-        db.rollback()
-        raise Conflict("Cette adresse de liste est déjà utilisée.") from error
+    commit_or_conflict(db, SLUG_TAKEN)
     db.refresh(wishlist)
     return wishlist

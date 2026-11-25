@@ -13,17 +13,22 @@ from app.services.auth_service import hash_password
 from app.services.scrape_service import scrape_with_guards
 
 logger = logging.getLogger("seed")
+DEFAULT_OWNER_NAME = "Propriétaire"
 
 
 def ensure_owner(db: Session, email: str, password: str | None) -> User:
-    """Reuse the owner account when it exists; otherwise create it from OWNER_PASSWORD (never logged)."""
+    """Reuse the owner account when it exists; otherwise create it from OWNER_PASSWORD (never logged).
+
+    The display name comes from OWNER_DISPLAY_NAME, "Propriétaire" by default.
+    """
     owner = db.scalar(select(User).where(User.email == email))
     if owner is not None:
         owner.role = ROLE_OWNER
         return owner
     if not password:
         raise RuntimeError("OWNER_PASSWORD is required to create the owner account")
-    owner = User(email=email, password_hash=hash_password(password), display_name="Thibault", role=ROLE_OWNER)
+    display_name = os.environ.get("OWNER_DISPLAY_NAME", "").strip() or DEFAULT_OWNER_NAME
+    owner = User(email=email, password_hash=hash_password(password), display_name=display_name, role=ROLE_OWNER)
     db.add(owner)
     db.flush()
     return owner

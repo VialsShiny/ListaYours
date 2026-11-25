@@ -1,3 +1,4 @@
+from app import limits
 from tests.conftest import auth_headers, register
 
 
@@ -44,22 +45,16 @@ def test_password_byte_length_is_checked(client) -> None:
     assert response.status_code == 422
 
 
-def test_forwarded_for_header_does_not_bypass_rate_limit(client) -> None:
-    from app import deps
-
-    original = deps.auth_limiter.limit
-    deps.auth_limiter.limit = 2
-    try:
-        statuses = [
-            client.post(
-                "/api/auth/login",
-                json={"email": "x@listayours-test.fr", "password": "motdepasse123"},
-                headers={"X-Forwarded-For": f"10.0.0.{i}"},
-            ).status_code
-            for i in range(3)
-        ]
-    finally:
-        deps.auth_limiter.limit = original
+def test_forwarded_for_header_does_not_bypass_rate_limit(client, monkeypatch) -> None:
+    monkeypatch.setattr(limits.login_limiter, "limit", 2)
+    statuses = [
+        client.post(
+            "/api/auth/login",
+            json={"email": f"x{i}@listayours-test.fr", "password": "motdepasse123"},
+            headers={"X-Forwarded-For": f"10.0.0.{i}"},
+        ).status_code
+        for i in range(3)
+    ]
     assert statuses == [401, 401, 429]
 
 
@@ -83,18 +78,13 @@ def test_me_requires_valid_token(client) -> None:
     assert me.json()["id"] == body["user"]["id"]
 
 
-def test_auth_endpoints_are_rate_limited(client) -> None:
-    from app import deps
-
-    deps.auth_limiter.limit = 3
-    try:
-        statuses = [
-            client.post(
-                "/api/auth/login", json={"email": "x@listayours-test.fr", "password": "motdepasse123"}
-            ).status_code
-            for _ in range(4)
-        ]
-    finally:
-        deps.auth_limiter.limit = 1000
+def test_auth_endpoints_are_rate_limited(client, monkeypatch) -> None:
+    monkeypatch.setattr(limits.login_limiter, "limit", 3)
+    statuses = [
+        client.post(
+            "/api/auth/login", json={"email": f"x{i}@listayours-test.fr", "password": "motdepasse123"}
+        ).status_code
+        for i in range(4)
+    ]
     assert statuses[:3] == [401, 401, 401]
     assert statuses[3] == 429
