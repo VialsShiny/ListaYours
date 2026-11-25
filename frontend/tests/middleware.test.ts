@@ -83,8 +83,9 @@ describe("middleware rewrite", () => {
 });
 
 describe("middleware refusals", () => {
-  it("requires a declared body length on writes", () => {
-    expect(call("/api/gifts", { method: "POST" }).status).toBe(411);
+  it("treats a missing body length as empty and refuses chunked writes", () => {
+    const bodyless = call("/api/auth/logout", { method: "POST" });
+    expect(bodyless.headers.get("x-middleware-rewrite")).toBe(`${UPSTREAM}/api/auth/logout`);
     const chunked = { "content-length": "10", "transfer-encoding": "chunked" };
     expect(call("/api/gifts", { method: "POST", headers: chunked }).status).toBe(411);
     const bad = { "content-length": "1e3" };
