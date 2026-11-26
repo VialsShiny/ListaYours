@@ -43,6 +43,17 @@ The motion layer implements the 23 animations of the design catalogue
 | 22 | Tri par glisser | `SortableList` / `SortableRow` in both managers | dnd-kit core 6.3.1, sortable 10.0.0, utilities 3.2.2 (dynamic import on the dashboard) | `dashboard/SortableList.tsx`, `dashboard/SortableRow.tsx`, `lib/dnd-modifiers.ts` |
 | 23 | Squelettes de chargement | `GiftCardSkeleton`, `WishlistHeaderSkeleton` | CSS | `styles/overlays.css` (`.skeleton`) |
 
+## Gift page (`/l/[slug]/c/[giftId]`)
+
+| Element | Role | Starts | Duration | Motion |
+|---|---|---|---|---|
+| Scene (ghost headline + photo + details, `.gift-detail-scene`) | Lead | 0 ms | `--dur-switch` 260 ms, `--ease-out` | fade + 16 px rise on first load (`--rise`), fade + 24 px slide in the travel direction on previous/next (`--dir`) |
+| Mini-nav, bottom bar, background | Static | — | — | — |
+
+One entrance per container: the scene is keyed by gift and carries its children, so there is no
+stagger and no exit. `--move-ui: 0` (keyboard) and `--move: 0` (reduced motion) leave the fade
+alone. Decision 68.
+
 ## Bundle impact (`next build`, First Load JS)
 
 | Route | Before | After | Delta | Libraries in the route's JS |
