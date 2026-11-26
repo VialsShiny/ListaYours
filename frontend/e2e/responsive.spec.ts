@@ -75,6 +75,13 @@ const OVERLAYS: Overlay[] = [
     open: (page) => page.getByRole("button", { name: "Ajouter un cadeau" }).first().click(),
   },
   {
+    name: "tiroir-import",
+    path: "/tableau-de-bord",
+    role: "owner",
+    open: (page) =>
+      page.getByRole("button", { name: "Importer un CSV" }).locator("visible=true").click(),
+  },
+  {
     name: "dialogue-annulation",
     path: "/mes-reservations",
     role: "visitor",

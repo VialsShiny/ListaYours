@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Upload } from "lucide-react";
 import { voice } from "@/content/voice";
 import dynamic from "next/dynamic";
 import { EmptyState } from "@/components/feedback/EmptyState";
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DashboardSectionTitle } from "@/components/dashboard/DashboardSectionTitle";
 import { GiftFormDrawer } from "@/components/dashboard/GiftFormDrawer";
+import { GiftImportDialog } from "@/components/dashboard/GiftImportDialog";
 import { GiftRow } from "@/components/dashboard/GiftRow";
 import type { OwnerStore } from "@/hooks/use-owner-data";
 import { deleteGift, reorderGifts, updateGift } from "@/lib/api-owner";
@@ -28,6 +30,7 @@ type DrawerState = { open: false } | { open: true; gift: OwnerGift | null };
 export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
   const [drawer, setDrawer] = useState<DrawerState>({ open: false });
   const [toConfirm, setToConfirm] = useState<OwnerGift | null>(null);
+  const [importing, setImporting] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const ordered = useMemo(() => sortByPosition(gifts), [gifts]);
   const byId = useMemo(() => new Map(ordered.map((gift) => [gift.id, gift])), [ordered]);
@@ -71,6 +74,13 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
             <p className="text-secondary text-soft">
               {voice.dashboard.categories.count(gifts.length)}
             </p>
+            <Button
+              variant="secondary"
+              className="max-md:hidden"
+              onClick={() => setImporting(true)}
+            >
+              {voice.dashboard.gifts.import.open}
+            </Button>
             <Button variant="primary" className="max-md:hidden" onClick={() => openForm(null)}>
               {voice.dashboard.gifts.add}
             </Button>
@@ -119,9 +129,17 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
           ) : null}
         </div>
       )}
-      <div className="sticky-bar -mx-[16px] md:hidden">
+      <div className="sticky-bar -mx-[16px] flex gap-3 md:hidden">
         <Button variant="primary" block onClick={() => openForm(null)}>
           {voice.dashboard.gifts.add}
+        </Button>
+        <Button
+          variant="icon"
+          className="shrink-0"
+          aria-label={voice.dashboard.gifts.import.open}
+          onClick={() => setImporting(true)}
+        >
+          <Upload aria-hidden="true" />
         </Button>
       </div>
       <GiftFormDrawer
@@ -131,6 +149,7 @@ export function GiftManager({ store, categories, gifts }: GiftManagerProps) {
         store={store}
         onClose={() => setDrawer({ open: false })}
       />
+      <GiftImportDialog open={importing} store={store} onClose={() => setImporting(false)} />
       <ConfirmDialog
         open={toConfirm !== null}
         title={toConfirm ? voice.dashboard.gifts.dialogTitle(toConfirm.name) : ""}

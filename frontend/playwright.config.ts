@@ -1,10 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = 3100;
+const PORT = Number(process.env.E2E_PORT ?? 3100);
 
 /**
- * Responsive and type checks run against `next dev` on port 3100 with every API call mocked
- * (see e2e/fixtures.ts), so they need neither the API nor a database.
+ * Responsive and type checks run against `next dev` on port 3100 (`E2E_PORT` to pick another one
+ * when several checkouts run at once) with every API call mocked (see e2e/fixtures.ts), so they
+ * need neither the API nor a database.
  */
 export default defineConfig({
   testDir: "./e2e",

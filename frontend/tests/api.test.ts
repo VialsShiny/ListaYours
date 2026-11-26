@@ -8,6 +8,7 @@ import {
   errorMessage,
   parseError,
 } from "@/lib/api";
+import { importGifts } from "@/lib/api-owner";
 import { safeNextPath } from "@/lib/safe-next";
 
 describe("detailToMessage", () => {
@@ -84,6 +85,49 @@ describe("apiFetch", () => {
     const calls = fetchMock.mock.calls as unknown as [string, RequestInit][];
     expect(calls[0][1].body).toBe("");
     expect(calls[1][1].body).toBeUndefined();
+  });
+});
+
+describe("importGifts", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const result = {
+    dry_run: false,
+    total_rows: 2,
+    valid_rows: 1,
+    errors: [{ row: 2, field: "prix", message: "« abc » n'est pas un prix valide." }],
+    categories_to_create: [],
+    created_gifts: 0,
+    created_categories: 0,
+  };
+
+  it("resolves with the result when a 422 carries row errors", async () => {
+    const fetchMock = vi.fn(async () => Response.json(result, { status: 422 }));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(importGifts("nom;prix\nBonnet;abc\n", false)).resolves.toEqual(result);
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(JSON.parse(String(init.body))).toEqual({
+      content: "nom;prix\nBonnet;abc\n",
+      dry_run: false,
+    });
+  });
+
+  it("throws the French detail of a file-level 422", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json({ detail: "Le fichier est vide." }, { status: 422 })),
+    );
+    await expect(importGifts("", true)).rejects.toThrow("Le fichier est vide.");
+  });
+
+  it("throws on other statuses", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json({}, { status: 429 })),
+    );
+    await expect(importGifts("nom\n", true)).rejects.toMatchObject({ status: 429 });
   });
 });
 

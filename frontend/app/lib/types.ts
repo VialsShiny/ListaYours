@@ -148,3 +148,15 @@ export type ScrapeResponse = {
 };
 
 export type ProfilePatch = { display_name?: string; email?: string; current_password?: string };
+
+export type GiftImportRowError = { row: number; field: string | null; message: string };
+
+export type GiftImportResult = {
+  dry_run: boolean;
+  total_rows: number;
+  valid_rows: number;
+  errors: GiftImportRowError[];
+  categories_to_create: string[];
+  created_gifts: number;
+  created_categories: number;
+};

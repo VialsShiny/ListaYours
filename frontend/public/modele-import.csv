@@ -1,0 +1,3 @@
+﻿nom;description;prix;ancien_prix;devise;lien;image;catégorie;visible
+Bonnet en laine;Taille unique, couleur au choix;24,90;;EUR;https://example.com/bonnet;https://example.com/bonnet.jpg;Vêtements;oui
+Carnet pointillé A5;;12,50;15,00;EUR;https://example.com/carnet;;Papeterie;non

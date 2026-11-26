@@ -67,6 +67,20 @@ Réponse : `{ "success", "data": ProductData, "error", "strategy_used", "debug" 
 tests de parité dans `api/tests/scraper`. Pipeline : HTTPX → (repli) Playwright ; extraction
 JSON‑LD → microdata → OpenGraph → parseurs Amazon / AliExpress → heuristiques génériques.
 
+## Import CSV
+
+Depuis le tableau de bord, « Importer un CSV » (ou l'icône dans la barre mobile) ajoute plusieurs
+cadeaux d'un coup. Le fichier est lu dans le navigateur (UTF-8, sinon windows-1252, BOM ignoré),
+puis l'API fait un essai à blanc (`dry_run`) : le tiroir montre le nombre de cadeaux à ajouter, les
+catégories qui seront créées et les lignes refusées (numéro, colonne, message). Rien n'est écrit
+avant la confirmation, et une seule ligne en erreur annule tout l'import.
+
+Format : séparateur `,`, `;` ou tabulation ; en-têtes français ou anglais (`nom` obligatoire,
+`description`, `prix`, `ancien_prix`, `devise`, `lien`, `image`, `catégorie`, `visible`) ; prix
+comme `12,50` ou `1 299,00 €` ; `visible` en `oui`/`non`. Limites : 500 cadeaux et un million de
+caractères par fichier, extension `.csv` ou `.txt`, 10 imports par minute. Un modèle est servi sur
+[`/modele-import.csv`](frontend/public/modele-import.csv).
+
 ## Configuration
 
 Toutes les variables sont listées dans [`.env.example`](.env.example) (noms uniquement, jamais de
