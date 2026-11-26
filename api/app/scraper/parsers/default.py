@@ -128,6 +128,9 @@ def _extract_discount(product_info: Dict[str, Any]) -> None:
         pass
 
 def _extract_stock_info(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
+    """Buy-button heuristic, only when no structured data (JSON-LD offers) already said in or out of stock."""
+    if product_info.get("stock"):
+        return
     page_text = get_visible_text(soup)
     is_out_of_stock = False
 
@@ -156,37 +159,55 @@ def _extract_stock_info(soup: BeautifulSoup, product_info: Dict[str, Any]) -> No
     product_info["stock"] = "InStock" if has_stock else "OutOfStock"
     product_info["availability"] = has_stock
 
+IMAGE_ZONE = ", ".join([
+    "[itemprop=image]",
+    "[class*=product-gallery]", "[class*=product__media]", "[class*=product-media]",
+    "[class*=product-image]", "[class*=product-photo]", "[class*=pdp-gallery]",
+    "[id*=product-image]", "[id*=productphoto]", "[id*=product-gallery]",
+])
+SRCSET_CANDIDATE = re.compile(r"(\S+)\s+(\d+(?:\.\d+)?)[wx]")
+NOT_A_PHOTO = re.compile(r"(?i)logo|icon|sprite|badge|banner|payment|flag|placeholder|loading|\.svg|\.gif")
+MAX_IMAGES = 8
+
+def _largest_source(img) -> str | None:
+    """Largest srcset candidate (by its "480w" or "2x" descriptor), else the lazy or plain src."""
+    candidates = SRCSET_CANDIDATE.findall(img.get("srcset") or img.get("data-srcset") or "")
+    best = max(candidates, key=lambda pair: float(pair[1]), default=(None, "0"))[0]
+    return best or img.get("data-src") or img.get("data-zoom-image") or img.get("src")
+
+def _is_photo(img, url: str | None) -> bool:
+    """Rejects data URIs, icons, logos, badges and anything declared under 100 px wide or high."""
+    sizes = [img.get(side) for side in ("width", "height")]
+    tiny = any(size and size.isdigit() and int(size) < 100 for size in sizes)
+    return bool(url) and not url.startswith("data:") and not tiny and not NOT_A_PHOTO.search(url)
+
+def _zone_image_urls(soup: BeautifulSoup):
+    """Image URLs of the product gallery zone only, in page order; never the whole page."""
+    for node in soup.select(IMAGE_ZONE):
+        if node.name == "meta":
+            yield node.get("content")
+        else:
+            for img in [node] if node.name == "img" else node.select("img"):
+                url = _largest_source(img)
+                if _is_photo(img, url):
+                    yield url
+
 def _extract_images(soup: BeautifulSoup, product_info: Dict[str, Any], base_url: str) -> None:
-    """Extract and normalize images from a generic page."""
-    for img in soup.find_all("img"):
-        img_src = None
+    """Append the gallery zone photos to the structured-data images; gallery mirrors images.
 
-        for attr in ("product", "gallery", "carousel", "main", "featured", "zoom", "thumb"):
-            value = img.get(attr)
-            if value:
-                img_src = value
-                break
-
-        if not img_src or img_src.startswith("data:"):
-            continue
-
-        if "," in img_src:
-            candidates = []
-            for part in img_src.split(","):
-                part = part.strip().split(" ")[0]
-                if part:
-                    candidates.append(part)
-
-            if candidates:
-                img_src = candidates[-1]
-
-        full_url = urljoin(base_url, img_src)
-
-        if full_url not in product_info["gallery"]:
-            product_info["gallery"].append(full_url)
-
-    if not product_info["images"] and product_info["gallery"]:
-        product_info["images"] = product_info["gallery"][:2]
+    Two URLs that differ only by their query string are the same photo at two sizes (IKEA, Apple,
+    Shopify), so the first one seen wins. shortcut: sizes encoded in the path (LDLC /r705/) still
+    duplicate, revisit if the picker shows too many twins.
+    """
+    images = list(product_info["images"])
+    seen = {url.split("?")[0] for url in images}
+    for url in _zone_image_urls(soup):
+        full_url = urljoin(base_url, url) if url else ""
+        if full_url and full_url.split("?")[0] not in seen:
+            seen.add(full_url.split("?")[0])
+            images.append(full_url)
+    product_info["images"] = images[:MAX_IMAGES]
+    product_info["gallery"] = list(product_info["images"])
 
 def _extract_characteristics(soup: BeautifulSoup, product_info: Dict[str, Any]) -> None:
     """Extract key/value characteristics from tables or definition lists."""

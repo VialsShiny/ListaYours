@@ -27,14 +27,11 @@ def is_visible(el) -> bool:
 
 
 def get_visible_text(soup) -> str:
+    """Lower-cased text of the visible nodes; hidden elements are found once instead of per text node."""
+    hidden = {id(el) for el in soup.find_all(True) if el.name in ("script", "style", "noscript") or not is_visible(el)}
     texts = []
     for el in soup.find_all(string=True):
-        parent = el.parent
-        if parent.name in ("script", "style", "noscript"):
-            continue
-        if any(not is_visible(p) for p in parent.parents if p.name):
-            continue
-        if not is_visible(parent):
+        if any(id(parent) in hidden for parent in el.parents if parent.name):
             continue
         texts.append(str(el))
     return clean_text(" ".join(texts)).lower()

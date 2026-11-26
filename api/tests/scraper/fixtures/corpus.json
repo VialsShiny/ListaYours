@@ -1,0 +1,242 @@
+[
+  {
+    "name": "aliexpress_test_file",
+    "file": "../../../app/scraper/test.file.html",
+    "url": "https://fr.aliexpress.com/item/1005003030077320.html",
+    "golden": true
+  },
+  {
+    "name": "generic_jsonld",
+    "file": "generic_jsonld.html",
+    "url": "https://shirtz.cool/products/the-monsters-nearby-knit",
+    "golden": true
+  },
+  {
+    "name": "amazon_like",
+    "file": "amazon_like.html",
+    "url": "https://www.amazon.fr/dp/B0CZ762XQ3",
+    "golden": true
+  },
+  {
+    "name": "robot_check",
+    "file": "robot_check.html",
+    "url": "https://www.amazon.com/dp/B0CPBNV3H4",
+    "golden": true
+  },
+  {
+    "name": "microdata",
+    "file": "microdata.html",
+    "url": "https://gear.koenigsegg.com/product/ghost-braided-bracelet-silver/",
+    "golden": true
+  },
+  {
+    "name": "amazon_real_B0CZ762XQ3",
+    "file": "amazon_real_B0CZ762XQ3.html.gz",
+    "url": "https://www.amazon.fr/dp/B0CZ762XQ3",
+    "golden": true
+  },
+  {
+    "name": "amazon_com_B00FLYWNYQ",
+    "file": "amazon_com_B00FLYWNYQ.html.gz",
+    "url": "https://www.amazon.com/dp/B00FLYWNYQ",
+    "golden": false
+  },
+  {
+    "name": "amazon_com_B00NTCH52W",
+    "file": "amazon_com_B00NTCH52W.html.gz",
+    "url": "https://www.amazon.com/dp/B00NTCH52W",
+    "golden": false
+  },
+  {
+    "name": "amazon_com_B072QRN7HR",
+    "file": "amazon_com_B072QRN7HR.html.gz",
+    "url": "https://www.amazon.com/dp/B072QRN7HR",
+    "golden": false
+  },
+  {
+    "name": "amazon_com_B0798DVT68",
+    "file": "amazon_com_B0798DVT68.html.gz",
+    "url": "https://www.amazon.com/dp/B0798DVT68",
+    "golden": false
+  },
+  {
+    "name": "amazon_com_B07FZ8S74R",
+    "file": "amazon_com_B07FZ8S74R.html.gz",
+    "url": "https://www.amazon.com/dp/B07FZ8S74R",
+    "golden": false
+  },
+  {
+    "name": "amazon_com_B07RZ74VLR",
+    "file": "amazon_com_B07RZ74VLR.html.gz",
+    "url": "https://www.amazon.com/dp/B07RZ74VLR",
+    "golden": false
+  },
+  {
+    "name": "amazon_com_B08KT2Z93D",
+    "file": "amazon_com_B08KT2Z93D.html.gz",
+    "url": "https://www.amazon.com/dp/B08KT2Z93D",
+    "golden": false
+  },
+  {
+    "name": "amazon_com_B0B2RM68G2",
+    "file": "amazon_com_B0B2RM68G2.html.gz",
+    "url": "https://www.amazon.com/dp/B0B2RM68G2",
+    "golden": false
+  },
+  {
+    "name": "amazon_com_B0BSHF7WHW",
+    "file": "amazon_com_B0BSHF7WHW.html.gz",
+    "url": "https://www.amazon.com/dp/B0BSHF7WHW",
+    "golden": false
+  },
+  {
+    "name": "amazon_com_B0CHWRXH8B",
+    "file": "amazon_com_B0CHWRXH8B.html.gz",
+    "url": "https://www.amazon.com/dp/B0CHWRXH8B",
+    "golden": false
+  },
+  {
+    "name": "amazon_com_B0CYJBB2JQ",
+    "file": "amazon_com_B0CYJBB2JQ.html.gz",
+    "url": "https://www.amazon.com/dp/B0CYJBB2JQ",
+    "golden": false
+  },
+  {
+    "name": "amazon_com_B0DGPSZVW3",
+    "file": "amazon_com_B0DGPSZVW3.html.gz",
+    "url": "https://www.amazon.com/dp/B0DGPSZVW3",
+    "golden": false
+  },
+  {
+    "name": "amazon_de_B07SSWRQZR",
+    "file": "amazon_de_B07SSWRQZR.html.gz",
+    "url": "https://www.amazon.de/dp/B07SSWRQZR",
+    "golden": false
+  },
+  {
+    "name": "amazon_de_B08C5DR9GR",
+    "file": "amazon_de_B08C5DR9GR.html.gz",
+    "url": "https://www.amazon.de/dp/B08C5DR9GR",
+    "golden": false
+  },
+  {
+    "name": "amazon_de_B09JC6Q14S",
+    "file": "amazon_de_B09JC6Q14S.html.gz",
+    "url": "https://www.amazon.de/dp/B09JC6Q14S",
+    "golden": false
+  },
+  {
+    "name": "amazon_de_B0CKZ4GW25",
+    "file": "amazon_de_B0CKZ4GW25.html.gz",
+    "url": "https://www.amazon.de/dp/B0CKZ4GW25",
+    "golden": false
+  },
+  {
+    "name": "amazon_de_B0CZ762XQ3",
+    "file": "amazon_de_B0CZ762XQ3.html.gz",
+    "url": "https://www.amazon.de/dp/B0CZ762XQ3",
+    "golden": false
+  },
+  {
+    "name": "amazon_fr_B072QRN7HR",
+    "file": "amazon_fr_B072QRN7HR.html.gz",
+    "url": "https://www.amazon.fr/dp/B072QRN7HR",
+    "golden": false
+  },
+  {
+    "name": "amazon_fr_B077B7HZ2V",
+    "file": "amazon_fr_B077B7HZ2V.html.gz",
+    "url": "https://www.amazon.fr/dp/B077B7HZ2V",
+    "golden": false
+  },
+  {
+    "name": "amazon_fr_B09G6M8JLK",
+    "file": "amazon_fr_B09G6M8JLK.html.gz",
+    "url": "https://www.amazon.fr/dp/B09G6M8JLK",
+    "golden": false
+  },
+  {
+    "name": "amazon_fr_B0C3BC4QG2",
+    "file": "amazon_fr_B0C3BC4QG2.html.gz",
+    "url": "https://www.amazon.fr/dp/B0C3BC4QG2",
+    "golden": false
+  },
+  {
+    "name": "amazon_fr_B0CJ5FPMN3",
+    "file": "amazon_fr_B0CJ5FPMN3.html.gz",
+    "url": "https://www.amazon.fr/dp/B0CJ5FPMN3",
+    "golden": false
+  },
+  {
+    "name": "amazon_fr_B0CZ762XQ3_pw",
+    "file": "amazon_fr_B0CZ762XQ3_pw.html.gz",
+    "url": "https://www.amazon.fr/dp/B0CZ762XQ3",
+    "golden": false
+  },
+  {
+    "name": "amazon_fr_B0DK4Y2YP3",
+    "file": "amazon_fr_B0DK4Y2YP3.html.gz",
+    "url": "https://www.amazon.fr/dp/B0DK4Y2YP3",
+    "golden": false
+  },
+  {
+    "name": "amazon_fr_interstitial",
+    "file": "amazon_fr_interstitial.html",
+    "url": "https://www.amazon.fr/dp/B0CZ762XQ3",
+    "golden": false
+  },
+  {
+    "name": "apple_ipad_air",
+    "file": "apple_ipad_air.html.gz",
+    "url": "https://www.apple.com/fr/shop/buy-ipad/ipad-air/ecran-11-pouces-128go-bleu-wifi",
+    "golden": false
+  },
+  {
+    "name": "bellroy_note_sleeve",
+    "file": "bellroy_note_sleeve.html.gz",
+    "url": "https://bellroy.com/products/note-sleeve-wallet",
+    "golden": false
+  },
+  {
+    "name": "dyson_v15",
+    "file": "dyson_v15.html.gz",
+    "url": "https://www.dyson.fr/aspirateurs/sans-fil/v15/detect-absolute-jaune-nickel",
+    "golden": false
+  },
+  {
+    "name": "ikea_ektorp",
+    "file": "ikea_ektorp.html.gz",
+    "url": "https://www.ikea.com/fr/fr/p/ektorp-canape-2-places-blekinge-blanc-s29628675/",
+    "golden": false
+  },
+  {
+    "name": "ldlc_PB00432397",
+    "file": "ldlc_PB00432397.html",
+    "url": "https://www.ldlc.com/fiche/PB00432397.html",
+    "golden": false
+  },
+  {
+    "name": "lush_intergalactic",
+    "file": "lush_intergalactic.html.gz",
+    "url": "https://www.lush.com/fr/fr/p/intergalactic-bath-bomb",
+    "golden": false
+  },
+  {
+    "name": "nike_IX6375",
+    "file": "nike_IX6375.html.gz",
+    "url": "https://www.nike.com/fr/t/chaussure-air-jordan-1-low-se-magic-ball-pour-homme-mZi7toXO/IX6375-001",
+    "golden": false
+  },
+  {
+    "name": "philips_EP2231",
+    "file": "philips_EP2231.html.gz",
+    "url": "https://www.philips.fr/c-p/EP2231_40/series-2200-machines-espresso-entierement-automatiques",
+    "golden": false
+  },
+  {
+    "name": "thalia_A1078332034",
+    "file": "thalia_A1078332034.html.gz",
+    "url": "https://www.thalia.de/shop/home/artikeldetails/A1078332034",
+    "golden": false
+  }
+]

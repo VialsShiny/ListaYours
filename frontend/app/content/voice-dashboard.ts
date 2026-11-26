@@ -101,6 +101,10 @@ export const dashboard = {
       done: (count: number) => `${count} ${count > 1 ? "cadeaux ajoutés" : "cadeau ajouté"}.`,
       failed: "L'import a raté.",
     },
+    imageChoice: {
+      legend: "Choisis l'image du cadeau",
+      option: (index: number, total: number) => `Image ${index} sur ${total}`,
+    },
   },
   sort: {
     instructions:

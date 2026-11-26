@@ -8,15 +8,18 @@ function cleanText(value: string | null | undefined): string {
 }
 
 /**
+ * Distinct absolute http(s) image URLs of a scrape result, in order: the owner picks among them.
+ */
+export function imageCandidates(images: readonly string[] | null | undefined): string[] {
+  const safe = (images ?? []).map(safeHttpUrl).filter((url): url is string => url !== null);
+  return Array.from(new Set(safe));
+}
+
+/**
  * Picks the first usable http(s) image URL from the scraper result.
  */
 export function firstImage(data: Pick<ProductData, "images" | "gallery">): string {
-  const candidates = [...(data.images ?? []), ...(data.gallery ?? [])];
-  for (const candidate of candidates) {
-    const url = safeHttpUrl(candidate);
-    if (url) return url;
-  }
-  return "";
+  return imageCandidates([...(data.images ?? []), ...(data.gallery ?? [])])[0] ?? "";
 }
 
 /**
