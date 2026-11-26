@@ -1,6 +1,7 @@
-import { apiFetch } from "@/lib/api";
+import { ApiError, apiFetch } from "@/lib/api";
 import type {
   Category,
+  GiftImportResult,
   GiftPayload,
   OwnerData,
   OwnerGift,
@@ -76,4 +77,27 @@ export function scrapeProduct(
     body: { url, strategy, debug: false },
     signal,
   });
+}
+
+function rejectedImport(error: unknown): GiftImportResult | null {
+  if (!(error instanceof ApiError) || error.status !== 422) return null;
+  return Array.isArray(error.body?.errors) ? (error.body as unknown as GiftImportResult) : null;
+}
+
+/**
+ * Dry run (200) or real import (201). A 422 carrying row errors resolves with that result, since
+ * the owner reads it like a preview; file-level 422s and other failures still throw.
+ */
+export async function importGifts(content: string, dryRun: boolean): Promise<GiftImportResult> {
+  try {
+    return await apiFetch<GiftImportResult>("/api/owner/gifts/import", {
+      method: "POST",
+      session,
+      body: { content, dry_run: dryRun },
+    });
+  } catch (error) {
+    const rejected = rejectedImport(error);
+    if (rejected) return rejected;
+    throw error;
+  }
 }

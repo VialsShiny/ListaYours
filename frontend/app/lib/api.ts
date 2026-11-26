@@ -5,7 +5,12 @@ export const UNAUTHORIZED_EVENT = "listayours:unauthorized";
 
 type ValidationIssue = { loc?: unknown; msg: string; type?: string };
 
-export type ApiErrorBody = { detail?: string | ValidationIssue[] } | null;
+/**
+ * Error bodies are `{detail}` most of the time; the import endpoint answers 422 with its full
+ * result instead, so the type keeps the other keys reachable.
+ */
+export type ApiErrorBody =
+  ({ detail?: string | ValidationIssue[] } & Record<string, unknown>) | null;
 
 export class ApiError extends Error {
   readonly status: number;
