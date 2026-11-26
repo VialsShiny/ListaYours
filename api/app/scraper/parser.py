@@ -9,6 +9,7 @@ from app.scraper.parsers.default import default_parsers
 from app.scraper.parsers.amazon import amazon_parsers
 from app.scraper.parsers.aliexpress import aliexpress_parsers
 from app.scraper.utils.text import clean_text
+from app.scraper.utils.url import get_url_domain
 from app.scraper.utils.parsing import parse_price
 
 logger = logging.getLogger("TEST DEV")
@@ -269,8 +270,10 @@ def extract_all_data(html: str, url: str) -> Dict[str, Any]:
     # STRATÉGIE 4 : HEURISTIQUES DOM PAR DÉFAUT
     # =========================================================================
 
-    locked_fields = amazon_parsers(product_info, soup, base_url)
-    locked_fields.update(aliexpress_parsers(product_info, soup, base_url))
+    domain = get_url_domain(url)
+    locked_fields = amazon_parsers(product_info, soup, base_url) if "amazon." in domain else set()
+    if "aliexpress." in domain:
+        locked_fields.update(aliexpress_parsers(product_info, soup, base_url))
     default_parsers(product_info, soup, base_url, locked_fields)
 
     nullable_fields = ['title', 'price', 'old_price', 'discount', 'currency', 'description', 'brand', 'sku', 'stock', 'category']
