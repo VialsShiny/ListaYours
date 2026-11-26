@@ -133,3 +133,10 @@ GitHub pull requests merged into `feat/wishlist-platform`.
 - Passed: audit 0 vulnerabilities; 15.5.29 is on the same security release as 16.4.5.
 - Failed: nothing.
 - Remains: one planned migration to Next 16 and ESLint 9 later (proxy rename, flat config, Turbopack); TypeScript 7 and Node 26 are handled in their own session.
+
+## 20. Dependabot tooling PRs: minor/patch group, TypeScript 7, Node 26 — branch `claude/deps-tooling-e5d51e` (2026-11-26)
+- Changed: frontend minor/patch group bumped by hand on top of `main` (decision 62), `frontend/Dockerfile` on `node:26-alpine` (decision 64), TypeScript kept on 5.9 with the reason recorded (decision 63); Dependabot #59 closed with that reason, #80 and #51 superseded by the PR.
+- Ran: in `frontend/`, `npm run lint`, `prettier --check`, `tsc --noEmit`, `vitest run`, `next build`, `playwright test`, before and after each bump; the same list with TypeScript 7.0.2 installed; `docker build` could not run locally (no reachable daemon), the CI Docker job builds the image.
+- Passed: after the group bump, lint, prettier, tsc, vitest 93/93, build, Playwright 212/213 then the one timed-out screen (`feuille-categories at 768px`) green on rerun; with TypeScript 7 only vitest passed (93/93).
+- Failed: with TypeScript 7, `tsc --noEmit` (TS2882 on `./globals.css`), `next lint` and `next build` ("TypeScript 7.0.2 is not supported by this version of Next.js", then unresolved `@/` imports), peer ranges of `@typescript-eslint/*` 8.74.
+- Remains: TypeScript 6 or 7 once Next 16.2.11+ and the ESLint stack accept it; CI `NODE_VERSION`, `@types/node` and the developer guide still say Node 20; Dependabot #75 (`js-yaml`) untouched.
