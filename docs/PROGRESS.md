@@ -127,7 +127,21 @@ GitHub pull requests merged into `feat/wishlist-platform`.
 - Passed: API 202/202 (129 before: 41 hardening tests + 32 import tests), ruff, mypy; frontend counts recorded in the PR description.
 - Remains: the frontend CSV import button (API ready; see the design in the PR), the Dependabot PRs for Next 16, React/react-dom, TypeScript 7 and Node 26 left open on purpose, the owner seed, and a Northflank health check. Existing production sessions are signed out once by the token format change.
 
-## 19. Sticky section switch and readable toggle — branch `fix/dashboard-switch-toggle` (2026-11-26)
+## 19. Framework majors kept on hold — branch `claude/deps-framework-a8fbb1` (2026-11-26)
+- Changed: decision 61 (Next.js stays on 15.5 with React 19; Dependabot #61 closed, #60 and #58 already closed by Dependabot once `main` carried React 19.3.1). No code change.
+- Ran: `gh pr view` on the three PRs, `npm view next` (dist-tags, release dates, Next 16 engines and peers), `npm audit --omit=dev` on the frontend, a read-through of the Next 16 migration surface (`proxy.ts`, Turbopack vs the `webpack` block, `next lint` removal and ESLint 9).
+- Passed: audit 0 vulnerabilities; 15.5.29 is on the same security release as 16.4.5.
+- Failed: nothing.
+- Remains: one planned migration to Next 16 and ESLint 9 later (proxy rename, flat config, Turbopack); TypeScript 7 and Node 26 are handled in their own session.
+
+## 20. Dependabot tooling PRs: minor/patch group, TypeScript 7, Node 26 — branch `claude/deps-tooling-e5d51e` (2026-11-26)
+- Changed: frontend minor/patch group bumped by hand on top of `main` (decision 62), `frontend/Dockerfile` on `node:26-alpine` (decision 64), TypeScript kept on 5.9 with the reason recorded (decision 63); Dependabot #59 closed with that reason, #80 and #51 superseded by the PR.
+- Ran: in `frontend/`, `npm run lint`, `prettier --check`, `tsc --noEmit`, `vitest run`, `next build`, `playwright test`, before and after each bump; the same list with TypeScript 7.0.2 installed; `docker build` could not run locally (no reachable daemon), the CI Docker job builds the image.
+- Passed: after the group bump, lint, prettier, tsc, vitest 93/93, build, Playwright 212/213 then the one timed-out screen (`feuille-categories at 768px`) green on rerun; with TypeScript 7 only vitest passed (93/93).
+- Failed: with TypeScript 7, `tsc --noEmit` (TS2882 on `./globals.css`), `next lint` and `next build` ("TypeScript 7.0.2 is not supported by this version of Next.js", then unresolved `@/` imports), peer ranges of `@typescript-eslint/*` 8.74.
+- Remains: TypeScript 6 or 7 once Next 16.2.11+ and the ESLint stack accept it; CI `NODE_VERSION`, `@types/node` and the developer guide still say Node 20; Dependabot #75 (`js-yaml`) untouched.
+
+## 21. Sticky section switch and readable toggle — branch `fix/dashboard-switch-toggle` (2026-11-26)
 - Changed: the dashboard section switch moved out of the hero into a `.section-bar` that sticks to the top of the viewport (translucent `--material-bg` with blur, z-index 30, safe-area aware, section anchors use `scroll-mt-24`); the toggle track is now `--tile` with a 2px `--soft` ring and a `--soft` knob when off, `--ink` track with an `--on-ink` knob when on; `e2e/section-switch.spec.ts`.
 - Ran: lint, prettier, typecheck, vitest (93), build, Playwright (211 passed on the first full run, 6 failures: 2 audit flakes and 4 new-spec timeouts under load; all 7 pass on rerun after the spec scrolls with `scrollIntoViewIfNeeded`); toggle contrast from the token values: off ring against card 6.39 (light) / 7.15 (dark), off knob against track 5.45 / 6.38, on track against card 19.44 / 15.55, on knob against track 18.62 / 16.73 (all at least 3:1).
 - Remains: contrast is computed from tokens, not measured on screenshots; the header is not sticky, so the bar sits at `top: 0`.
