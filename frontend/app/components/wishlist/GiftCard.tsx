@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { GiftPhoto } from "@/components/wishlist/GiftPhoto";
 import { voice } from "@/content/voice";
 import { GiftPrice } from "@/components/wishlist/GiftPrice";
@@ -15,13 +16,24 @@ type GiftCardProps = {
   pending: boolean;
   onReserve: (giftId: PublicGift["id"]) => void;
   onCancel: (giftId: PublicGift["id"]) => void;
+  detailHref?: string;
 };
 
 /**
  * Grid card: square photo on a tile, name in the display font, price, note, product link,
  * then the reservation control. `data-reserved` is only ever set for non-owner viewers.
+ * With `detailHref`, the photo is the link to the gift page (labelled by the name): a large
+ * target, and one link per card.
  */
-export function GiftCard({ gift, viewer, loginHref, pending, onReserve, onCancel }: GiftCardProps) {
+export function GiftCard({
+  gift,
+  viewer,
+  loginHref,
+  pending,
+  onReserve,
+  onCancel,
+  detailHref,
+}: GiftCardProps) {
   const reservedByOther = viewer !== "owner" && gift.is_reserved && !gift.reserved_by_me;
   const titleId = `gift-${gift.id}-title`;
   const productUrl = safeHttpUrl(gift.purchase_url);
@@ -32,7 +44,13 @@ export function GiftCard({ gift, viewer, loginHref, pending, onReserve, onCancel
       data-reserved={reservedByOther ? "true" : undefined}
       className="card"
     >
-      <GiftPhoto src={gift.image_url} alt={gift.name} />
+      {detailHref ? (
+        <Link href={detailHref} aria-label={gift.name} className="card-photo-link">
+          <GiftPhoto src={gift.image_url} alt="" />
+        </Link>
+      ) : (
+        <GiftPhoto src={gift.image_url} alt={gift.name} />
+      )}
       <div className="card-body flex-1">
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
           <h3 id={titleId} className="display-card line-clamp-3 min-w-0">

@@ -41,4 +41,9 @@
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
+
+  .card-photo-link {
+    display: block;
+    border-radius: var(--radius-card);
+  }
 }

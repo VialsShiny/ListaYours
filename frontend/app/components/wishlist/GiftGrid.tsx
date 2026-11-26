@@ -13,6 +13,7 @@ type GiftGridProps = {
   pendingId: PublicGift["id"] | null;
   onReserve: (giftId: PublicGift["id"]) => void;
   onCancel: (giftId: PublicGift["id"]) => void;
+  detailHref?: (giftId: PublicGift["id"]) => string;
 };
 
 /**
@@ -26,6 +27,7 @@ export function GiftGrid({
   pendingId,
   onReserve,
   onCancel,
+  detailHref,
 }: GiftGridProps) {
   return (
     <ul className="gift-grid cascade" aria-label={label}>
@@ -38,6 +40,7 @@ export function GiftGrid({
             pending={pendingId === gift.id}
             onReserve={onReserve}
             onCancel={onCancel}
+            detailHref={detailHref?.(gift.id)}
           />
         </li>
       ))}

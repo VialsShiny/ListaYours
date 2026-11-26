@@ -18,6 +18,8 @@ import { usePublicWishlist } from "@/hooks/use-public-wishlist";
 import { useReservationActions } from "@/hooks/use-reservation-actions";
 import { useViewMode } from "@/hooks/use-view-mode";
 import { fireReservationConfetti } from "@/lib/confetti";
+import { detailHref } from "@/lib/gift-detail";
+import type { PublicGift } from "@/lib/types";
 import { resolveViewer } from "@/lib/viewer";
 import { groupGiftsByCategory } from "@/lib/wishlist-groups";
 
@@ -74,6 +76,7 @@ export function WishlistView({ slug }: { slug: string }) {
     pendingId: actions.pendingId,
     onReserve: actions.reserve,
     onCancel: actions.cancel,
+    detailHref: (giftId: PublicGift["id"]) => detailHref(slug, giftId, view),
   };
 
   return (

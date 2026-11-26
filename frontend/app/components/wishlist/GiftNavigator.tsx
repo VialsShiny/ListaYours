@@ -24,6 +24,7 @@ type GiftNavigatorProps = {
   pendingId: PublicGift["id"] | null;
   onReserve: (giftId: PublicGift["id"]) => void;
   onCancel: (giftId: PublicGift["id"]) => void;
+  detailHref?: (giftId: PublicGift["id"]) => string;
 };
 
 /**
@@ -37,6 +38,7 @@ export function GiftNavigator({
   pendingId,
   onReserve,
   onCancel,
+  detailHref,
 }: GiftNavigatorProps) {
   const nav = useGiftNavigator(groups);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -78,6 +80,7 @@ export function GiftNavigator({
             index={nav.index}
             motion={nav.motion}
             viewer={viewer}
+            detailHref={detailHref}
             onSelect={(index) => {
               if (index !== nav.index) nav.goToIndex(index, "pointer");
             }}
