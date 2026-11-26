@@ -40,6 +40,7 @@ type GiftFormDrawerProps = {
  */
 export function GiftFormDrawer({ open, gift, categories, store, onClose }: GiftFormDrawerProps) {
   const [values, setValues] = useState<GiftFormValues>(EMPTY_GIFT_FORM);
+  const [imageCandidates, setImageCandidates] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const phone = useMediaQuery("(max-width: 767px)");
@@ -48,6 +49,7 @@ export function GiftFormDrawer({ open, gift, categories, store, onClose }: GiftF
   useEffect(() => {
     if (!open) return;
     setValues(gift ? giftToFormValues(gift) : EMPTY_GIFT_FORM);
+    setImageCandidates([]);
     setError(null);
   }, [open, gift]);
 
@@ -90,10 +92,18 @@ export function GiftFormDrawer({ open, gift, categories, store, onClose }: GiftF
         <DrawerBody className="flex flex-col gap-6">
           <ScrapePrefill
             initialUrl={values.purchase_url}
-            onPrefill={(next) => setValues((current) => next(current))}
+            onPrefill={(next, images) => {
+              setValues((current) => next(current));
+              setImageCandidates(images);
+            }}
           />
           <form id={formId} onSubmit={handleSubmit} className="flex flex-col gap-5">
-            <GiftFormFields values={values} categories={categories} onChange={setValues} />
+            <GiftFormFields
+              values={values}
+              categories={categories}
+              imageCandidates={imageCandidates}
+              onChange={setValues}
+            />
             <StatusMessage message={error} tone="error" />
           </form>
         </DrawerBody>

@@ -9,12 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { useScrape } from "@/hooks/use-scrape";
 import type { GiftFormValues } from "@/lib/gift-form";
-import { prefillGiftFromProduct } from "@/lib/gift-prefill";
+import { imageCandidates, prefillGiftFromProduct } from "@/lib/gift-prefill";
 import type { ScrapeStrategy } from "@/lib/types";
 
 type ScrapePrefillProps = {
   initialUrl: string;
-  onPrefill: (apply: (current: GiftFormValues) => GiftFormValues) => void;
+  onPrefill: (apply: (current: GiftFormValues) => GiftFormValues, images: string[]) => void;
 };
 
 /**
@@ -30,7 +30,12 @@ export function ScrapePrefill({ initialUrl, onPrefill }: ScrapePrefillProps) {
     const trimmed = url.trim();
     if (!trimmed) return;
     const data = await analyse(trimmed, strategy);
-    if (data) onPrefill((current) => prefillGiftFromProduct(data, trimmed, current));
+    if (data) {
+      onPrefill(
+        (current) => prefillGiftFromProduct(data, trimmed, current),
+        imageCandidates([...data.images, ...data.gallery]),
+      );
+    }
   }
 
   const message =
