@@ -43,9 +43,14 @@ export function OwnerDashboard() {
       >
         <div className="mt-7 flex flex-col gap-5">
           <Notice>{voice.dashboard.notice}</Notice>
-          <SectionSwitch sections={SECTIONS} ready={Boolean(store.data)} />
         </div>
       </PageHero>
+
+      <div className="section-bar">
+        <div className="container">
+          <SectionSwitch sections={SECTIONS} ready={Boolean(store.data)} />
+        </div>
+      </div>
 
       {store.loading && !store.data ? (
         <section className="container pt-12" aria-busy="true">
@@ -66,7 +71,7 @@ export function OwnerDashboard() {
 
       {store.data ? (
         <div className="container flex flex-col gap-10 pt-12 md:gap-16 md:pt-16">
-          <section id="parametres" aria-labelledby="parametres-titre" className="scroll-mt-6">
+          <section id="parametres" aria-labelledby="parametres-titre" className="scroll-mt-24">
             <DashboardSectionTitle
               id="parametres-titre"
               index="#01"
@@ -74,7 +79,7 @@ export function OwnerDashboard() {
             />
             <SettingsForm store={store} wishlist={store.data.wishlist} />
           </section>
-          <section id="categories" aria-labelledby="categories-titre" className="scroll-mt-6">
+          <section id="categories" aria-labelledby="categories-titre" className="scroll-mt-24">
             <DashboardSectionTitle
               id="categories-titre"
               index="#02"
@@ -86,7 +91,7 @@ export function OwnerDashboard() {
               gifts={store.data.gifts}
             />
           </section>
-          <section id="cadeaux" aria-labelledby="cadeaux-titre" className="scroll-mt-6">
+          <section id="cadeaux" aria-labelledby="cadeaux-titre" className="scroll-mt-24">
             <GiftManager
               store={store}
               categories={store.data.categories}
