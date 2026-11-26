@@ -1,5 +1,6 @@
 import { account } from "@/content/voice-account";
 import { dashboard } from "@/content/voice-dashboard";
+import { detail } from "@/content/voice-detail";
 
 /**
  * Every personal line of the site, in the owner's voice (French, « tu », short, a little dry).
@@ -171,4 +172,5 @@ export const voice = {
   theme: { label: "Thème", system: "Système", light: "Clair", dark: "Sombre" },
   account,
   dashboard,
+  detail,
 } as const;

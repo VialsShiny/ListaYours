@@ -14,6 +14,7 @@ type CategorySectionProps = {
   pendingId: PublicGift["id"] | null;
   onReserve: (giftId: PublicGift["id"]) => void;
   onCancel: (giftId: PublicGift["id"]) => void;
+  detailHref?: (giftId: PublicGift["id"]) => string;
 };
 
 /**
@@ -27,6 +28,7 @@ export function CategorySection({
   pendingId,
   onReserve,
   onCancel,
+  detailHref,
 }: CategorySectionProps) {
   const headingId = `${group.anchor}-titre`;
   const count = group.gifts.length;
@@ -51,6 +53,7 @@ export function CategorySection({
         pendingId={pendingId}
         onReserve={onReserve}
         onCancel={onCancel}
+        detailHref={detailHref}
       />
     </section>
   );
