@@ -126,3 +126,10 @@ GitHub pull requests merged into `feat/wishlist-platform`.
 - Ran: two read-only audits (API and frontend) with findings prioritised; API pytest, ruff, ruff format, mypy; frontend lint, prettier, typecheck, vitest, build and the Playwright audit (see the PR for the final counts).
 - Passed: API 202/202 (129 before: 41 hardening tests + 32 import tests), ruff, mypy; frontend counts recorded in the PR description.
 - Remains: the frontend CSV import button (API ready; see the design in the PR), the Dependabot PRs for Next 16, React/react-dom, TypeScript 7 and Node 26 left open on purpose, the owner seed, and a Northflank health check. Existing production sessions are signed out once by the token format change.
+
+## 19. Framework majors kept on hold — branch `claude/deps-framework-a8fbb1` (2026-11-26)
+- Changed: decision 61 (Next.js stays on 15.5 with React 19; Dependabot #61 closed, #60 and #58 already closed by Dependabot once `main` carried React 19.3.1). No code change.
+- Ran: `gh pr view` on the three PRs, `npm view next` (dist-tags, release dates, Next 16 engines and peers), `npm audit --omit=dev` on the frontend, a read-through of the Next 16 migration surface (`proxy.ts`, Turbopack vs the `webpack` block, `next lint` removal and ESLint 9).
+- Passed: audit 0 vulnerabilities; 15.5.29 is on the same security release as 16.4.5.
+- Failed: nothing.
+- Remains: one planned migration to Next 16 and ESLint 9 later (proxy rename, flat config, Turbopack); TypeScript 7 and Node 26 are handled in their own session.
