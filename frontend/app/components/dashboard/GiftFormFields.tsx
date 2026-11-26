@@ -1,6 +1,7 @@
 "use client";
 
 import { Field } from "@/components/ui/field";
+import { ImageChoice } from "@/components/dashboard/ImageChoice";
 import { voice } from "@/content/voice";
 import { Input, Select, Textarea } from "@/components/ui/input";
 import { Toggle } from "@/components/ui/toggle";
@@ -10,10 +11,16 @@ import type { Category } from "@/lib/types";
 type GiftFormFieldsProps = {
   values: GiftFormValues;
   categories: Category[];
+  imageCandidates?: string[];
   onChange: (values: GiftFormValues) => void;
 };
 
-export function GiftFormFields({ values, categories, onChange }: GiftFormFieldsProps) {
+export function GiftFormFields({
+  values,
+  categories,
+  imageCandidates = [],
+  onChange,
+}: GiftFormFieldsProps) {
   function set<K extends keyof GiftFormValues>(key: K, value: GiftFormValues[K]) {
     onChange({ ...values, [key]: value });
   }
@@ -55,6 +62,11 @@ export function GiftFormFields({ values, categories, onChange }: GiftFormFieldsP
           />
         )}
       </Field>
+      <ImageChoice
+        candidates={imageCandidates}
+        value={values.image_url}
+        onChange={(url) => set("image_url", url)}
+      />
       <div className="grid gap-5 sm:grid-cols-3">
         <Field id="gift-price" label="Prix">
           {(describedBy) => (

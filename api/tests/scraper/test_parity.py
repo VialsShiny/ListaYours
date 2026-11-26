@@ -7,16 +7,8 @@ import pytest
 from app.scraper.parser import extract_all_data
 
 FIXTURES = Path(__file__).parent / "fixtures"
-SCRAPER_DIR = Path(__file__).resolve().parents[2] / "app" / "scraper"
-
-CASES = [
-    ("aliexpress_test_file", SCRAPER_DIR / "test.file.html", "https://fr.aliexpress.com/item/1005003030077320.html"),
-    ("generic_jsonld", FIXTURES / "generic_jsonld.html", "https://shirtz.cool/products/the-monsters-nearby-knit"),
-    ("amazon_like", FIXTURES / "amazon_like.html", "https://www.amazon.fr/dp/B0CZ762XQ3"),
-    ("robot_check", FIXTURES / "robot_check.html", "https://www.amazon.com/dp/B0CPBNV3H4"),
-    ("microdata", FIXTURES / "microdata.html", "https://gear.koenigsegg.com/product/ghost-braided-bracelet-silver/"),
-    ("amazon_real_B0CZ762XQ3", FIXTURES / "amazon_real_B0CZ762XQ3.html.gz", "https://www.amazon.fr/dp/B0CZ762XQ3"),
-]
+CORPUS = json.loads((FIXTURES / "corpus.json").read_text(encoding="utf-8"))
+GOLDEN = [case for case in CORPUS if case["golden"]]
 
 
 def read_fixture(path: Path) -> str:
@@ -30,12 +22,27 @@ def canonical(payload) -> str:
     return json.dumps(payload, ensure_ascii=False, sort_keys=True)
 
 
-@pytest.mark.parametrize(("name", "html_path", "url"), CASES, ids=[case[0] for case in CASES])
-def test_extract_all_data_matches_recorded_output(name: str, html_path: Path, url: str) -> None:
+def expected(name: str) -> dict:
+    return json.loads((FIXTURES / f"{name}.expected.json").read_text(encoding="utf-8"))
+
+
+@pytest.mark.parametrize("case", GOLDEN, ids=[case["name"] for case in GOLDEN])
+def test_extract_all_data_matches_recorded_output(case: dict) -> None:
     """Golden test: the parser output for recorded HTML must stay byte-identical to the fixture."""
-    expected = json.loads((FIXTURES / f"{name}.expected.json").read_text(encoding="utf-8"))
-    actual = extract_all_data(read_fixture(html_path), url)
-    assert canonical(actual) == canonical(expected)
+    actual = extract_all_data(read_fixture(FIXTURES / case["file"]), case["url"])
+    assert canonical(actual) == canonical(expected(case["name"]))
+
+
+@pytest.mark.parametrize("case", CORPUS, ids=[case["name"] for case in CORPUS])
+def test_main_image_is_the_product_photo(case: dict) -> None:
+    """Every page of the corpus: the first image is the hand-checked main photo and gallery mirrors images.
+
+    The other fields are measured, not asserted, by `scripts/scrape_report.py` (docs/SCRAPER-REPORT.md).
+    """
+    actual = extract_all_data(read_fixture(FIXTURES / case["file"]), case["url"])
+    assert actual["images"][:1] == expected(case["name"])["images"][:1]
+    assert actual["gallery"] == actual["images"] or case["name"] == "aliexpress_test_file"
+    assert len(actual["images"]) <= 8 or case["name"] == "aliexpress_test_file"
 
 
 def test_output_keys_are_stable() -> None:

@@ -1,33 +1,13 @@
 import json
 import logging
+import re
 from typing import Dict, Any
-from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from app.scraper.utils.text import clean_text
+from app.scraper.utils.parsing import parse_price
+from app.scraper.parsers.amazon_images import _extract_images
 
 logger = logging.getLogger("TEST AMAZON")
-
-def _extract_images(soup: BeautifulSoup, product_info: Dict[str, Any], base_url: str, locked_fields: set[str] | None = None) -> None:
-    """Extract and process product images."""
-    if soup.find_all('img'):
-        handled_images = False
-        for img in soup.find_all('img'):
-            img_src = img.get('data-old-hires')
-            if not img_src or img_src.startswith('data:'):
-                continue
-
-            if ',' in img_src:
-                img_src = img_src.split(',')[-1].strip().split(' ')[0]
-
-            full_url = urljoin(base_url, img_src)
-            if full_url not in product_info['gallery'] and not full_url.startswith('data:'):
-                product_info['gallery'].append(full_url)
-                handled_images = True
-
-        if handled_images or product_info['gallery']:
-            locked_fields.add("images")
-            if not product_info['images'] and product_info['gallery']:
-                product_info['images'] = product_info['gallery'][:2]
 
 def _extract_variant_value(li, dimension: str) -> str:
     """Extract variant value from list item."""
@@ -116,6 +96,61 @@ def _extract_reviews(soup: BeautifulSoup, product_info: Dict[str, Any], locked_f
     product_info["reviews"]["review_count"] = _parse_review_count(review_text)
     locked_fields.add("reviews")
 
+def _extract_title(soup: BeautifulSoup, product_info: Dict[str, Any], locked_fields: set[str] | None = None) -> None:
+    """The product title node, instead of the <meta name=title> that carries the ' : Amazon.fr: ...' suffix."""
+    node = soup.select_one("#productTitle")
+    if node and clean_text(node.get_text()):
+        product_info["title"] = clean_text(node.get_text())
+        locked_fields.add("title")
+
+PRICE_BLOCK = "#corePriceDisplay_desktop_feature_div, #corePrice_feature_div, #corePrice_desktop, #apex_desktop"
+CURRENCIES = (("€", "EUR"), ("EUR", "EUR"), ("$", "USD"), ("USD", "USD"), ("£", "GBP"), ("¥", "JPY"))
+
+def _extract_price(soup: BeautifulSoup, product_info: Dict[str, Any], locked_fields: set[str] | None = None) -> None:
+    """Price to pay and list price from the buy box; no buy box (unavailable, undeliverable) means no price."""
+    block = soup.select_one(PRICE_BLOCK)
+    if block is None:
+        return
+    locked_fields.update({"price", "old_price", "discount"})
+    pay = block.select_one(".apex-pricetopay-value, .priceToPay")
+    offscreen = pay.select_one(".a-offscreen") if pay else None
+    text = clean_text(offscreen.get_text() if offscreen and offscreen.get_text().strip() else pay.get_text("")) if pay else ""
+    product_info["price"] = parse_price(text) if text else None
+    basis = soup.select_one(".apex-basisprice-value .a-offscreen, .basisPrice .a-offscreen")
+    product_info["old_price"] = parse_price(clean_text(basis.get_text())) if basis and product_info["price"] else None
+    product_info["currency"] = next((code for symbol, code in CURRENCIES if symbol in text), product_info["currency"])
+
+def _extract_description(soup: BeautifulSoup, product_info: Dict[str, Any], locked_fields: set[str] | None = None) -> None:
+    """The feature bullets are the product description a reader sees; the meta description is SEO boilerplate."""
+    bullets = [clean_text(li.get_text(" ")) for li in soup.select("#feature-bullets li, #productDescription p")]
+    if any(bullets):
+        product_info["description"] = " ".join(bullet for bullet in bullets if bullet)
+        locked_fields.add("description")
+
+BYLINE_NOISE = re.compile(r"^(Visit the |Visiter la boutique |Besuche den |Brand: |Marque : |Marke: )|( Store|-Store)$")
+UNAVAILABLE = re.compile(r"(?i)indisponible|unavailable|cannot be shipped|kann nicht|nicht verfügbar")
+IN_STOCK = re.compile(r"(?i)stock|lager|available|disponible")
+
+def _extract_brand(soup: BeautifulSoup, product_info: Dict[str, Any], locked_fields: set[str] | None = None) -> None:
+    """Brand row of the overview table, else the byline ('Visit the X Store' in every locale)."""
+    row = soup.select_one("tr.po-brand td.a-span9")
+    byline = soup.select_one("#bylineInfo")
+    brand = clean_text(row.get_text()) if row else BYLINE_NOISE.sub("", clean_text(byline.get_text()) or "") if byline else ""
+    if brand:
+        product_info["brand"] = brand
+        locked_fields.add("brand")
+
+def _extract_stock(soup: BeautifulSoup, product_info: Dict[str, Any], locked_fields: set[str] | None = None) -> None:
+    """The availability box wins over the buy-button heuristic, whose keywords are French and English only."""
+    box = soup.select_one("#availability")
+    if box is None:
+        return
+    text = clean_text(box.get_text(" ")) or ""
+    available = not UNAVAILABLE.search(text) and (bool(soup.select_one("#add-to-cart-button")) or bool(IN_STOCK.search(text)))
+    product_info["availability"] = available
+    product_info["stock"] = "InStock" if available else "OutOfStock"
+    locked_fields.add("stock")
+
 def _extract_sku(soup: BeautifulSoup, product_info: Dict[str, Any], locked_fields: set[str] | None = None) -> None:
     """Extract ASIN/SKU identifier."""
     asin_block = soup.select_one("[data-asin]")
@@ -133,6 +168,11 @@ def amazon_parsers(
     """Parse Amazon product information and return temporary lock fields."""
     locked_fields: set[str] = set()
 
+    _extract_title(soup, product_info, locked_fields)
+    _extract_price(soup, product_info, locked_fields)
+    _extract_description(soup, product_info, locked_fields)
+    _extract_brand(soup, product_info, locked_fields)
+    _extract_stock(soup, product_info, locked_fields)
     _extract_images(soup, product_info, base_url, locked_fields)
     _extract_variants(soup, product_info, locked_fields)
     _extract_category(soup, product_info, locked_fields)

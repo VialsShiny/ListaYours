@@ -33,7 +33,7 @@ api/app/
   services/        logique métier, transactions, erreurs ServiceError -> HTTP
   db/              engine, Base, modèles SQLAlchemy, types ; migrations dans api/alembic/
   utils/           jwt/session cookie, images (avatars WebP), rate_limit, url_safety
-  scraper/         GELÉ : parité avec le comportement enregistré (tests api/tests/scraper)
+  scraper/         parseurs HTML (Amazon, AliExpress, générique) verrouillés par un corpus de pages enregistrées
 frontend/
   middleware.ts    proxy /api/* vers l'API (secret, adresse client, taille, en-têtes)
   next.config.mjs  CSP et en-têtes de sécurité
@@ -92,7 +92,9 @@ frontend/
 - API : type hints partout, `ruff` (E, F, I, B, UP) et `mypy`, erreurs métier via `ServiceError`,
   messages utilisateur en français, aucune requête SQL brute.
 - Toute garde de sécurité a un test qui échoue si on la retire.
-- Le scraper (`api/app/scraper/**`) ne se modifie pas : les tests de parité le verrouillent.
+- Le scraper (`api/app/scraper/**`) se modifie avec le corpus : `api/tests/scraper/fixtures/corpus.json` liste les
+  pages enregistrées et leur `*.expected.json` relevé à la main ; toute attente modifiée s'explique dans la PR et
+  `api/scripts/scrape_report.py --baseline` mesure l'avant/après (`docs/SCRAPER-REPORT.md`).
 
 ## 5. Vérifier son travail
 
