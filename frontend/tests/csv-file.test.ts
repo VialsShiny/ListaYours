@@ -27,6 +27,11 @@ describe("decodeCsv", () => {
   it("keeps the euro sign of windows-1252 files", () => {
     expect(decodeCsv(new Uint8Array([0x31, 0x32, 0x20, 0x80]))).toBe("12 €");
   });
+
+  it("maps the typographic punctuation Excel writes in the 0x80-0x9F range", () => {
+    const bytes = new Uint8Array([0x6c, 0x92, 0x9c, 0x75, 0x66, 0x85, 0x93, 0x61, 0x94]);
+    expect(decodeCsv(bytes)).toBe("l’œuf…“a”");
+  });
 });
 
 describe("readCsvFile", () => {

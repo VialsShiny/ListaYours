@@ -3,6 +3,9 @@ import { voice } from "@/content/voice";
 export const CSV_MAX_CHARS = 1_000_000;
 const EXTENSIONS = [".csv", ".txt"];
 const BOM = "\uFEFF";
+const C1_START = 0x80;
+const C1_END = 0x9f;
+const WINDOWS_1252_C1 = "€\u0081‚ƒ„…†‡ˆ‰Š‹Œ\u008dŽ\u008f\u0090‘’“”•–—˜™š›œ\u009džŸ";
 
 /**
  * Client-side check of a picked file: only the extension, since browsers report CSV MIME types
@@ -17,6 +20,19 @@ export function checkCsvFile(file: { name: string }): string | null {
 }
 
 /**
+ * Runtimes built without full ICU data (some Node builds) decode the `windows-1252` label as plain
+ * Latin-1, leaving C1 control characters where Excel wrote €, ’, œ or …; browsers never do. The
+ * 0x80–0x9F range is remapped here so the result is the same everywhere.
+ */
+function decodeWindows1252(bytes: ArrayBuffer | Uint8Array): string {
+  const text = new TextDecoder("windows-1252").decode(bytes);
+  return text.replace(/[\u0080-\u009f]/g, (char) => {
+    const code = char.charCodeAt(0);
+    return code >= C1_START && code <= C1_END ? WINDOWS_1252_C1[code - C1_START] : char;
+  });
+}
+
+/**
  * Decodes the bytes as UTF-8 when they are valid UTF-8, otherwise as windows-1252, which is what
  * Excel on Windows writes by default. The BOM Excel adds is dropped either way.
  */
@@ -25,7 +41,7 @@ export function decodeCsv(bytes: ArrayBuffer | Uint8Array): string {
   try {
     text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
   } catch {
-    text = new TextDecoder("windows-1252").decode(bytes);
+    text = decodeWindows1252(bytes);
   }
   return text.startsWith(BOM) ? text.slice(1) : text;
 }
